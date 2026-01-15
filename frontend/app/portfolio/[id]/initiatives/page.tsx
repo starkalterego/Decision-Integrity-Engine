@@ -86,43 +86,46 @@ export default function InitiativesPage() {
             <Header portfolioName="FY26 Growth Portfolio" portfolioId="demo" currentPage="initiatives" />
 
             <main className="page-container">
-                <div className="section-header">
-                    <div>
-                        <h1 className="text-2xl font-semibold">Initiative Intake</h1>
-                        <p className="text-sm text-neutral-600 mt-1">Capture decision-grade initiatives only</p>
+                {/* Enhanced Page Header & Context */}
+                <div className="mb-10">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">Initiative Intake</h1>
+                            <p className="text-sm text-neutral-500 mt-2">Capture decision-grade initiatives only</p>
+                        </div>
+                        <Button variant="secondary" onClick={handleAddInitiative}>+ Add Initiative</Button>
                     </div>
-                    <Button onClick={handleAddInitiative}>+ Add Initiative</Button>
                 </div>
 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-4 gap-4 mb-6">
-                    <div className="card">
-                        <div className="metric-label">Total Initiatives</div>
+                {/* Enhanced Summary Metrics Cards */}
+                <div className="grid grid-cols-4 gap-6 mb-8">
+                    <div className="card p-6">
+                        <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-3">Total Initiatives</div>
                         <div className="text-3xl font-bold text-neutral-900">{initiatives.length}</div>
                     </div>
-                    <div className="card border-l-4 border-l-status-green">
-                        <div className="metric-label">Complete</div>
+                    <div className="card p-6 bg-status-green-bg/30">
+                        <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-3">Complete</div>
                         <div className="text-3xl font-bold text-status-green">{completeCount}</div>
                     </div>
-                    <div className="card border-l-4 border-l-status-red">
-                        <div className="metric-label">Incomplete</div>
+                    <div className="card p-6 bg-status-red-bg/40 border-l-4 border-l-status-red">
+                        <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-3">Incomplete</div>
                         <div className="text-3xl font-bold text-status-red">{incompleteCount}</div>
                     </div>
-                    <div className="card">
-                        <div className="metric-label">Total Value</div>
+                    <div className="card p-6">
+                        <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-3">Total Value</div>
                         <div className="text-2xl font-bold text-neutral-900 font-mono">
                             {formatCurrency(initiatives.reduce((sum, i) => sum + i.estimatedValue, 0))}
                         </div>
                     </div>
                 </div>
 
-                {/* Filter Bar */}
-                <div className="flex gap-2 mb-4">
+                {/* Enhanced Filter Tabs */}
+                <div className="flex gap-3 mb-6">
                     <button
                         onClick={() => setFilterStatus('all')}
                         className={`px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'all'
-                                ? 'bg-neutral-900 text-white'
-                                : 'bg-white text-neutral-700 border border-neutral-300 hover:bg-neutral-50'
+                            ? 'bg-neutral-900 text-white'
+                            : 'bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-50'
                             }`}
                         style={{ borderRadius: '2px' }}
                     >
@@ -131,8 +134,8 @@ export default function InitiativesPage() {
                     <button
                         onClick={() => setFilterStatus('complete')}
                         className={`px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'complete'
-                                ? 'bg-status-green text-white'
-                                : 'bg-white text-neutral-700 border border-neutral-300 hover:bg-neutral-50'
+                            ? 'bg-status-green text-white'
+                            : 'bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-50'
                             }`}
                         style={{ borderRadius: '2px' }}
                     >
@@ -141,8 +144,8 @@ export default function InitiativesPage() {
                     <button
                         onClick={() => setFilterStatus('incomplete')}
                         className={`px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'incomplete'
-                                ? 'bg-status-red text-white'
-                                : 'bg-white text-neutral-700 border border-neutral-300 hover:bg-neutral-50'
+                            ? 'bg-status-red text-white'
+                            : 'bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-50'
                             }`}
                         style={{ borderRadius: '2px' }}
                     >
@@ -150,31 +153,34 @@ export default function InitiativesPage() {
                     </button>
                 </div>
 
-                {/* Table */}
-                <div className="table-container">
-                    <table>
+                {/* Enhanced Initiative Table */}
+                <div className="bg-white border border-neutral-200 rounded overflow-hidden">
+                    <table className="w-full">
                         <thead>
-                            <tr>
-                                <th style={{ width: '25%' }}>Initiative Name</th>
-                                <th>Sponsor</th>
-                                <th>Delivery Owner</th>
-                                <th className="text-center">Strategic Alignment</th>
-                                <th className="text-right">Estimated Value</th>
-                                <th className="text-center">Risk Score</th>
-                                <th className="text-center">Status</th>
-                                <th className="text-center">Actions</th>
+                            <tr className="bg-neutral-50 border-b border-neutral-200">
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider" style={{ width: '25%' }}>Initiative Name</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Sponsor</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Delivery Owner</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-600 uppercase tracking-wider">Strategic Alignment</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-600 uppercase tracking-wider">Estimated Value</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-600 uppercase tracking-wider">Risk Score</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-600 uppercase tracking-wider">Status</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-600 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredInitiatives.map((initiative) => (
                                 <tr
                                     key={initiative.id}
-                                    className={!initiative.isComplete ? 'border-l-4 border-l-status-red bg-status-red-bg' : ''}
+                                    className={`border-b border-neutral-100 last:border-0 transition-colors ${!initiative.isComplete
+                                            ? 'border-l-4 border-l-status-red bg-status-red-bg/30'
+                                            : 'hover:bg-neutral-50'
+                                        }`}
                                 >
-                                    <td className="font-medium">{initiative.name}</td>
-                                    <td>{initiative.sponsor}</td>
-                                    <td>{initiative.deliveryOwner}</td>
-                                    <td className="text-center">
+                                    <td className="px-4 py-4 font-medium text-neutral-900">{initiative.name}</td>
+                                    <td className="px-4 py-4 text-neutral-700">{initiative.sponsor}</td>
+                                    <td className="px-4 py-4 text-neutral-700">{initiative.deliveryOwner}</td>
+                                    <td className="px-4 py-4 text-center">
                                         <div className="inline-flex items-center gap-1">
                                             {[1, 2, 3, 4, 5].map(star => (
                                                 <span
@@ -186,26 +192,26 @@ export default function InitiativesPage() {
                                             ))}
                                         </div>
                                     </td>
-                                    <td className="font-mono text-right">{formatCurrency(initiative.estimatedValue)}</td>
-                                    <td className="text-center">
-                                        <span className={`inline-block px-3 py-1 text-xs font-semibold ${initiative.riskScore >= 4
-                                                ? 'bg-status-red text-white'
-                                                : initiative.riskScore >= 3
-                                                    ? 'bg-neutral-300 text-neutral-900'
-                                                    : 'bg-status-green text-white'
+                                    <td className="px-4 py-4 font-mono text-right font-semibold text-neutral-900">{formatCurrency(initiative.estimatedValue)}</td>
+                                    <td className="px-4 py-4 text-center">
+                                        <span className={`inline-block px-2.5 py-1 text-xs font-semibold ${initiative.riskScore >= 4
+                                            ? 'bg-status-red text-white'
+                                            : initiative.riskScore >= 3
+                                                ? 'bg-neutral-200 text-neutral-700'
+                                                : 'bg-status-green text-white'
                                             }`} style={{ borderRadius: '2px' }}>
                                             {initiative.riskScore}/5
                                         </span>
                                     </td>
-                                    <td className="text-center">
+                                    <td className="px-4 py-4 text-center">
                                         <span className={`inline-block px-3 py-1 text-xs font-semibold ${initiative.isComplete
-                                                ? 'bg-status-green-bg text-status-green border border-status-green-border'
-                                                : 'bg-status-red-bg text-status-red border border-status-red-border'
+                                            ? 'bg-status-green-bg text-status-green border border-status-green-border'
+                                            : 'bg-status-red-bg text-status-red border border-status-red-border'
                                             }`} style={{ borderRadius: '2px' }}>
                                             {initiative.isComplete ? '✓ Complete' : '! Incomplete'}
                                         </span>
                                     </td>
-                                    <td className="text-center">
+                                    <td className="px-4 py-4 text-center">
                                         <Button
                                             variant="text"
                                             size="sm"
@@ -220,13 +226,14 @@ export default function InitiativesPage() {
                     </table>
                 </div>
 
+                {/* Enhanced Governance Rule Callout */}
                 {incompleteCount > 0 && (
-                    <div className="mt-6 p-4 bg-status-red-bg border-l-4 border-l-status-red text-sm">
-                        <div className="flex items-start gap-3">
-                            <span className="text-status-red text-xl">!</span>
+                    <div className="mt-8 p-6 bg-status-red-bg border-l-4 border-l-status-red rounded">
+                        <div className="flex items-start gap-4">
+                            <span className="text-status-red text-2xl font-bold mt-0.5">!</span>
                             <div>
-                                <strong className="text-status-red">Governance Rule:</strong>
-                                <p className="text-neutral-700 mt-1">
+                                <h3 className="text-sm font-bold text-status-red uppercase tracking-wide mb-2">Governance Rule</h3>
+                                <p className="text-sm text-neutral-700 leading-relaxed">
                                     {incompleteCount} incomplete initiative{incompleteCount > 1 ? 's' : ''} cannot be prioritized or modeled.
                                     All mandatory fields must be filled before an initiative can participate in decision-making.
                                 </p>

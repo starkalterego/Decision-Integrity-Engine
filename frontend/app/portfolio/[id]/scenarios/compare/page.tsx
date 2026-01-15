@@ -72,75 +72,88 @@ export default function ScenarioComparePage() {
             <Header portfolioName="FY26 Growth Portfolio" portfolioId="demo" currentPage="compare" />
 
             <main className="page-container">
-                <div className="section-header">
-                    <div>
-                        <h1 className="text-2xl font-semibold">Scenario Comparison</h1>
-                        <p className="text-sm text-neutral-600 mt-1">Enable explicit selection of the best scenario</p>
-                    </div>
-                    {recommendedScenario && (
-                        <div className="px-4 py-2 bg-status-green text-white font-semibold text-sm" style={{ borderRadius: '2px' }}>
-                            Recommended: {recommendedScenario.name}
+                {/* Enhanced Page Header & Context */}
+                <div className="mb-10">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">Scenario Comparison</h1>
+                            <p className="text-sm text-neutral-500 mt-2">Enable explicit selection of the best scenario</p>
                         </div>
-                    )}
+                        {recommendedScenario && (
+                            <div className="px-4 py-2 bg-status-green text-white font-semibold text-sm rounded">
+                                Recommended: {recommendedScenario.name}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {/* Visual Comparison Cards */}
-                <div className="grid grid-cols-3 gap-6 mb-8">
+                {/* Enhanced Scenario Summary Cards */}
+                <div className="grid grid-cols-3 gap-6 mb-10">
                     {scenarios.map(scenario => (
                         <div
                             key={scenario.id}
-                            className={`card ${scenario.id === 'baseline'
-                                    ? 'border-2 border-neutral-400 bg-neutral-100'
-                                    : scenario.isRecommended
-                                        ? 'border-2 border-status-green bg-status-green-bg'
-                                        : 'border border-neutral-200'
+                            className={`card p-6 ${scenario.id === 'baseline'
+                                ? 'bg-neutral-100/50 border border-neutral-300'
+                                : scenario.isRecommended
+                                    ? 'bg-status-green-bg/20 border-2 border-status-green'
+                                    : 'border border-neutral-200'
                                 }`}
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div>
-                                    <h3 className="font-semibold text-sm">{scenario.name}</h3>
+                                    <h3 className={`font-semibold ${scenario.id === 'baseline' ? 'text-sm text-neutral-600' : 'text-base text-neutral-900'}`}>
+                                        {scenario.name}
+                                    </h3>
                                     {scenario.id === 'baseline' && (
-                                        <span className="text-xs text-neutral-600">Reference</span>
+                                        <span className="text-xs text-neutral-500 italic">Reference</span>
                                     )}
                                 </div>
                                 {scenario.isRecommended && (
-                                    <span className="px-2 py-1 bg-status-green text-white text-xs font-semibold" style={{ borderRadius: '2px' }}>
-                                        ✓ REC
+                                    <span className="px-2.5 py-1 bg-status-green text-white text-xs font-semibold rounded">
+                                        ✓ Recommended
                                     </span>
                                 )}
                             </div>
 
                             <div className="space-y-3">
                                 <div>
-                                    <div className="text-xs text-neutral-600">Portfolio Value</div>
-                                    <div className="text-2xl font-bold font-mono">{formatCurrency(scenario.value)}</div>
+                                    <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-1">Portfolio Value</div>
+                                    <div className={`font-bold font-mono ${scenario.id === 'baseline' ? 'text-xl text-neutral-600' : 'text-2xl text-neutral-900'}`}>
+                                        {formatCurrency(scenario.value)}
+                                    </div>
                                     {scenario.id !== 'baseline' && (
-                                        <div className={`text-xs font-semibold ${calculateDelta(scenario.value, baseline.value) > 0 ? 'text-status-green' : 'text-status-red'
+                                        <div className={`text-xs mt-1 ${calculateDelta(scenario.value, baseline.value) > 0 ? 'text-status-green' : 'text-status-red'
                                             }`}>
                                             {formatDelta(calculateDelta(scenario.value, baseline.value))}
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="border-t border-neutral-200 pt-2">
-                                    <div className="text-xs text-neutral-600">Total Cost</div>
-                                    <div className="text-lg font-bold font-mono">{formatCurrency(scenario.cost)}</div>
+                                <div className="border-t border-neutral-200 pt-3">
+                                    <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-1">Total Cost</div>
+                                    <div className={`font-bold font-mono ${scenario.id === 'baseline' ? 'text-base text-neutral-600' : 'text-lg text-neutral-900'}`}>
+                                        {formatCurrency(scenario.cost)}
+                                    </div>
                                     {scenario.id !== 'baseline' && (
-                                        <div className={`text-xs font-semibold ${calculateDelta(scenario.cost, baseline.cost) < 0 ? 'text-status-green' : 'text-status-red'
+                                        <div className={`text-xs mt-1 ${calculateDelta(scenario.cost, baseline.cost) < 0 ? 'text-status-green' : 'text-status-red'
                                             }`}>
                                             {formatDelta(calculateDelta(scenario.cost, baseline.cost))}
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="border-t border-neutral-200 pt-2">
-                                    <div className="text-xs text-neutral-600">Capacity</div>
-                                    <div className="text-lg font-bold font-mono">{scenario.capacity} units</div>
+                                <div className="border-t border-neutral-200 pt-3">
+                                    <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-1">Capacity</div>
+                                    <div className={`font-bold font-mono ${scenario.id === 'baseline' ? 'text-base text-neutral-600' : 'text-lg text-neutral-900'}`}>
+                                        {scenario.capacity} units
+                                    </div>
                                 </div>
 
-                                <div className="border-t border-neutral-200 pt-2">
-                                    <div className="text-xs text-neutral-600">Risk</div>
-                                    <div className="text-lg font-bold font-mono">{scenario.risk.toFixed(1)}/10</div>
+                                <div className="border-t border-neutral-200 pt-3">
+                                    <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-1">Risk</div>
+                                    <div className={`font-bold font-mono ${scenario.id === 'baseline' ? 'text-base text-neutral-600' : 'text-lg text-neutral-900'}`}>
+                                        {scenario.risk.toFixed(1)}/10
+                                    </div>
                                 </div>
                             </div>
 
@@ -151,6 +164,7 @@ export default function ScenarioComparePage() {
                                         size="sm"
                                         className="w-full"
                                         onClick={() => handleMarkRecommended(scenario.id)}
+                                        disabled={scenario.isRecommended}
                                     >
                                         {scenario.isRecommended ? '✓ Recommended' : 'Mark as Recommended'}
                                     </Button>
@@ -160,23 +174,23 @@ export default function ScenarioComparePage() {
                     ))}
                 </div>
 
-                {/* Detailed Comparison Table */}
-                <div className="table-container">
-                    <table>
+                {/* Enhanced Comparison Table */}
+                <div className="bg-white border border-neutral-200 rounded overflow-hidden mb-8">
+                    <table className="w-full">
                         <thead>
-                            <tr>
-                                <th>Metric</th>
+                            <tr className="bg-neutral-50 border-b border-neutral-200">
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Metric</th>
                                 {scenarios.map(scenario => (
-                                    <th key={scenario.id} className={`text-center ${scenario.id === 'baseline' ? 'bg-neutral-200' : ''}`}>
+                                    <th key={scenario.id} className={`px-4 py-3 text-center text-xs font-semibold text-neutral-600 uppercase tracking-wider ${scenario.id === 'baseline' ? 'bg-neutral-100' : scenario.isRecommended ? 'bg-status-green-bg/10' : ''}`}>
                                         <div className="flex flex-col items-center gap-1">
                                             <span>{scenario.name}</span>
                                             {scenario.isRecommended && (
-                                                <span className="text-xs bg-status-green text-white px-2 py-0.5" style={{ borderRadius: '2px' }}>
+                                                <span className="text-xs bg-status-green text-white px-2 py-0.5 rounded font-semibold">
                                                     Recommended
                                                 </span>
                                             )}
                                             {scenario.id === 'baseline' && (
-                                                <span className="text-xs bg-neutral-400 text-white px-2 py-0.5" style={{ borderRadius: '2px' }}>
+                                                <span className="text-xs bg-neutral-400 text-white px-2 py-0.5 rounded font-semibold">
                                                     Baseline
                                                 </span>
                                             )}
@@ -186,13 +200,13 @@ export default function ScenarioComparePage() {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td className="font-semibold">Portfolio Value</td>
+                            <tr className="border-b border-neutral-100">
+                                <td className="px-4 py-4 font-semibold text-neutral-900">Portfolio Value</td>
                                 {scenarios.map(scenario => (
-                                    <td key={scenario.id} className={`font-mono text-center ${scenario.id === 'baseline' ? 'bg-neutral-100' : ''}`}>
-                                        <div className="text-base font-bold">{formatCurrency(scenario.value)}</div>
+                                    <td key={scenario.id} className={`px-4 py-4 font-mono text-center ${scenario.id === 'baseline' ? 'bg-neutral-50' : scenario.isRecommended ? 'bg-status-green-bg/5' : ''}`}>
+                                        <div className="text-base font-bold text-neutral-900">{formatCurrency(scenario.value)}</div>
                                         {scenario.id !== 'baseline' && (
-                                            <div className={`text-sm mt-1 font-semibold ${calculateDelta(scenario.value, baseline.value) > 0 ? 'text-status-green' : 'text-status-red'
+                                            <div className={`text-xs mt-1 ${calculateDelta(scenario.value, baseline.value) > 0 ? 'text-status-green' : 'text-status-red'
                                                 }`}>
                                                 {formatDelta(calculateDelta(scenario.value, baseline.value))}
                                             </div>
@@ -201,13 +215,13 @@ export default function ScenarioComparePage() {
                                 ))}
                             </tr>
 
-                            <tr>
-                                <td className="font-semibold">Total Cost</td>
+                            <tr className="border-b border-neutral-100">
+                                <td className="px-4 py-4 font-semibold text-neutral-900">Total Cost</td>
                                 {scenarios.map(scenario => (
-                                    <td key={scenario.id} className={`font-mono text-center ${scenario.id === 'baseline' ? 'bg-neutral-100' : ''}`}>
-                                        <div className="text-base font-bold">{formatCurrency(scenario.cost)}</div>
+                                    <td key={scenario.id} className={`px-4 py-4 font-mono text-center ${scenario.id === 'baseline' ? 'bg-neutral-50' : scenario.isRecommended ? 'bg-status-green-bg/5' : ''}`}>
+                                        <div className="text-base font-bold text-neutral-900">{formatCurrency(scenario.cost)}</div>
                                         {scenario.id !== 'baseline' && (
-                                            <div className={`text-sm mt-1 font-semibold ${calculateDelta(scenario.cost, baseline.cost) < 0 ? 'text-status-green' : 'text-status-red'
+                                            <div className={`text-xs mt-1 ${calculateDelta(scenario.cost, baseline.cost) < 0 ? 'text-status-green' : 'text-status-red'
                                                 }`}>
                                                 {formatDelta(calculateDelta(scenario.cost, baseline.cost))}
                                             </div>
@@ -216,13 +230,13 @@ export default function ScenarioComparePage() {
                                 ))}
                             </tr>
 
-                            <tr>
-                                <td className="font-semibold">Capacity Utilization</td>
+                            <tr className="border-b border-neutral-100">
+                                <td className="px-4 py-4 font-semibold text-neutral-900">Capacity Utilization</td>
                                 {scenarios.map(scenario => (
-                                    <td key={scenario.id} className={`font-mono text-center ${scenario.id === 'baseline' ? 'bg-neutral-100' : ''}`}>
-                                        <div className="text-base font-bold">{scenario.capacity} units</div>
+                                    <td key={scenario.id} className={`px-4 py-4 font-mono text-center ${scenario.id === 'baseline' ? 'bg-neutral-50' : scenario.isRecommended ? 'bg-status-green-bg/5' : ''}`}>
+                                        <div className="text-base font-bold text-neutral-900">{scenario.capacity} units</div>
                                         {scenario.id !== 'baseline' && (
-                                            <div className={`text-sm mt-1 font-semibold ${calculateDelta(scenario.capacity, baseline.capacity) < 0 ? 'text-status-green' : 'text-status-red'
+                                            <div className={`text-xs mt-1 ${calculateDelta(scenario.capacity, baseline.capacity) < 0 ? 'text-status-green' : 'text-status-red'
                                                 }`}>
                                                 {formatDelta(calculateDelta(scenario.capacity, baseline.capacity))}
                                             </div>
@@ -231,13 +245,13 @@ export default function ScenarioComparePage() {
                                 ))}
                             </tr>
 
-                            <tr>
-                                <td className="font-semibold">Risk Exposure</td>
+                            <tr className="last:border-0">
+                                <td className="px-4 py-4 font-semibold text-neutral-900">Risk Exposure</td>
                                 {scenarios.map(scenario => (
-                                    <td key={scenario.id} className={`font-mono text-center ${scenario.id === 'baseline' ? 'bg-neutral-100' : ''}`}>
-                                        <div className="text-base font-bold">{scenario.risk.toFixed(1)}/10</div>
+                                    <td key={scenario.id} className={`px-4 py-4 font-mono text-center ${scenario.id === 'baseline' ? 'bg-neutral-50' : scenario.isRecommended ? 'bg-status-green-bg/5' : ''}`}>
+                                        <div className="text-base font-bold text-neutral-900">{scenario.risk.toFixed(1)}/10</div>
                                         {scenario.id !== 'baseline' && (
-                                            <div className={`text-sm mt-1 font-semibold ${calculateDelta(scenario.risk, baseline.risk) < 0 ? 'text-status-green' : 'text-status-red'
+                                            <div className={`text-xs mt-1 ${calculateDelta(scenario.risk, baseline.risk) < 0 ? 'text-status-green' : 'text-status-red'
                                                 }`}>
                                                 {formatDelta(calculateDelta(scenario.risk, baseline.risk))}
                                             </div>
@@ -249,32 +263,33 @@ export default function ScenarioComparePage() {
                     </table>
                 </div>
 
-                <div className="mt-6 grid grid-cols-2 gap-6">
-                    <div className="card bg-neutral-100">
-                        <h3 className="font-semibold mb-3 text-sm">Governance Rules</h3>
-                        <ul className="text-xs text-neutral-700 space-y-2">
+                {/* Enhanced Governance Rules & Next Steps */}
+                <div className="grid grid-cols-2 gap-8">
+                    <div className="card bg-neutral-50 p-6">
+                        <h3 className="font-semibold mb-4 text-sm text-neutral-900 uppercase tracking-wide">Governance Rules</h3>
+                        <ul className="text-sm text-neutral-700 space-y-3 leading-relaxed">
                             <li className="flex gap-2">
-                                <span className="text-neutral-500">•</span>
+                                <span className="text-neutral-400">•</span>
                                 <span>All metrics are system-calculated only</span>
                             </li>
                             <li className="flex gap-2">
-                                <span className="text-neutral-500">•</span>
+                                <span className="text-neutral-400">•</span>
                                 <span>Only one scenario can be marked as recommended</span>
                             </li>
                             <li className="flex gap-2">
-                                <span className="text-neutral-500">•</span>
+                                <span className="text-neutral-400">•</span>
                                 <span>Recommended scenario becomes read-only</span>
                             </li>
                             <li className="flex gap-2">
-                                <span className="text-neutral-500">•</span>
+                                <span className="text-neutral-400">•</span>
                                 <span>Deltas are always relative to baseline</span>
                             </li>
                         </ul>
                     </div>
 
-                    <div className="card border-l-4 border-l-status-green">
-                        <h3 className="font-semibold mb-3 text-sm">Next Steps</h3>
-                        <p className="text-sm text-neutral-700 mb-3">
+                    <div className="card border-l-4 border-l-status-green p-6">
+                        <h3 className="font-semibold mb-4 text-sm text-neutral-900 uppercase tracking-wide">Next Steps</h3>
+                        <p className="text-sm text-neutral-700 mb-4 leading-relaxed">
                             Once you've selected a recommended scenario, proceed to generate the Executive One-Pager for final approval.
                         </p>
                         <Button variant="primary" className="w-full">

@@ -63,76 +63,85 @@ export default function ScenarioWorkspacePage() {
             <Header portfolioName="FY26 Growth Portfolio" portfolioId="demo" currentPage="scenarios" />
 
             <main className="page-container">
-                <div className="section-header">
-                    <div className="flex-1">
-                        <input
-                            type="text"
-                            value={scenarioName}
-                            onChange={(e) => setScenarioName(e.target.value)}
-                            disabled={isFinalized}
-                            className="text-2xl font-semibold bg-transparent border-none focus:outline-none focus:border-b-2 focus:border-neutral-700 w-full"
-                            style={{ maxWidth: '600px' }}
-                        />
-                        <p className="text-sm text-neutral-600 mt-1">Explore trade-offs under constraints</p>
+                {/* Enhanced Page Header & Context */}
+                <div className="mb-10">
+                    <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                            <input
+                                type="text"
+                                value={scenarioName}
+                                onChange={(e) => setScenarioName(e.target.value)}
+                                disabled={isFinalized}
+                                className="text-3xl font-bold text-neutral-900 tracking-tight bg-transparent border-none focus:outline-none focus:border-b-2 focus:border-neutral-700 w-full"
+                                style={{ maxWidth: '700px' }}
+                            />
+                            <p className="text-sm text-neutral-500 mt-2">Explore trade-offs under constraints</p>
+                        </div>
+                        {isFinalized ? (
+                            <StatusBadge status="green" text="Finalized" />
+                        ) : (
+                            <StatusBadge status="red" text="Draft" />
+                        )}
                     </div>
-                    {isFinalized ? (
-                        <StatusBadge status="green" text="Finalized" />
-                    ) : (
-                        <StatusBadge status="red" text="Draft" />
-                    )}
                 </div>
 
-                <div className="mb-6">
+                {/* Enhanced Scenario Assumptions */}
+                <div className="mb-8 bg-neutral-50 border border-neutral-200 p-6 rounded">
+                    <label className="block text-sm font-semibold text-neutral-700 mb-2">
+                        Scenario Assumptions <span className="text-status-red">*</span>
+                    </label>
                     <Textarea
-                        label="Scenario Assumptions (Mandatory)"
                         value={assumptions}
                         onChange={(e) => setAssumptions(e.target.value)}
                         disabled={isFinalized}
                         rows={2}
                         placeholder="Describe the key assumptions for this scenario..."
                     />
+                    <p className="text-xs text-neutral-500 mt-2 italic">
+                        All decisions below are evaluated under these assumptions.
+                    </p>
                 </div>
 
-                <div className="grid grid-cols-[1fr_380px] gap-6">
+                <div className="grid grid-cols-[1fr_380px] gap-8">
                     {/* Left Panel: Initiative Decision Table */}
                     <div>
-                        <div className="table-container">
-                            <table>
+                        {/* Enhanced Initiative Table */}
+                        <div className="bg-white border border-neutral-200 rounded overflow-hidden">
+                            <table className="w-full">
                                 <thead>
-                                    <tr>
-                                        <th style={{ width: '30%' }}>Initiative</th>
-                                        <th className="text-center" style={{ width: '10%' }}>Priority</th>
-                                        <th className="text-right" style={{ width: '15%' }}>Value</th>
-                                        <th className="text-center" style={{ width: '12%' }}>Capacity</th>
-                                        <th className="text-center" style={{ width: '10%' }}>Risk</th>
-                                        <th className="text-center" style={{ width: '23%' }}>Decision</th>
+                                    <tr className="bg-neutral-50 border-b border-neutral-200">
+                                        <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider" style={{ width: '30%' }}>Initiative</th>
+                                        <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-600 uppercase tracking-wider" style={{ width: '10%' }}>Priority</th>
+                                        <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-600 uppercase tracking-wider" style={{ width: '15%' }}>Value</th>
+                                        <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-600 uppercase tracking-wider" style={{ width: '12%' }}>Capacity</th>
+                                        <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-600 uppercase tracking-wider" style={{ width: '10%' }}>Risk</th>
+                                        <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-600 uppercase tracking-wider" style={{ width: '23%' }}>Decision</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {initiatives.map((initiative) => (
                                         <tr
                                             key={initiative.id}
-                                            className={
-                                                initiative.decision === 'FUND' ? 'bg-status-green-bg' :
-                                                    initiative.decision === 'STOP' ? 'bg-status-red-bg' :
-                                                        ''
-                                            }
+                                            className={`border-b border-neutral-100 last:border-0 transition-colors ${initiative.decision === 'FUND' ? 'bg-status-green-bg/20' :
+                                                    initiative.decision === 'STOP' ? 'bg-status-red-bg/20' :
+                                                        'hover:bg-neutral-50'
+                                                }`}
                                         >
-                                            <td className="font-medium">{initiative.name}</td>
-                                            <td className="font-mono text-center">
-                                                <span className="inline-block px-2 py-1 bg-neutral-100 text-neutral-900 font-semibold" style={{ borderRadius: '2px' }}>
+                                            <td className="px-4 py-4 font-medium text-neutral-900">{initiative.name}</td>
+                                            <td className="px-4 py-4 font-mono text-center">
+                                                <span className="inline-block px-2.5 py-1 bg-neutral-100 text-neutral-700 font-semibold text-sm" style={{ borderRadius: '2px' }}>
                                                     {initiative.priority}
                                                 </span>
                                             </td>
-                                            <td className="font-mono text-right">{formatCurrency(initiative.value)}</td>
-                                            <td className="font-mono text-center">{initiative.capacity}</td>
-                                            <td className="text-center">
-                                                <span className={`inline-block px-2 py-1 font-semibold ${initiative.risk >= 4 ? 'bg-status-red text-white' : 'bg-neutral-200 text-neutral-900'
+                                            <td className="px-4 py-4 font-mono text-right font-semibold text-neutral-900">{formatCurrency(initiative.value)}</td>
+                                            <td className="px-4 py-4 font-mono text-center text-neutral-700">{initiative.capacity}</td>
+                                            <td className="px-4 py-4 text-center">
+                                                <span className={`inline-block px-2.5 py-1 text-xs font-semibold ${initiative.risk >= 4 ? 'bg-status-red text-white' : 'bg-neutral-200 text-neutral-700'
                                                     }`} style={{ borderRadius: '2px' }}>
                                                     {initiative.risk}/5
                                                 </span>
                                             </td>
-                                            <td className="text-center">
+                                            <td className="px-4 py-4 text-center">
                                                 <DecisionToggle
                                                     value={initiative.decision}
                                                     onChange={(decision) => handleDecisionChange(initiative.id, decision)}
@@ -145,20 +154,20 @@ export default function ScenarioWorkspacePage() {
                             </table>
                         </div>
 
-                        {/* Summary Stats Below Table */}
-                        <div className="grid grid-cols-3 gap-4 mt-4">
-                            <div className="card text-center">
-                                <div className="text-xs text-neutral-600 mb-1">Funded</div>
+                        {/* Enhanced Funded/Paused/Stopped Summary */}
+                        <div className="grid grid-cols-3 gap-6 mt-6">
+                            <div className="card p-6 text-center">
+                                <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-2">Funded</div>
                                 <div className="text-2xl font-bold text-status-green">{fundedInitiatives.length}</div>
                             </div>
-                            <div className="card text-center">
-                                <div className="text-xs text-neutral-600 mb-1">Paused</div>
+                            <div className="card p-6 text-center">
+                                <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-2">Paused</div>
                                 <div className="text-2xl font-bold text-neutral-700">
                                     {initiatives.filter(i => i.decision === 'PAUSE').length}
                                 </div>
                             </div>
-                            <div className="card text-center">
-                                <div className="text-xs text-neutral-600 mb-1">Stopped</div>
+                            <div className="card p-6 text-center">
+                                <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-2">Stopped</div>
                                 <div className="text-2xl font-bold text-status-red">
                                     {initiatives.filter(i => i.decision === 'STOP').length}
                                 </div>
@@ -166,46 +175,46 @@ export default function ScenarioWorkspacePage() {
                         </div>
                     </div>
 
-                    {/* Right Panel: Live Metrics */}
-                    <div className="space-y-4 sticky top-6 self-start">
-                        <div className="card bg-neutral-900 text-white">
-                            <h3 className="text-sm font-semibold mb-4">Live Metrics</h3>
-                            <div className="space-y-4">
+                    {/* Enhanced Right Panel: Outcome Summary */}
+                    <div className="space-y-6 sticky top-6 self-start">
+                        <div className="card bg-neutral-900 text-white p-6 border-2 border-neutral-800">
+                            <h3 className="text-sm font-semibold mb-6 uppercase tracking-wide">Outcome Summary</h3>
+                            <div className="space-y-6">
                                 <div>
-                                    <div className="text-xs text-neutral-400 mb-1">Total Funded Value</div>
+                                    <div className="text-xs text-neutral-400 mb-2 uppercase tracking-wider">Total Funded Value</div>
                                     <div className="text-3xl font-bold font-mono">{formatCurrency(totalValue)}</div>
                                 </div>
 
-                                <div className="border-t border-neutral-700 pt-4">
-                                    <div className="text-xs text-neutral-400 mb-1">Capacity Utilization</div>
-                                    <div className="text-2xl font-bold font-mono mb-2">
+                                <div className="border-t border-neutral-700 pt-6">
+                                    <div className="text-xs text-neutral-400 mb-2 uppercase tracking-wider">Capacity Utilization</div>
+                                    <div className="text-2xl font-bold font-mono mb-3">
                                         {totalCapacity}/{capacityLimit}
                                     </div>
-                                    <div className="w-full bg-neutral-700 h-2" style={{ borderRadius: '2px' }}>
+                                    <div className="w-full bg-neutral-700 h-2.5 rounded-sm">
                                         <div
-                                            className={`h-2 ${isOverCapacity ? 'bg-status-red' : 'bg-status-green'}`}
+                                            className={`h-2.5 rounded-sm transition-all ${isOverCapacity ? 'bg-status-red' : 'bg-status-green'}`}
                                             style={{
-                                                width: `${Math.min(capacityUtilization, 100)}%`,
-                                                borderRadius: '2px'
+                                                width: `${Math.min(capacityUtilization, 100)}%`
                                             }}
                                         />
                                     </div>
-                                    <div className={`text-xs mt-1 ${isOverCapacity ? 'text-status-red' : 'text-status-green'}`}>
+                                    <div className={`text-xs mt-2 font-medium ${isOverCapacity ? 'text-status-red' : 'text-status-green'}`}>
                                         {capacityUtilization.toFixed(1)}% {isOverCapacity ? '(Exceeded!)' : '(Within limits)'}
                                     </div>
                                 </div>
 
-                                <div className="border-t border-neutral-700 pt-4">
-                                    <div className="text-xs text-neutral-400 mb-1">Average Risk</div>
+                                <div className="border-t border-neutral-700 pt-6">
+                                    <div className="text-xs text-neutral-400 mb-2 uppercase tracking-wider">Average Risk</div>
                                     <div className="text-2xl font-bold font-mono">{avgRisk.toFixed(1)}/5</div>
-                                    <div className={`text-xs mt-1 ${avgRisk >= 4 ? 'text-status-red' : 'text-status-green'}`}>
+                                    <div className={`text-xs mt-2 font-medium ${avgRisk >= 4 ? 'text-status-red' : 'text-status-green'}`}>
                                         {avgRisk >= 4 ? 'High risk exposure' : 'Acceptable risk'}
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="space-y-2">
+                        {/* Enhanced Primary Actions */}
+                        <div className="space-y-3">
                             <Button
                                 variant="secondary"
                                 className="w-full"
@@ -213,24 +222,31 @@ export default function ScenarioWorkspacePage() {
                             >
                                 Save Scenario
                             </Button>
-                            <Button
-                                variant="primary"
-                                className="w-full"
-                                onClick={handleFinalize}
-                                disabled={isOverCapacity || isFinalized || !assumptions.trim()}
-                            >
-                                {isFinalized ? 'Scenario Finalized' : 'Finalize Scenario'}
-                            </Button>
+                            <div>
+                                <Button
+                                    variant="primary"
+                                    className="w-full bg-amber-600 hover:bg-amber-700 border-amber-600"
+                                    onClick={handleFinalize}
+                                    disabled={isOverCapacity || isFinalized || !assumptions.trim()}
+                                >
+                                    {isFinalized ? 'Scenario Finalized' : 'Finalize Scenario'}
+                                </Button>
+                                {!isFinalized && !isOverCapacity && assumptions.trim() && (
+                                    <p className="text-xs text-neutral-500 mt-2 text-center">
+                                        Once finalized, this scenario becomes immutable.
+                                    </p>
+                                )}
+                            </div>
                         </div>
 
                         {isOverCapacity && (
-                            <div className="p-3 bg-status-red text-white text-xs font-semibold" style={{ borderRadius: '2px' }}>
+                            <div className="p-4 bg-status-red text-white text-sm font-semibold rounded">
                                 ⚠ Cannot finalize: Capacity constraint breached
                             </div>
                         )}
 
                         {!assumptions.trim() && !isFinalized && (
-                            <div className="p-3 bg-neutral-300 text-neutral-900 text-xs" style={{ borderRadius: '2px' }}>
+                            <div className="p-4 bg-neutral-200 text-neutral-700 text-sm rounded">
                                 ℹ Assumptions required before finalization
                             </div>
                         )}
@@ -260,12 +276,12 @@ function DecisionToggle({
                     onClick={() => onChange(option)}
                     disabled={disabled}
                     className={`px-3 py-1.5 text-xs font-semibold transition-all ${value === option
-                            ? option === 'FUND'
-                                ? 'bg-status-green text-white'
-                                : option === 'STOP'
-                                    ? 'bg-status-red text-white'
-                                    : 'bg-neutral-700 text-white'
-                            : 'bg-white text-neutral-700 hover:bg-neutral-50'
+                        ? option === 'FUND'
+                            ? 'bg-status-green text-white'
+                            : option === 'STOP'
+                                ? 'bg-status-red text-white'
+                                : 'bg-neutral-700 text-white'
+                        : 'bg-white text-neutral-600 hover:bg-neutral-50'
                         } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                     {option}

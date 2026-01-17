@@ -1,0 +1,103 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Portfolio - Defines the decision boundary (BACKEND.md lines 48-52)
+model Portfolio {
+  id            String   @id @default(uuid())
+  name          String
+  fiscalPeriod  String
+  totalBudget   Float
+  totalCapacity Int
+  status        String   @default("DRAFT") // DRAFT | LOCKED
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  initiatives   Initiative[]
+  scenarios     Scenario[]
+  governanceRecords GovernanceDecisionRecord[]
+}
+
+// Initiative - Atomic unit of decision-making (BACKEND.md lines 54-58)
+model Initiative {
+  id                      String   @id @default(uuid())
+  portfolioId             String
+  name                    String
+  sponsor                 String
+  deliveryOwner           String
+  strategicAlignmentScore Int      // 1-5
+  estimatedValue          Float
+  riskScore               Int      // 1-5
+  status                  String   @default("Proposed")
+  isComplete              Boolean  @default(false)
+  priorityScore           Float?   // Calculated by system
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  
+  portfolio               Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  capacityDemands         CapacityDemand[]
+  scenarioDecisions       ScenarioDecision[]
+}
+
+// Capacity Demand - Role-based capacity requirements
+model CapacityDemand {
+  id           String @id @default(uuid())
+  initiativeId String
+  role         String
+  units        Int
+  
+  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+}
+
+// Scenario - Clone of baseline portfolio state (BACKEND.md lines 60-64)
+model Scenario {
+  id            String   @id @default(uuid())
+  portfolioId   String
+  name          String
+  assumptions   String   // Mandatory per decision-logic.md lines 150-156
+  isBaseline    Boolean  @default(false)
+  isFinalized   Boolean  @default(false)
+  isRecommended Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  portfolio     Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  decisions     ScenarioDecision[]
+}
+
+// Scenario Decision - Fund/Pause/Stop per initiative
+model ScenarioDecision {
+  id           String @id @default(uuid())
+  scenarioId   String
+  initiativeId String
+  decision     String // FUND | PAUSE | STOP
+  
+  scenario     Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  
+  @@unique([scenarioId, initiativeId])
+}
+
+// Governance Decision Record - Immutable audit entity (BACKEND.md lines 66-69)
+model GovernanceDecisionRecord {
+  id          String   @id @default(uuid())
+  portfolioId String
+  actionType  String   // OVERRIDE | TERMINATION | FINALIZATION | SCENARIO_CREATION
+  entityId    String
+  entityType  String   // INITIATIVE | SCENARIO | PORTFOLIO
+  rationale   String?
+  userId      String   @default("system") // MVP: default to system
+  metadata    String?  // JSON string for additional data
+  createdAt   DateTime @default(now())
+  
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+}

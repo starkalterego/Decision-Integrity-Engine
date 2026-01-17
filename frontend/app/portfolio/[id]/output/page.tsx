@@ -1,19 +1,157 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 
-export default function ExecutiveOutputPage() {
+interface ExecutiveSummaryData {
+    portfolio: {
+        name: string;
+        fiscalPeriod: string;
+        totalBudget: number;
+        totalCapacity: number;
+    };
+    scenario: {
+        id: string;
+        name: string;
+        assumptions: string;
+        isFinalized: boolean;
+        createdAt: Date;
+        decisionOwner: string;
+        status: string;
+    };
+    decisionAsk: string;
+    metrics: {
+        investment: number;
+        expectedValue: number;
+        capacityUse: number;
+        riskExposure: string;
+        fundedCount: number;
+    };
+    deltas: {
+        investment: number;
+        value: number;
+        capacity: number;
+        risk: number;
+    };
+    baseline: {
+        investment: number;
+        value: number;
+        capacityUse: number;
+        risk: string;
+    };
+    executiveSnapshot: {
+        portfolioValue: number;
+        totalCost: number;
+        capacityUtilization: number;
+        riskLevel: string;
+    };
+    tradeOffSummary: {
+        whatChanged: string[];
+        whatGained: string[];
+    };
+    decisions: {
+        fund: any[];
+        pause: any[];
+        stop: any[];
+    };
+    unfundedInitiatives: any[];
+    keyRisks: string[];
+    scenarioComparison: {
+        baseline: any;
+        current: any;
+    };
+}
+
+export default function ExecutiveOutputPage({
+    params
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const resolvedParams = React.use(params);
+    const router = useRouter();
+    const [data, setData] = useState<ExecutiveSummaryData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
+    const [scenarios, setScenarios] = useState<any[]>([]);
+
+    useEffect(() => {
+        loadScenarios();
+    }, [resolvedParams.id]);
+
+    useEffect(() => {
+        if (selectedScenarioId) {
+            loadExecutiveSummary(selectedScenarioId);
+        }
+    }, [selectedScenarioId]);
+
+    const loadScenarios = async () => {
+        try {
+            const res = await fetch(`/api/scenarios?portfolioId=${resolvedParams.id}`);
+            const result = await res.json();
+
+            if (result.success && result.data.length > 0) {
+                setScenarios(result.data);
+                // Find first finalized scenario or use first scenario
+                const finalizedScenario = result.data.find((s: any) => s.isFinalized);
+                if (finalizedScenario) {
+                    setSelectedScenarioId(finalizedScenario.id);
+                }
+            }
+        } catch (err) {
+            console.error('Error loading scenarios:', err);
+        }
+    };
+
+    const loadExecutiveSummary = async (scenarioId: string) => {
+        try {
+            setIsLoading(true);
+            const res = await fetch(`/api/scenarios/${scenarioId}/executive-summary`);
+            const result = await res.json();
+
+            if (!result.success) {
+                console.error('Error:', result.errors);
+                return;
+            }
+
+            setData(result.data);
+        } catch (err) {
+            console.error('Error loading executive summary:', err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const formatCurrency = (value: number) => `₹${(value / 10000000).toFixed(0)}Cr`;
+
+    const formatDelta = (delta: number) => {
+        const sign = delta > 0 ? '+' : '';
+        return `${sign}${delta.toFixed(0)}%`;
+    };
 
     const handleDownloadPDF = () => {
         window.print();
     };
 
+    if (isLoading || !data) {
+        return (
+            <div className="min-h-screen bg-neutral-50">
+                <Header portfolioName="Portfolio" portfolioId={resolvedParams.id} currentPage="output" />
+                <main className="page-container mx-auto max-w-[1400px] p-8">
+                    <div className="text-center py-20">
+                        <p className="text-neutral-600">
+                            {isLoading ? 'Loading executive summary...' : 'No finalized scenario available. Please finalize a scenario first.'}
+                        </p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-neutral-50 font-sans text-neutral-900 selection:bg-neutral-200">
-            <Header portfolioName="FY26 Growth Portfolio" portfolioId="demo" currentPage="output" />
+            <Header portfolioName={data.portfolio.name} portfolioId={resolvedParams.id} currentPage="output" />
 
             <main className="page-container mx-auto max-w-[1400px] p-8">
                 <div className="section-header no-print flex justify-between items-center mb-8">
@@ -27,70 +165,76 @@ export default function ExecutiveOutputPage() {
                 {/* BOARD-READY ARTIFACT CONTAINER */}
                 <div className="bg-white shadow-xl rounded-sm border border-neutral-200 overflow-hidden print:shadow-none print:border-none">
 
-                    {/* ==================================================================================
-                        TIER 1: DECISION & OUTCOME (IMMEDIATE ATTENTION)
-                       ================================================================================== */}
-
-                    {/* 1️⃣ Header Block - Reduced Height, De-emphasized Metadata */}
+                    {/* Header Block */}
                     <div className="px-10 py-4 border-b border-neutral-100 flex justify-between items-end">
                         <div>
                             <div className="text-[10px] font-medium uppercase tracking-widest text-neutral-400 mb-1">Portfolio Decision Artifact</div>
-                            <div className="text-3xl font-bold tracking-tight text-neutral-900">Digital Transformation</div>
-                            <div className="text-sm text-neutral-400 mt-0.5 font-normal">Scenario: Optimization B</div>
+                            <div className="text-3xl font-bold tracking-tight text-neutral-900">{data.portfolio.name}</div>
+                            <div className="text-sm text-neutral-400 mt-0.5 font-normal">Scenario: {data.scenario.name}</div>
                         </div>
                         <div className="text-right">
                             <div className="text-[10px] uppercase tracking-widest text-neutral-400 mb-0.5">Decision Owner</div>
-                            <div className="text-sm font-medium text-neutral-500">J. Doe</div>
-                            <div className="text-xs text-neutral-400 font-mono mt-0.5">January 8, 2026</div>
+                            <div className="text-sm font-medium text-neutral-500">{data.scenario.decisionOwner}</div>
+                            <div className="text-xs text-neutral-400 font-mono mt-0.5">
+                                {new Date(data.scenario.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                            </div>
                         </div>
                     </div>
 
                     <div className="p-10 pb-14 space-y-16">
 
-                        {/* 2️⃣ Top Metric Cards - Enlarged Numbers, Reduced Label Weight */}
+                        {/* Top Metric Cards */}
                         <div className="grid grid-cols-4 gap-8">
                             <div className="bg-neutral-50/40 rounded-lg p-7 border-0 hover:bg-neutral-50/60 transition-all">
                                 <div className="text-[10px] font-medium uppercase tracking-widest text-neutral-400 mb-4">Investment</div>
-                                <div className="text-5xl font-bold text-neutral-900 tracking-tight font-mono mb-3">120 Cr</div>
+                                <div className="text-5xl font-bold text-neutral-900 tracking-tight font-mono mb-3">{formatCurrency(data.metrics.investment)}</div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[11px] font-semibold text-status-red bg-status-red-bg px-2 py-0.5 rounded">-10%</span>
+                                    <span className={`text-[11px] font-semibold ${data.deltas.investment < 0 ? 'text-status-red bg-status-red-bg' : 'text-neutral-600 bg-neutral-100'} px-2 py-0.5 rounded`}>
+                                        {formatDelta(data.deltas.investment)}
+                                    </span>
                                     <span className="text-[11px] text-neutral-400 font-normal">vs Baseline</span>
                                 </div>
                             </div>
                             <div className="bg-neutral-50/40 rounded-lg p-7 border-0 hover:bg-neutral-50/60 transition-all">
                                 <div className="text-[10px] font-medium uppercase tracking-widest text-neutral-400 mb-4">Expected Value</div>
-                                <div className="text-5xl font-bold text-neutral-900 tracking-tight font-mono mb-3">185 Cr</div>
+                                <div className="text-5xl font-bold text-neutral-900 tracking-tight font-mono mb-3">{formatCurrency(data.metrics.expectedValue)}</div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[11px] font-semibold text-status-green bg-status-green-bg px-2 py-0.5 rounded">+18%</span>
+                                    <span className={`text-[11px] font-semibold ${data.deltas.value > 0 ? 'text-status-green bg-status-green-bg' : 'text-neutral-600 bg-neutral-100'} px-2 py-0.5 rounded`}>
+                                        {formatDelta(data.deltas.value)}
+                                    </span>
                                     <span className="text-[11px] text-neutral-400 font-normal">vs Baseline</span>
                                 </div>
                             </div>
                             <div className="bg-neutral-50/40 rounded-lg p-7 border-0 hover:bg-neutral-50/60 transition-all">
                                 <div className="text-[10px] font-medium uppercase tracking-widest text-neutral-400 mb-4">Capacity Use</div>
-                                <div className="text-5xl font-bold text-neutral-900 tracking-tight font-mono mb-3">92%</div>
+                                <div className="text-5xl font-bold text-neutral-900 tracking-tight font-mono mb-3">{data.metrics.capacityUse.toFixed(0)}%</div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[11px] font-semibold text-status-green bg-status-green-bg px-2 py-0.5 rounded">Optimal</span>
+                                    <span className={`text-[11px] font-semibold ${data.metrics.capacityUse < 95 ? 'text-status-green bg-status-green-bg' : 'text-neutral-600 bg-neutral-100'} px-2 py-0.5 rounded`}>
+                                        {data.metrics.capacityUse < 95 ? 'Optimal' : 'High'}
+                                    </span>
                                     <span className="text-[11px] text-neutral-400 font-normal">Tolerance &lt;95%</span>
                                 </div>
                             </div>
                             <div className="bg-neutral-50/40 rounded-lg p-7 border-0 hover:bg-neutral-50/60 transition-all">
                                 <div className="text-[10px] font-medium uppercase tracking-widest text-neutral-400 mb-4">Risk Exposure</div>
-                                <div className="text-5xl font-bold text-neutral-900 tracking-tight font-mono mb-3">Medium</div>
+                                <div className="text-5xl font-bold text-neutral-900 tracking-tight font-mono mb-3">{data.metrics.riskExposure}</div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[11px] font-semibold text-status-green bg-status-green-bg px-2 py-0.5 rounded">Reduced</span>
-                                    <span className="text-[11px] text-neutral-400 font-normal">2 High Risks Removed</span>
+                                    <span className={`text-[11px] font-semibold ${data.deltas.risk < 0 ? 'text-status-green bg-status-green-bg' : 'text-neutral-600 bg-neutral-100'} px-2 py-0.5 rounded`}>
+                                        {data.deltas.risk < 0 ? 'Reduced' : 'Managed'}
+                                    </span>
+                                    <span className="text-[11px] text-neutral-400 font-normal">vs {data.baseline.risk}</span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* 4️⃣ THE DECISION ASK - Visually Dominant */}
+                        {/* THE DECISION ASK */}
                         <div className="relative bg-neutral-50 border border-neutral-200 rounded-lg p-14 pl-16 overflow-hidden">
                             <div className="absolute left-0 top-0 bottom-0 w-3 bg-accent-primary"></div>
                             <div className="flex items-start gap-8">
                                 <div className="flex-1">
                                     <h2 className="text-[11px] font-bold text-accent-primary uppercase tracking-[0.15em] mb-5">The Decision Ask</h2>
                                     <p className="text-[32px] font-medium text-neutral-900 leading-[1.5]">
-                                        Approve <span className="font-bold underline decoration-accent-primary/30 decoration-2 underline-offset-8">Scenario B</span> — a ₹120 Cr funded portfolio delivering ₹185 Cr expected value with controlled capacity utilization (92%) and reduced risk exposure.
+                                        {data.decisionAsk}
                                     </p>
                                 </div>
                                 <div className="flex flex-col gap-3 min-w-[200px]">
@@ -100,39 +244,34 @@ export default function ExecutiveOutputPage() {
                                         </div>
                                         <div>
                                             <div className="text-sm font-bold text-neutral-900">Approve</div>
-                                            <div className="text-xs text-neutral-500">Recommended</div>
+                                            <div className="text-xs text-neutral-500">{data.scenario.status}</div>
                                         </div>
                                     </button>
                                 </div>
                             </div>
                         </div>
 
+                        <div className="py-12"></div>
 
-                        {/* ==================================================================================
-                            TIER 2: WHY THIS DECISION (THE CONTEXT)
-                           ================================================================================== */}
-
-                        <div className="py-12"></div> {/* Increased Whitespace separator */}
-
-                        {/* Single Column Layout for Clean Presentation */}
+                        {/* Single Column Layout */}
                         <div className="space-y-14">
 
-                            {/* Executive Snapshot - Primary */}
+                            {/* Executive Snapshot */}
                             <div>
                                 <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400 mb-8 pb-2 border-b border-neutral-100">
                                     Executive Snapshot
                                 </h3>
                                 <div className="space-y-6">
                                     {[
-                                        { label: "Portfolio Value", value: "185 Cr", sub: "+18%", trend: "up" },
-                                        { label: "Total Cost", value: "120 Cr", sub: "-10%", trend: "down" },
-                                        { label: "Capacity Utilization", value: "92%", sub: "Optimal", trend: "neutral" },
-                                        { label: "Risk Level", value: "Medium", sub: "Lower", trend: "down" }
+                                        { label: "Portfolio Value", value: formatCurrency(data.executiveSnapshot.portfolioValue), sub: formatDelta(data.deltas.value), trend: data.deltas.value > 0 ? "up" : "neutral" },
+                                        { label: "Total Cost", value: formatCurrency(data.executiveSnapshot.totalCost), sub: formatDelta(data.deltas.investment), trend: data.deltas.investment < 0 ? "down" : "neutral" },
+                                        { label: "Capacity Utilization", value: `${data.executiveSnapshot.capacityUtilization.toFixed(0)}%`, sub: data.executiveSnapshot.capacityUtilization < 95 ? "Optimal" : "High", trend: "neutral" },
+                                        { label: "Risk Level", value: data.executiveSnapshot.riskLevel, sub: data.deltas.risk < 0 ? "Lower" : "Managed", trend: data.deltas.risk < 0 ? "down" : "neutral" }
                                     ].map((item, i) => (
                                         <div key={i} className="flex justify-between items-baseline py-4 border-b border-neutral-50 last:border-0 hover:bg-neutral-50/50 transition-colors px-3 -mx-3 rounded">
                                             <span className="text-sm font-medium text-neutral-600">{item.label}</span>
                                             <div className="text-right flex items-baseline gap-8">
-                                                <span className={`text-[11px] font-medium ${item.trend === 'up' || (item.trend === 'down' && item.label.includes('Risk')) || (item.trend === 'down' && item.label.includes('Cost')) ? 'text-status-green' : 'text-neutral-400'}`}>
+                                                <span className={`text-[11px] font-medium ${item.trend === 'up' || (item.trend === 'down' && (item.label.includes('Risk') || item.label.includes('Cost'))) ? 'text-status-green' : 'text-neutral-400'}`}>
                                                     {item.sub}
                                                 </span>
                                                 <span className="text-2xl font-bold font-mono text-neutral-900 w-32 text-right">{item.value}</span>
@@ -142,7 +281,7 @@ export default function ExecutiveOutputPage() {
                                 </div>
                             </div>
 
-                            {/* Trade-Off Summary - The Why */}
+                            {/* Trade-Off Summary */}
                             <div>
                                 <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400 mb-8 pb-2 border-b border-neutral-100">
                                     Trade-Off Summary
@@ -154,9 +293,9 @@ export default function ExecutiveOutputPage() {
                                             <span className="text-[11px] font-bold text-status-red uppercase tracking-[0.08em]">What Changed</span>
                                         </div>
                                         <ul className="space-y-4">
-                                            <li className="text-sm text-neutral-700 leading-relaxed font-medium break-words">• Stopped 3 initiatives <span className="text-neutral-500 text-xs ml-1">(freed ₹22 Cr)</span></li>
-                                            <li className="text-sm text-neutral-700 leading-relaxed font-medium break-words">• Delayed 2 initiatives <span className="text-neutral-500 text-xs ml-1">(protects capacity)</span></li>
-                                            <li className="text-sm text-neutral-700 leading-relaxed font-medium break-words">• Shifted funding to high NPV programs</li>
+                                            {data.tradeOffSummary.whatChanged.map((item, idx) => (
+                                                <li key={idx} className="text-sm text-neutral-700 leading-relaxed font-medium break-words">• {item}</li>
+                                            ))}
                                         </ul>
                                     </div>
                                     <div className="bg-status-green-bg/40 p-7 rounded-lg border border-status-green-border/40">
@@ -165,37 +304,35 @@ export default function ExecutiveOutputPage() {
                                             <span className="text-[11px] font-bold text-status-green uppercase tracking-[0.08em]">What Gained</span>
                                         </div>
                                         <ul className="space-y-4">
-                                            <li className="text-sm text-neutral-700 leading-relaxed font-medium break-words">• +₹28 Cr incremental value</li>
-                                            <li className="text-sm text-neutral-700 leading-relaxed font-medium break-words">• Lower delivery risk profile</li>
-                                            <li className="text-sm text-neutral-700 leading-relaxed font-medium break-words">• Improved capacity headroom</li>
+                                            {data.tradeOffSummary.whatGained.map((item, idx) => (
+                                                <li key={idx} className="text-sm text-neutral-700 leading-relaxed font-medium break-words">• {item}</li>
+                                            ))}
                                         </ul>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Scenario Comparison - Supporting */}
+                            {/* Scenario Comparison */}
                             <div>
                                 <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400 mb-8 pb-2 border-b border-neutral-100">
                                     Scenario Comparison
                                 </h3>
                                 <div className="border border-neutral-200 rounded-lg overflow-hidden text-sm max-w-2xl">
-                                    <div className="grid grid-cols-4 bg-neutral-50 border-b border-neutral-200">
+                                    <div className="grid grid-cols-3 bg-neutral-50 border-b border-neutral-200">
                                         <div className="p-4 font-semibold text-[10px] text-neutral-500 uppercase tracking-wider">Metric</div>
                                         <div className="p-4 text-center font-medium text-[10px] text-neutral-400 uppercase tracking-wider">Baseline</div>
-                                        <div className="p-4 text-center font-medium text-[10px] text-neutral-400 uppercase tracking-wider">A</div>
-                                        <div className="p-4 text-center font-bold text-[10px] text-accent-primary uppercase tracking-wider bg-accent-primary/10">B ★</div>
+                                        <div className="p-4 text-center font-bold text-[10px] text-accent-primary uppercase tracking-wider bg-accent-primary/10">{data.scenario.name.split(' ')[0]} ★</div>
                                     </div>
                                     {[
-                                        { label: 'Investment', b: '135', a: '125', r: '120', u: 'Cr' },
-                                        { label: 'Value', b: '157', a: '172', r: '185', u: 'Cr' },
-                                        { label: 'Cap. Used', b: '109', a: '96', r: '92', u: '%' },
-                                        { label: 'Risk', b: 'High', a: 'Med', r: 'Med', u: '' },
+                                        { label: 'Investment', b: formatCurrency(data.scenarioComparison.baseline.investment), r: formatCurrency(data.scenarioComparison.current.investment) },
+                                        { label: 'Value', b: formatCurrency(data.scenarioComparison.baseline.value), r: formatCurrency(data.scenarioComparison.current.value) },
+                                        { label: 'Cap. Used', b: `${data.scenarioComparison.baseline.capacityUsed.toFixed(0)}%`, r: `${data.scenarioComparison.current.capacityUsed.toFixed(0)}%` },
+                                        { label: 'Risk', b: data.scenarioComparison.baseline.risk, r: data.scenarioComparison.current.risk },
                                     ].map((row, i) => (
-                                        <div key={i} className="grid grid-cols-4 border-b border-neutral-100 last:border-0 hover:bg-neutral-50/30">
+                                        <div key={i} className="grid grid-cols-3 border-b border-neutral-100 last:border-0 hover:bg-neutral-50/30">
                                             <div className="p-4 font-medium text-neutral-600">{row.label}</div>
-                                            <div className="p-4 text-center text-neutral-300 font-mono text-sm">{row.b}</div>
-                                            <div className="p-4 text-center text-neutral-400 font-mono text-sm">{row.a}</div>
-                                            <div className="p-4 text-center font-bold font-mono text-neutral-900 bg-accent-primary/10 relative text-sm">
+                                            <div className="p-4 text-center text-neutral-400 font-mono text-sm">{row.b}</div>
+                                            <div className="p-4 text-center font-bold font-mono text-neutral-900 bg-accent-primary/10 text-sm">
                                                 {row.r}
                                             </div>
                                         </div>
@@ -203,25 +340,19 @@ export default function ExecutiveOutputPage() {
                                 </div>
                             </div>
 
-                            {/* Key Risks - Controlled */}
+                            {/* Key Risks */}
                             <div>
                                 <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400 mb-8 pb-2 border-b border-neutral-100">
                                     Key Risks
                                 </h3>
                                 <div className="space-y-6">
-                                    {[
-                                        { id: 1, title: "Adoption lag in Market A", risk: "Medium", mitigation: "Phased rollout + Change Management" },
-                                        { id: 2, title: "Vendor dependency on Program Z", risk: "Medium", mitigation: "Contract renegotiation planned" },
-                                        { id: 3, title: "Resource availability Q2", risk: "Low", mitigation: "Early hiring pipeline established" }
-                                    ].map((risk) => (
-                                        <div key={risk.id} className="border-l-2 border-neutral-200 pl-6 py-3 hover:border-neutral-400 transition-colors group">
+                                    {data.keyRisks.map((risk, idx) => (
+                                        <div key={idx} className="border-l-2 border-neutral-200 pl-6 py-3 hover:border-neutral-400 transition-colors group">
                                             <div className="flex justify-between items-start mb-2">
-                                                <div className="font-semibold text-neutral-800 text-sm">{risk.title}</div>
-                                                <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-400 bg-neutral-100 py-1 px-2.5 rounded-full whitespace-nowrap">{risk.risk}</span>
-                                            </div>
-                                            <div className="text-xs text-neutral-500 leading-relaxed mt-2">
-                                                <span className="font-semibold text-neutral-400 uppercase tracking-wide text-[9px] mr-2">Mitigation:</span>
-                                                {risk.mitigation}
+                                                <div className="font-semibold text-neutral-800 text-sm">{risk}</div>
+                                                <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-400 bg-neutral-100 py-1 px-2.5 rounded-full whitespace-nowrap">
+                                                    {idx === 0 || idx === 1 ? 'MEDIUM' : 'LOW'}
+                                                </span>
                                             </div>
                                         </div>
                                     ))}
@@ -230,93 +361,45 @@ export default function ExecutiveOutputPage() {
 
                         </div>
 
+                        <div className="py-12"></div>
 
-                        {/* ==================================================================================
-                            TIER 3: AUDIT & EXECUTION (EXECUTION PLAN)
-                           ================================================================================== */}
-
-                        <div className="py-12"></div> {/* Increased Whitespace separator */}
-
-                        <div className="bg-neutral-50 rounded-lg p-10 border border-neutral-100">
-                            <div className="grid grid-cols-2 gap-16">
-
-                                {/* What We Are Not Funding - Value Protection */}
-                                <div>
-                                    <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400 mb-8 pb-2 border-b border-neutral-200/50">
-                                        What We Are Not Funding
-                                    </h3>
-
-                                    {/* Impact Strip - Promoted */}
-                                    <div className="flex flex-wrap gap-x-12 gap-y-6 mb-10 pb-8 border-b border-neutral-200/60">
-                                        <div>
-                                            <div className="text-[10px] text-neutral-400 uppercase tracking-widest mb-2">Initiatives Stopped</div>
-                                            <div className="text-2xl font-bold text-neutral-900 font-mono">3</div>
-                                        </div>
-                                        <div>
-                                            <div className="text-[10px] text-neutral-400 uppercase tracking-widest mb-2">Cost Avoided</div>
-                                            <div className="text-2xl font-bold text-status-green font-mono">₹22 Cr</div>
-                                        </div>
-                                        <div>
-                                            <div className="text-[10px] text-neutral-400 uppercase tracking-widest mb-2">Capacity Released</div>
-                                            <div className="text-2xl font-bold text-neutral-900 font-mono">14 Mo <span className="text-xs text-neutral-400 font-sans font-medium">FTE</span></div>
-                                        </div>
+                        {/* What We Are Not Funding */}
+                        {data.unfundedInitiatives.length > 0 && (
+                            <div className="bg-neutral-50 rounded-lg p-10 border border-neutral-100">
+                                <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400 mb-8 pb-2 border-b border-neutral-200/50">
+                                    What We Are Not Funding
+                                </h3>
+                                <div className="flex flex-wrap gap-x-12 gap-y-6 mb-10 pb-8 border-b border-neutral-200/60">
+                                    <div>
+                                        <div className="text-[10px] text-neutral-400 uppercase tracking-widest mb-2">Initiatives Stopped</div>
+                                        <div className="text-2xl font-bold text-neutral-900 font-mono">{data.decisions.stop.length}</div>
                                     </div>
-
-                                    <ul className="space-y-3">
-                                        <li className="text-sm text-neutral-400 flex items-center gap-3">
-                                            <span className="w-1.5 h-1.5 bg-neutral-300 rounded-full"></span>
-                                            Program X (Low ROI / High Drag)
-                                        </li>
-                                        <li className="text-sm text-neutral-400 flex items-center gap-3">
-                                            <span className="w-1.5 h-1.5 bg-neutral-300 rounded-full"></span>
-                                            Program Y (Capacity Heavy)
-                                        </li>
-                                        <li className="text-sm text-neutral-400 flex items-center gap-3">
-                                            <span className="w-1.5 h-1.5 bg-neutral-300 rounded-full"></span>
-                                            Legacy Migration Phase 2
-                                        </li>
-                                    </ul>
-                                </div>
-
-                                {/* Next 30 Days Execution - Precision */}
-                                <div>
-                                    <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400 mb-8 pb-2 border-b border-neutral-200/50">
-                                        Next 30 Days Execution
-                                    </h3>
-                                    <div className="relative mt-12">
-                                        {/* Timeline Line */}
-                                        <div className="absolute top-2 left-0 right-0 h-px bg-neutral-200"></div>
-
-                                        <div className="grid grid-cols-4 gap-1 relative z-10">
-                                            {[
-                                                { label: "Decision", date: "Jan 8", status: "done" },
-                                                { label: "Funding Rel.", date: "Jan 15", status: "pending" },
-                                                { label: "Kickoff", date: "Jan 20", status: "pending" },
-                                                { label: "Checkpoint", date: "Apr 20", status: "pending" }
-                                            ].map((step, i) => (
-                                                <div key={i} className="flex flex-col items-center text-center">
-                                                    <div className={`w-4 h-4 rounded-full border-2 ${i === 0 ? 'bg-accent-primary border-accent-primary' : 'bg-white border-neutral-300'} mb-4 shadow-sm`}></div>
-                                                    <div className="text-[11px] font-bold text-neutral-900 uppercase tracking-wide leading-tight">{step.label}</div>
-                                                    <div className="text-[11px] text-neutral-400 mt-2 font-mono">{step.date}</div>
-                                                </div>
-                                            ))}
+                                    <div>
+                                        <div className="text-[10px] text-neutral-400 uppercase tracking-widest mb-2">Capacity Released</div>
+                                        <div className="text-2xl font-bold text-neutral-900 font-mono">
+                                            {data.unfundedInitiatives.reduce((sum: number, init: any) => sum + init.capacityReleased, 0)} <span className="text-xs text-neutral-400 font-sans font-medium">FTE</span>
                                         </div>
                                     </div>
                                 </div>
-
+                                <ul className="space-y-3">
+                                    {data.unfundedInitiatives.slice(0, 5).map((init: any) => (
+                                        <li key={init.id} className="text-sm text-neutral-400 flex items-center gap-3">
+                                            <span className="w-1.5 h-1.5 bg-neutral-300 rounded-full"></span>
+                                            {init.name} <span className="text-xs text-neutral-500">({init.decision})</span>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
-                        </div>
+                        )}
 
-                        {/* Consolidated Audit & Footer */}
+                        {/* Footer */}
                         <div className="mt-16 pt-8 border-t border-neutral-200/50">
                             <div className="flex flex-wrap justify-between items-center gap-4 opacity-40 hover:opacity-100 transition-opacity">
                                 <div className="text-[9px] font-medium text-neutral-400 uppercase tracking-widest">Audit Record</div>
                                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[9px] text-neutral-400">
-                                    <span className="font-mono whitespace-nowrap">ID: SC-FY26-001-B</span>
-                                    <span className="font-mono whitespace-nowrap">VER: 2.1</span>
-                                    <span className="font-mono whitespace-nowrap">US-EAST-1</span>
-                                    <span className="whitespace-nowrap">Prepared By: J. Doe</span>
-                                    <span className="whitespace-nowrap">January 8, 2026</span>
+                                    <span className="font-mono whitespace-nowrap">ID: {data.scenario.id.substring(0, 12)}</span>
+                                    <span className="whitespace-nowrap">Prepared By: {data.scenario.decisionOwner}</span>
+                                    <span className="whitespace-nowrap">{new Date(data.scenario.createdAt).toLocaleDateString()}</span>
                                 </div>
                             </div>
                         </div>
@@ -351,5 +434,3 @@ export default function ExecutiveOutputPage() {
         </div>
     );
 }
-
-{/* End of Component */ }

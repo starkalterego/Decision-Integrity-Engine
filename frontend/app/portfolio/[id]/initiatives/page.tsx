@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea, Select } from '@/components/ui/Input';
@@ -10,53 +11,51 @@ interface Initiative {
     name: string;
     sponsor: string;
     deliveryOwner: string;
-    strategicAlignment: number;
+    strategicAlignmentScore: number;
     estimatedValue: number;
     riskScore: number;
     status: string;
     isComplete: boolean;
+    capacityDemands: Array<{ role: string; units: number }>;
 }
 
-export default function InitiativesPage() {
-    const [initiatives, setInitiatives] = useState<Initiative[]>([
-        {
-            id: '1',
-            name: 'CRM Modernization',
-            sponsor: 'CRO',
-            deliveryOwner: 'IT',
-            strategicAlignment: 4,
-            estimatedValue: 35000000,
-            riskScore: 3,
-            status: 'Proposed',
-            isComplete: true,
-        },
-        {
-            id: '2',
-            name: 'Data Platform Upgrade',
-            sponsor: 'CTO',
-            deliveryOwner: 'Engineering',
-            strategicAlignment: 5,
-            estimatedValue: 50000000,
-            riskScore: 4,
-            status: 'Proposed',
-            isComplete: false,
-        },
-        {
-            id: '3',
-            name: 'Mobile App Redesign',
-            sponsor: 'CPO',
-            deliveryOwner: 'Product',
-            strategicAlignment: 3,
-            estimatedValue: 25000000,
-            riskScore: 2,
-            status: 'Proposed',
-            isComplete: true,
-        },
-    ]);
-
+export default function InitiativesPage({ params }: { params: Promise<{ id: string }> }) {
+    const resolvedParams = React.use(params);
+    const [initiatives, setInitiatives] = useState<Initiative[]>([]);
+    const [portfolio, setPortfolio] = useState<any>(null);
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [filterStatus, setFilterStatus] = useState<'all' | 'complete' | 'incomplete'>('all');
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Load portfolio and initiatives
+    useEffect(() => {
+        loadData();
+    }, [resolvedParams.id]);
+
+    const loadData = async () => {
+        setIsLoading(true);
+        try {
+            // Load portfolio
+            const portfolioRes = await fetch(`/api/portfolios/${resolvedParams.id}`);
+            const portfolioData = await portfolioRes.json();
+            if (portfolioData.success) {
+                setPortfolio(portfolioData.data);
+            }
+
+            // Load initiatives
+            const initiativesRes = await fetch(`/api/initiatives?portfolioId=${resolvedParams.id}`);
+            const initiativesData = await initiativesRes.json();
+            if (initiativesData.success) {
+                setInitiatives(initiativesData.data);
+            }
+        } catch (error) {
+            console.error('Error loading data:', error);
+            alert('Failed to load data');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleAddInitiative = () => {
         setEditingId(null);
@@ -66,6 +65,32 @@ export default function InitiativesPage() {
     const handleEditInitiative = (id: string) => {
         setEditingId(id);
         setShowModal(true);
+    };
+
+    const handleSaveInitiative = async (initiativeData: any) => {
+        try {
+            const response = await fetch('/api/initiatives', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    portfolioId: resolvedParams.id,
+                    ...initiativeData
+                }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                await loadData(); // Reload initiatives
+                setShowModal(false);
+                alert('Initiative saved successfully');
+            } else {
+                alert('Failed to save initiative: ' + (result.errors[0]?.message || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error saving initiative:', error);
+            alert('Failed to save initiative');
+        }
     };
 
     const formatCurrency = (value: number) => {
@@ -81,9 +106,20 @@ export default function InitiativesPage() {
     const completeCount = initiatives.filter(i => i.isComplete).length;
     const incompleteCount = initiatives.filter(i => !i.isComplete).length;
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-900 mx-auto mb-4"></div>
+                    <p className="text-neutral-600">Loading initiatives...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-neutral-50">
-            <Header portfolioName="FY26 Growth Portfolio" portfolioId="demo" currentPage="initiatives" />
+            <Header portfolioName={portfolio?.name || 'Portfolio'} portfolioId={resolvedParams.id} currentPage="initiatives" />
 
             <main className="page-container">
                 {/* Enhanced Page Header & Context */}
@@ -91,137 +127,150 @@ export default function InitiativesPage() {
                     <div className="flex items-start justify-between">
                         <div>
                             <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">Initiative Intake</h1>
-                            <p className="text-sm text-neutral-500 mt-2">Capture decision-grade initiatives only</p>
+                            <p className="text-sm text-neutral-500 mt-2">Add decision-grade initiatives to the portfolio</p>
                         </div>
-                        <Button variant="secondary" onClick={handleAddInitiative}>+ Add Initiative</Button>
+                        <Button
+                            variant="primary"
+                            onClick={handleAddInitiative}
+                            className="bg-neutral-900 hover:bg-neutral-800"
+                        >
+                            + Add Initiative
+                        </Button>
                     </div>
                 </div>
 
-                {/* Enhanced Summary Metrics Cards */}
-                <div className="grid grid-cols-4 gap-6 mb-8">
+                {/* Enhanced Summary Cards */}
+                <div className="grid grid-cols-3 gap-6 mb-10">
                     <div className="card p-6">
-                        <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-3">Total Initiatives</div>
-                        <div className="text-3xl font-bold text-neutral-900">{initiatives.length}</div>
+                        <p className="text-xs text-neutral-500 uppercase tracking-wide mb-2">Total Initiatives</p>
+                        <p className="text-3xl font-bold text-neutral-900">{initiatives.length}</p>
                     </div>
-                    <div className="card p-6 bg-status-green-bg/30">
-                        <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-3">Complete</div>
-                        <div className="text-3xl font-bold text-status-green">{completeCount}</div>
+                    <div className="card p-6 border-l-4 border-l-status-green">
+                        <p className="text-xs text-neutral-500 uppercase tracking-wide mb-2">Complete</p>
+                        <p className="text-3xl font-bold text-status-green">{completeCount}</p>
+                        <p className="text-xs text-neutral-600 mt-2">Ready for prioritization</p>
                     </div>
-                    <div className="card p-6 bg-status-red-bg/40 border-l-4 border-l-status-red">
-                        <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-3">Incomplete</div>
-                        <div className="text-3xl font-bold text-status-red">{incompleteCount}</div>
-                    </div>
-                    <div className="card p-6">
-                        <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-3">Total Value</div>
-                        <div className="text-2xl font-bold text-neutral-900 font-mono">
-                            {formatCurrency(initiatives.reduce((sum, i) => sum + i.estimatedValue, 0))}
-                        </div>
+                    <div className="card p-6 border-l-4 border-l-status-red">
+                        <p className="text-xs text-neutral-500 uppercase tracking-wide mb-2">Incomplete</p>
+                        <p className="text-3xl font-bold text-status-red">{incompleteCount}</p>
+                        <p className="text-xs text-neutral-600 mt-2">Missing required fields</p>
                     </div>
                 </div>
 
-                {/* Enhanced Filter Tabs */}
-                <div className="flex gap-3 mb-6">
-                    <button
-                        onClick={() => setFilterStatus('all')}
-                        className={`px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'all'
-                            ? 'bg-neutral-900 text-white'
-                            : 'bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-50'
-                            }`}
-                        style={{ borderRadius: '2px' }}
-                    >
-                        All ({initiatives.length})
-                    </button>
-                    <button
-                        onClick={() => setFilterStatus('complete')}
-                        className={`px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'complete'
-                            ? 'bg-status-green text-white'
-                            : 'bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-50'
-                            }`}
-                        style={{ borderRadius: '2px' }}
-                    >
-                        Complete ({completeCount})
-                    </button>
-                    <button
-                        onClick={() => setFilterStatus('incomplete')}
-                        className={`px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'incomplete'
-                            ? 'bg-status-red text-white'
-                            : 'bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-50'
-                            }`}
-                        style={{ borderRadius: '2px' }}
-                    >
-                        Incomplete ({incompleteCount})
-                    </button>
+                {/* Enhanced Filter Bar */}
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setFilterStatus('all')}
+                            className={`px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'all'
+                                ? 'bg-neutral-900 text-white'
+                                : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+                                }`}
+                            style={{ borderRadius: '2px' }}
+                        >
+                            All ({initiatives.length})
+                        </button>
+                        <button
+                            onClick={() => setFilterStatus('complete')}
+                            className={`px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'complete'
+                                ? 'bg-neutral-900 text-white'
+                                : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+                                }`}
+                            style={{ borderRadius: '2px' }}
+                        >
+                            Complete ({completeCount})
+                        </button>
+                        <button
+                            onClick={() => setFilterStatus('incomplete')}
+                            className={`px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'incomplete'
+                                ? 'bg-neutral-900 text-white'
+                                : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+                                }`}
+                            style={{ borderRadius: '2px' }}
+                        >
+                            Incomplete ({incompleteCount})
+                        </button>
+                    </div>
                 </div>
 
-                {/* Enhanced Initiative Table */}
-                <div className="bg-white border border-neutral-200 rounded overflow-hidden">
+                {/* Enhanced Initiatives Table */}
+                <div className="card overflow-hidden">
                     <table className="w-full">
                         <thead>
-                            <tr className="bg-neutral-50 border-b border-neutral-200">
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider" style={{ width: '25%' }}>Initiative Name</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Sponsor</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Delivery Owner</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-600 uppercase tracking-wider">Strategic Alignment</th>
-                                <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-600 uppercase tracking-wider">Estimated Value</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-600 uppercase tracking-wider">Risk Score</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-600 uppercase tracking-wider">Status</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-600 uppercase tracking-wider">Actions</th>
+                            <tr className="bg-neutral-100 border-b border-neutral-200">
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wide">Initiative</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wide">Sponsor</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wide">Delivery Owner</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wide">Alignment</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wide">Capacity</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-700 uppercase tracking-wide">Value</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-700 uppercase tracking-wide">Risk</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-700 uppercase tracking-wide">Status</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-700 uppercase tracking-wide">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredInitiatives.map((initiative) => (
-                                <tr
-                                    key={initiative.id}
-                                    className={`border-b border-neutral-100 last:border-0 transition-colors ${!initiative.isComplete
-                                            ? 'border-l-4 border-l-status-red bg-status-red-bg/30'
-                                            : 'hover:bg-neutral-50'
-                                        }`}
-                                >
-                                    <td className="px-4 py-4 font-medium text-neutral-900">{initiative.name}</td>
-                                    <td className="px-4 py-4 text-neutral-700">{initiative.sponsor}</td>
-                                    <td className="px-4 py-4 text-neutral-700">{initiative.deliveryOwner}</td>
-                                    <td className="px-4 py-4 text-center">
-                                        <div className="inline-flex items-center gap-1">
-                                            {[1, 2, 3, 4, 5].map(star => (
-                                                <span
-                                                    key={star}
-                                                    className={star <= initiative.strategicAlignment ? 'text-status-green' : 'text-neutral-300'}
-                                                >
-                                                    ★
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-4 font-mono text-right font-semibold text-neutral-900">{formatCurrency(initiative.estimatedValue)}</td>
-                                    <td className="px-4 py-4 text-center">
-                                        <span className={`inline-block px-2.5 py-1 text-xs font-semibold ${initiative.riskScore >= 4
-                                            ? 'bg-status-red text-white'
-                                            : initiative.riskScore >= 3
-                                                ? 'bg-neutral-200 text-neutral-700'
-                                                : 'bg-status-green text-white'
-                                            }`} style={{ borderRadius: '2px' }}>
-                                            {initiative.riskScore}/5
-                                        </span>
-                                    </td>
-                                    <td className="px-4 py-4 text-center">
-                                        <span className={`inline-block px-3 py-1 text-xs font-semibold ${initiative.isComplete
-                                            ? 'bg-status-green-bg text-status-green border border-status-green-border'
-                                            : 'bg-status-red-bg text-status-red border border-status-red-border'
-                                            }`} style={{ borderRadius: '2px' }}>
-                                            {initiative.isComplete ? '✓ Complete' : '! Incomplete'}
-                                        </span>
-                                    </td>
-                                    <td className="px-4 py-4 text-center">
-                                        <Button
-                                            variant="text"
-                                            size="sm"
-                                            onClick={() => handleEditInitiative(initiative.id)}
-                                        >
-                                            Edit
-                                        </Button>
+                            {filteredInitiatives.length === 0 ? (
+                                <tr>
+                                    <td colSpan={9} className="px-4 py-12 text-center text-neutral-500">
+                                        No initiatives found. Click "+ Add Initiative" to get started.
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                filteredInitiatives.map((initiative) => (
+                                    <tr key={initiative.id} className="border-b border-neutral-100 hover:bg-neutral-50 transition-colors">
+                                        <td className="px-4 py-4">
+                                            <span className="font-semibold text-neutral-900">{initiative.name}</span>
+                                        </td>
+                                        <td className="px-4 py-4 text-neutral-700">{initiative.sponsor}</td>
+                                        <td className="px-4 py-4 text-neutral-700">{initiative.deliveryOwner}</td>
+                                        <td className="px-4 py-4">
+                                            <span className="text-sm">{'★'.repeat(initiative.strategicAlignmentScore)}</span>
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <div className="flex flex-wrap gap-1">
+                                                {initiative.capacityDemands.map((cd, idx) => (
+                                                    <span
+                                                        key={idx}
+                                                        className="inline-block px-2 py-0.5 text-xs bg-neutral-100 text-neutral-700 border border-neutral-200"
+                                                        style={{ borderRadius: '2px' }}
+                                                    >
+                                                        {cd.role}: {cd.units}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-4 font-mono text-right font-semibold text-neutral-900">{formatCurrency(initiative.estimatedValue)}</td>
+                                        <td className="px-4 py-4 text-center">
+                                            <span className={`inline-block px-2.5 py-1 text-xs font-semibold ${initiative.riskScore >= 4
+                                                ? 'bg-status-red text-white'
+                                                : initiative.riskScore >= 3
+                                                    ? 'bg-neutral-200 text-neutral-700'
+                                                    : 'bg-status-green text-white'
+                                                }`} style={{ borderRadius: '2px' }}>
+                                                {initiative.riskScore}/5
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <span className={`inline-block px-3 py-1 text-xs font-semibold ${initiative.isComplete
+                                                ? 'bg-status-green-bg text-status-green border border-status-green-border'
+                                                : 'bg-status-red-bg text-status-red border border-status-red-border'
+                                                }`} style={{ borderRadius: '2px' }}>
+                                                {initiative.isComplete ? '✓ Complete' : '! Incomplete'}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <Button
+                                                variant="text"
+                                                size="sm"
+                                                onClick={() => handleEditInitiative(initiative.id)}
+                                            >
+                                                Edit
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -247,45 +296,149 @@ export default function InitiativesPage() {
                 <InitiativeModal
                     onClose={() => setShowModal(false)}
                     editingId={editingId}
+                    initiatives={initiatives}
+                    onSave={handleSaveInitiative}
                 />
             )}
         </div>
     );
 }
 
-function InitiativeModal({ onClose, editingId }: { onClose: () => void; editingId: string | null }) {
+function InitiativeModal({
+    onClose,
+    editingId,
+    initiatives,
+    onSave
+}: {
+    onClose: () => void;
+    editingId: string | null;
+    initiatives: Initiative[];
+    onSave: (initiative: any) => void;
+}) {
+    const editingInitiative = editingId ? initiatives.find(i => i.id === editingId) : null;
+
     const [formData, setFormData] = useState({
-        name: '',
-        sponsor: '',
-        deliveryOwner: '',
-        strategicAlignment: '',
-        estimatedValue: '',
-        riskScore: '',
+        name: editingInitiative?.name || '',
+        sponsor: editingInitiative?.sponsor || '',
+        deliveryOwner: editingInitiative?.deliveryOwner || '',
+        strategicAlignmentScore: editingInitiative?.strategicAlignmentScore?.toString() || '',
+        estimatedValue: editingInitiative?.estimatedValue?.toString() || '',
+        riskScore: editingInitiative?.riskScore?.toString() || '',
     });
+
+    const [capacityDemand, setCapacityDemand] = useState<Array<{ role: string; units: string }>>(
+        editingInitiative?.capacityDemands?.map(cd => ({ role: cd.role, units: cd.units.toString() })) || [{ role: '', units: '' }]
+    );
+
+    const [portalContainer, setPortalContainer] = React.useState<HTMLElement | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+
+    React.useEffect(() => {
+        let container = document.getElementById('modal-portal');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'modal-portal';
+            document.body.appendChild(container);
+        }
+        setPortalContainer(container);
+        document.body.style.overflow = 'hidden';
+
+        return () => {
+            document.body.style.overflow = 'unset';
+            if (container && container.childNodes.length === 0) {
+                container.remove();
+            }
+        };
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSave = () => {
-        console.log('Saving initiative:', formData);
-        alert('Initiative saved successfully');
-        onClose();
+    const handleCapacityChange = (index: number, field: 'role' | 'units', value: string) => {
+        setCapacityDemand(prev => {
+            const updated = [...prev];
+            updated[index] = { ...updated[index], [field]: value };
+            return updated;
+        });
     };
 
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-lg" style={{ borderRadius: '2px' }}>
-                <div className="border-b border-neutral-200 px-6 py-4 bg-neutral-100">
-                    <h2 className="text-xl font-semibold">
+    const addCapacityRole = () => {
+        setCapacityDemand(prev => [...prev, { role: '', units: '' }]);
+    };
+
+    const removeCapacityRole = (index: number) => {
+        if (capacityDemand.length > 1) {
+            setCapacityDemand(prev => prev.filter((_, i) => i !== index));
+        }
+    };
+
+    const isFormValid = () => {
+        const basicFieldsValid = formData.name.trim() !== '' &&
+            formData.sponsor.trim() !== '' &&
+            formData.deliveryOwner.trim() !== '' &&
+            formData.strategicAlignmentScore !== '' &&
+            formData.estimatedValue !== '' &&
+            formData.riskScore !== '';
+
+        const capacityValid = capacityDemand.every(role =>
+            role.role.trim() !== '' && role.units.trim() !== '' && !isNaN(Number(role.units))
+        );
+
+        return basicFieldsValid && capacityValid;
+    };
+
+    const handleSave = async () => {
+        if (!isFormValid()) {
+            alert('Please fill in all required fields correctly');
+            return;
+        }
+
+        setIsSaving(true);
+
+        const initiativeData = {
+            name: formData.name,
+            sponsor: formData.sponsor,
+            deliveryOwner: formData.deliveryOwner,
+            strategicAlignmentScore: Number(formData.strategicAlignmentScore),
+            estimatedValue: Number(formData.estimatedValue),
+            riskScore: Number(formData.riskScore),
+            capacityDemand: capacityDemand.map(cd => ({
+                role: cd.role,
+                units: Number(cd.units)
+            }))
+        };
+
+        await onSave(initiativeData);
+        setIsSaving(false);
+    };
+
+    if (!portalContainer) return null;
+
+    return createPortal(
+        <div
+            className="fixed inset-0 bg-black flex items-center justify-center p-4"
+            style={{
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                position: 'fixed',
+                zIndex: 9999,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)'
+            }}
+        >
+            <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl rounded-lg" style={{ position: 'relative', zIndex: 10000, backgroundColor: '#ffffff' }}>
+                <div className="border-b border-neutral-200 px-8 py-6 bg-gradient-to-r from-neutral-50 to-white">
+                    <h2 className="text-2xl font-bold text-neutral-900 tracking-tight">
                         {editingId ? 'Edit Initiative' : 'Add New Initiative'}
                     </h2>
-                    <p className="text-sm text-neutral-600 mt-1">All fields marked with * are mandatory</p>
+                    <p className="text-sm text-neutral-500 mt-2">All fields marked with <span className="text-red-600 font-semibold">*</span> are mandatory</p>
                 </div>
 
-                <div className="px-6 py-6">
-                    <div className="grid grid-cols-2 gap-6">
+                <div className="px-8 py-8">
+                    <div className="grid grid-cols-2 gap-8">
                         <div className="col-span-2">
                             <Input
                                 id="name"
@@ -321,12 +474,13 @@ function InitiativeModal({ onClose, editingId }: { onClose: () => void; editingI
                         />
 
                         <Select
-                            id="strategicAlignment"
-                            name="strategicAlignment"
+                            id="strategicAlignmentScore"
+                            name="strategicAlignmentScore"
                             label="Strategic Alignment Score *"
-                            value={formData.strategicAlignment}
+                            value={formData.strategicAlignmentScore}
                             onChange={handleChange}
                             options={[
+                                { value: '', label: 'Select alignment...' },
                                 { value: '1', label: '★ 1 - Low Alignment' },
                                 { value: '2', label: '★★ 2 - Below Average' },
                                 { value: '3', label: '★★★ 3 - Medium Alignment' },
@@ -342,6 +496,7 @@ function InitiativeModal({ onClose, editingId }: { onClose: () => void; editingI
                             value={formData.riskScore}
                             onChange={handleChange}
                             options={[
+                                { value: '', label: 'Select risk level...' },
                                 { value: '1', label: '1 - Low Risk' },
                                 { value: '2', label: '2 - Below Average Risk' },
                                 { value: '3', label: '3 - Medium Risk' },
@@ -364,37 +519,66 @@ function InitiativeModal({ onClose, editingId }: { onClose: () => void; editingI
                         </div>
                     </div>
 
-                    <div className="mt-6">
-                        <h3 className="text-sm font-semibold mb-4 pb-2 border-b border-neutral-200">Capacity Demand</h3>
+                    <div className="mt-8 pt-8 border-t border-neutral-200">
+                        <h3 className="text-base font-bold mb-6 text-neutral-900">Capacity Demand <span className="text-red-600">*</span></h3>
                         <div className="space-y-3">
-                            <div className="grid grid-cols-3 gap-3">
-                                <Input
-                                    label="Role *"
-                                    type="text"
-                                    placeholder="e.g., Engineer"
-                                />
-                                <Input
-                                    label="Units Required *"
-                                    type="number"
-                                    placeholder="40"
-                                />
-                                <div className="flex items-end">
-                                    <Button variant="text" size="sm" className="text-status-red">Remove</Button>
+                            {capacityDemand.map((role, index) => (
+                                <div key={index} className="grid grid-cols-3 gap-3">
+                                    <Input
+                                        label={index === 0 ? "Role *" : ""}
+                                        type="text"
+                                        value={role.role}
+                                        onChange={(e) => handleCapacityChange(index, 'role', e.target.value)}
+                                        placeholder="e.g., Engineer"
+                                    />
+                                    <Input
+                                        label={index === 0 ? "Units Required *" : ""}
+                                        type="number"
+                                        value={role.units}
+                                        onChange={(e) => handleCapacityChange(index, 'units', e.target.value)}
+                                        placeholder="40"
+                                    />
+                                    <div className="flex items-end">
+                                        {capacityDemand.length > 1 && (
+                                            <Button
+                                                variant="text"
+                                                size="sm"
+                                                className="text-status-red"
+                                                onClick={() => removeCapacityRole(index)}
+                                            >
+                                                Remove
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                            <Button variant="text" size="sm" className="text-status-green">+ Add Another Role</Button>
+                            ))}
+                            <Button
+                                variant="text"
+                                size="sm"
+                                className="text-status-green"
+                                onClick={addCapacityRole}
+                            >
+                                + Add Another Role
+                            </Button>
                         </div>
                     </div>
                 </div>
 
-                <div className="border-t border-neutral-200 px-6 py-4 flex justify-between items-center bg-neutral-50">
-                    <p className="text-xs text-neutral-600">* All fields are mandatory for initiative to be complete</p>
+                <div className="border-t border-neutral-200 px-8 py-6 flex justify-between items-center bg-gradient-to-r from-neutral-50 to-white">
+                    <p className="text-sm text-neutral-600"><span className="text-red-600 font-semibold">*</span> All fields are mandatory for initiative to be complete</p>
                     <div className="flex gap-3">
-                        <Button variant="text" onClick={onClose}>Cancel</Button>
-                        <Button variant="primary" onClick={handleSave}>Save Initiative</Button>
+                        <Button variant="text" onClick={onClose} disabled={isSaving}>Cancel</Button>
+                        <Button
+                            variant="primary"
+                            onClick={handleSave}
+                            disabled={!isFormValid() || isSaving}
+                        >
+                            {isSaving ? 'Saving...' : 'Save Initiative'}
+                        </Button>
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        portalContainer
     );
 }

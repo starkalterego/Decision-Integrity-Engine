@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 
-export default function PortfolioSetupPage() {
+export default function PortfolioSetupPage({ params }: { params: Promise<{ id: string }> }) {
+    const router = useRouter();
+    const resolvedParams = React.use(params);
     const [formData, setFormData] = useState({
         name: '',
         fiscalPeriod: '',
@@ -16,6 +19,41 @@ export default function PortfolioSetupPage() {
 
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isLocked, setIsLocked] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [portfolioId, setPortfolioId] = useState<string | null>(null);
+
+    // Load existing portfolio if ID is not 'new'
+    useEffect(() => {
+        if (resolvedParams.id !== 'new') {
+            loadPortfolio(resolvedParams.id);
+        }
+    }, [resolvedParams.id]);
+
+    const loadPortfolio = async (id: string) => {
+        setIsLoading(true);
+        try {
+            const response = await fetch(`/api/portfolios/${id}`);
+            const result = await response.json();
+
+            if (result.success && result.data) {
+                const portfolio = result.data;
+                setFormData({
+                    name: portfolio.name,
+                    fiscalPeriod: portfolio.fiscalPeriod,
+                    totalBudget: portfolio.totalBudget.toString(),
+                    totalCapacity: portfolio.totalCapacity.toString(),
+                });
+                setIsLocked(portfolio.status === 'LOCKED');
+                setPortfolioId(portfolio.id);
+            }
+        } catch (error) {
+            console.error('Error loading portfolio:', error);
+            alert('Failed to load portfolio');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -45,26 +83,82 @@ export default function PortfolioSetupPage() {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSaveDraft = () => {
-        if (validate()) {
-            console.log('Saving draft:', formData);
-            alert('Portfolio draft saved successfully');
+    const handleSaveDraft = async () => {
+        if (!validate()) return;
+
+        setIsSaving(true);
+        try {
+            const response = await fetch('/api/portfolios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: formData.name,
+                    fiscalPeriod: formData.fiscalPeriod,
+                    totalBudget: parseFloat(formData.totalBudget),
+                    totalCapacity: parseInt(formData.totalCapacity),
+                }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                setPortfolioId(result.data.portfolioId);
+                alert('Portfolio draft saved successfully');
+                // Navigate to the portfolio page
+                router.push(`/portfolio/${result.data.portfolioId}/setup`);
+            } else {
+                alert('Failed to save portfolio: ' + (result.errors[0]?.message || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error saving portfolio:', error);
+            alert('Failed to save portfolio');
+        } finally {
+            setIsSaving(false);
         }
     };
 
-    const handleLockPortfolio = () => {
-        if (validate()) {
+    const handleLockPortfolio = async () => {
+        if (!validate()) return;
+
+        if (!portfolioId) {
+            // Need to save first
+            await handleSaveDraft();
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            // In MVP, we just set the status to LOCKED
+            // In production, this would be a separate API endpoint
             setIsLocked(true);
-            console.log('Locking portfolio:', formData);
             alert('Portfolio locked successfully. Cannot be edited once scenarios exist.');
+
+            // Navigate to initiatives page
+            router.push(`/portfolio/${portfolioId}/initiatives`);
+        } catch (error) {
+            console.error('Error locking portfolio:', error);
+            alert('Failed to lock portfolio');
+        } finally {
+            setIsSaving(false);
         }
     };
 
     const isFormValid = formData.name && formData.fiscalPeriod && formData.totalBudget && formData.totalCapacity;
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-900 mx-auto mb-4"></div>
+                    <p className="text-neutral-600">Loading portfolio...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-neutral-50">
-            <Header portfolioName={formData.name || 'New Portfolio'} portfolioId="demo" currentPage="setup" />
+            <Header portfolioName={formData.name || 'New Portfolio'} portfolioId={portfolioId || resolvedParams.id} currentPage="setup" />
 
             <main className="page-container">
                 {/* Enhanced Page Title & Intent */}
@@ -169,18 +263,18 @@ export default function PortfolioSetupPage() {
                                     <Button
                                         variant="secondary"
                                         onClick={handleSaveDraft}
-                                        disabled={isLocked}
+                                        disabled={isLocked || isSaving}
                                     >
-                                        Save Draft
+                                        {isSaving ? 'Saving...' : 'Save Draft'}
                                     </Button>
                                     <div className="flex-1">
                                         <Button
                                             variant="primary"
                                             onClick={handleLockPortfolio}
-                                            disabled={!isFormValid || isLocked}
+                                            disabled={!isFormValid || isLocked || isSaving}
                                             className="w-full bg-amber-600 hover:bg-amber-700 border-amber-600"
                                         >
-                                            Lock Portfolio
+                                            {isSaving ? 'Processing...' : 'Lock Portfolio'}
                                         </Button>
                                         {!isLocked && isFormValid && (
                                             <p className="text-xs text-neutral-500 mt-2 text-center">

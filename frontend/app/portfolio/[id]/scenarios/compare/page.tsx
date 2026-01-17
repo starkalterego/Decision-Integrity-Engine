@@ -1,55 +1,135 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 
 interface ScenarioMetrics {
     id: string;
     name: string;
-    value: number;
-    cost: number;
-    capacity: number;
-    risk: number;
+    totalValue: number;
+    totalCapacity: number;
+    avgRisk: number;
+    fundedCount: number;
+    capacityUtilization: number;
     isRecommended: boolean;
 }
 
-export default function ScenarioComparePage() {
-    const [scenarios, setScenarios] = useState<ScenarioMetrics[]>([
-        {
+export default function ScenarioComparePage({ params }: { params: Promise<{ id: string }> }) {
+    const resolvedParams = React.use(params);
+    const [portfolio, setPortfolio] = useState<any>(null);
+    const [scenarios, setScenarios] = useState<ScenarioMetrics[]>([]);
+    const [baseline, setBaseline] = useState<ScenarioMetrics | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        loadData();
+    }, [resolvedParams.id]);
+
+    const loadData = async () => {
+        setIsLoading(true);
+        try {
+            // Load portfolio
+            const portfolioRes = await fetch(`/api/portfolios/${resolvedParams.id}`);
+            const portfolioData = await portfolioRes.json();
+            if (portfolioData.success) {
+                setPortfolio(portfolioData.data);
+            }
+
+            // Load all scenarios for this portfolio
+            const scenariosRes = await fetch(`/api/scenarios?portfolioId=${resolvedParams.id}`);
+            const scenariosData = await scenariosRes.json();
+
+            if (scenariosData.success) {
+                // Calculate metrics for each scenario
+                const scenariosWithMetrics = scenariosData.data.map((scenario: any) => {
+                    const fundedDecisions = scenario.decisions?.filter((d: any) => d.decision === 'FUND') || [];
+
+                    const totalValue = fundedDecisions.reduce((sum: number, d: any) =>
+                        sum + (d.initiative?.estimatedValue || 0), 0
+                    );
+
+                    const totalCapacity = fundedDecisions.reduce((sum: number, d: any) => {
+                        const initCapacity = d.initiative?.capacityDemands?.reduce((s: number, cd: any) => s + cd.units, 0) || 0;
+                        return sum + initCapacity;
+                    }, 0);
+
+                    const avgRisk = fundedDecisions.length > 0
+                        ? fundedDecisions.reduce((sum: number, d: any) => sum + (d.initiative?.riskScore || 0), 0) / fundedDecisions.length
+                        : 0;
+
+                    const capacityUtilization = portfolioData.data?.totalCapacity
+                        ? (totalCapacity / portfolioData.data.totalCapacity) * 100
+                        : 0;
+
+                    return {
+                        id: scenario.id,
+                        name: scenario.name,
+                        totalValue,
+                        totalCapacity,
+                        avgRisk,
+                        fundedCount: fundedDecisions.length,
+                        capacityUtilization,
+                        isRecommended: scenario.isRecommended || false
+                    };
+                });
+
+                // Find baseline (or create virtual baseline)
+                const baselineScenario = scenariosWithMetrics.find((s: any) => s.name.toLowerCase().includes('baseline'));
+                if (baselineScenario) {
+                    setBaseline(baselineScenario);
+                    setScenarios(scenariosWithMetrics);
+                } else {
+                    // Create virtual baseline from all initiatives
+                    const baselineMetrics = await calculateBaselineMetrics(resolvedParams.id);
+                    setBaseline(baselineMetrics);
+                    setScenarios([baselineMetrics, ...scenariosWithMetrics]);
+                }
+            }
+        } catch (error) {
+            console.error('Error loading data:', error);
+            alert('Failed to load comparison data');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const calculateBaselineMetrics = async (portfolioId: string): Promise<ScenarioMetrics> => {
+        try {
+            const response = await fetch(`/api/portfolios/${portfolioId}/baseline`);
+            const result = await response.json();
+
+            if (result.success) {
+                return {
+                    id: 'baseline',
+                    name: 'Baseline',
+                    totalValue: result.data.totalValue,
+                    totalCapacity: result.data.capacityUtilization * (portfolio?.totalCapacity || 450),
+                    avgRisk: result.data.riskExposure,
+                    fundedCount: result.data.initiativeCount,
+                    capacityUtilization: result.data.capacityUtilization * 100,
+                    isRecommended: false
+                };
+            }
+        } catch (error) {
+            console.error('Error calculating baseline:', error);
+        }
+
+        return {
             id: 'baseline',
             name: 'Baseline',
-            value: 185000000,
-            cost: 120000000,
-            capacity: 450,
-            risk: 7.5,
-            isRecommended: false,
-        },
-        {
-            id: 'scenario-a',
-            name: 'Scenario A: Aggressive',
-            value: 210000000,
-            cost: 130000000,
-            capacity: 430,
-            risk: 6.8,
-            isRecommended: true,
-        },
-        {
-            id: 'scenario-b',
-            name: 'Scenario B: Conservative',
-            value: 160000000,
-            cost: 100000000,
-            capacity: 380,
-            risk: 5.2,
-            isRecommended: false,
-        },
-    ]);
-
-    const baseline = scenarios.find(s => s.id === 'baseline')!;
+            totalValue: 0,
+            totalCapacity: 0,
+            avgRisk: 0,
+            fundedCount: 0,
+            capacityUtilization: 0,
+            isRecommended: false
+        };
+    };
 
     const calculateDelta = (value: number, baselineValue: number) => {
-        const delta = ((value - baselineValue) / baselineValue) * 100;
-        return delta;
+        if (baselineValue === 0) return 0;
+        return ((value - baselineValue) / baselineValue) * 100;
     };
 
     const formatDelta = (delta: number) => {
@@ -59,7 +139,9 @@ export default function ScenarioComparePage() {
 
     const formatCurrency = (value: number) => `₹${(value / 10000000).toFixed(1)}Cr`;
 
-    const handleMarkRecommended = (id: string) => {
+    const handleMarkRecommended = async (id: string) => {
+        // In MVP, just update local state
+        // In production, this would call an API to mark scenario as recommended
         setScenarios(prev =>
             prev.map(s => ({ ...s, isRecommended: s.id === id }))
         );
@@ -67,9 +149,34 @@ export default function ScenarioComparePage() {
 
     const recommendedScenario = scenarios.find(s => s.isRecommended);
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-900 mx-auto mb-4"></div>
+                    <p className="text-neutral-600">Loading comparison...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!baseline) {
+        return (
+            <div className="min-h-screen bg-neutral-50">
+                <Header portfolioName={portfolio?.name || 'Portfolio'} portfolioId={resolvedParams.id} currentPage="compare" />
+                <main className="page-container">
+                    <div className="text-center py-20">
+                        <p className="text-neutral-600">No scenarios available for comparison.</p>
+                        <p className="text-sm text-neutral-500 mt-2">Create scenarios first to compare them.</p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-neutral-50">
-            <Header portfolioName="FY26 Growth Portfolio" portfolioId="demo" currentPage="compare" />
+            <Header portfolioName={portfolio?.name || 'Portfolio'} portfolioId={resolvedParams.id} currentPage="compare" />
 
             <main className="page-container">
                 {/* Enhanced Page Header & Context */}
@@ -119,40 +226,37 @@ export default function ScenarioComparePage() {
                                 <div>
                                     <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-1">Portfolio Value</div>
                                     <div className={`font-bold font-mono ${scenario.id === 'baseline' ? 'text-xl text-neutral-600' : 'text-2xl text-neutral-900'}`}>
-                                        {formatCurrency(scenario.value)}
+                                        {formatCurrency(scenario.totalValue)}
                                     </div>
-                                    {scenario.id !== 'baseline' && (
-                                        <div className={`text-xs mt-1 ${calculateDelta(scenario.value, baseline.value) > 0 ? 'text-status-green' : 'text-status-red'
+                                    {scenario.id !== 'baseline' && baseline && (
+                                        <div className={`text-xs mt-1 ${calculateDelta(scenario.totalValue, baseline.totalValue) > 0 ? 'text-status-green' : 'text-status-red'
                                             }`}>
-                                            {formatDelta(calculateDelta(scenario.value, baseline.value))}
+                                            {formatDelta(calculateDelta(scenario.totalValue, baseline.totalValue))}
                                         </div>
                                     )}
                                 </div>
 
                                 <div className="border-t border-neutral-200 pt-3">
-                                    <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-1">Total Cost</div>
+                                    <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-1">Funded Initiatives</div>
                                     <div className={`font-bold font-mono ${scenario.id === 'baseline' ? 'text-base text-neutral-600' : 'text-lg text-neutral-900'}`}>
-                                        {formatCurrency(scenario.cost)}
+                                        {scenario.fundedCount}
                                     </div>
-                                    {scenario.id !== 'baseline' && (
-                                        <div className={`text-xs mt-1 ${calculateDelta(scenario.cost, baseline.cost) < 0 ? 'text-status-green' : 'text-status-red'
-                                            }`}>
-                                            {formatDelta(calculateDelta(scenario.cost, baseline.cost))}
-                                        </div>
-                                    )}
                                 </div>
 
                                 <div className="border-t border-neutral-200 pt-3">
                                     <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-1">Capacity</div>
                                     <div className={`font-bold font-mono ${scenario.id === 'baseline' ? 'text-base text-neutral-600' : 'text-lg text-neutral-900'}`}>
-                                        {scenario.capacity} units
+                                        {scenario.totalCapacity} units
+                                    </div>
+                                    <div className="text-xs mt-1 text-neutral-600">
+                                        {scenario.capacityUtilization.toFixed(0)}% utilized
                                     </div>
                                 </div>
 
                                 <div className="border-t border-neutral-200 pt-3">
-                                    <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-1">Risk</div>
+                                    <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-1">Avg Risk</div>
                                     <div className={`font-bold font-mono ${scenario.id === 'baseline' ? 'text-base text-neutral-600' : 'text-lg text-neutral-900'}`}>
-                                        {scenario.risk.toFixed(1)}/10
+                                        {scenario.avgRisk.toFixed(1)}/5
                                     </div>
                                 </div>
                             </div>
@@ -204,11 +308,11 @@ export default function ScenarioComparePage() {
                                 <td className="px-4 py-4 font-semibold text-neutral-900">Portfolio Value</td>
                                 {scenarios.map(scenario => (
                                     <td key={scenario.id} className={`px-4 py-4 font-mono text-center ${scenario.id === 'baseline' ? 'bg-neutral-50' : scenario.isRecommended ? 'bg-status-green-bg/5' : ''}`}>
-                                        <div className="text-base font-bold text-neutral-900">{formatCurrency(scenario.value)}</div>
-                                        {scenario.id !== 'baseline' && (
-                                            <div className={`text-xs mt-1 ${calculateDelta(scenario.value, baseline.value) > 0 ? 'text-status-green' : 'text-status-red'
+                                        <div className="text-base font-bold text-neutral-900">{formatCurrency(scenario.totalValue)}</div>
+                                        {scenario.id !== 'baseline' && baseline && (
+                                            <div className={`text-xs mt-1 ${calculateDelta(scenario.totalValue, baseline.totalValue) > 0 ? 'text-status-green' : 'text-status-red'
                                                 }`}>
-                                                {formatDelta(calculateDelta(scenario.value, baseline.value))}
+                                                {formatDelta(calculateDelta(scenario.totalValue, baseline.totalValue))}
                                             </div>
                                         )}
                                     </td>
@@ -216,16 +320,10 @@ export default function ScenarioComparePage() {
                             </tr>
 
                             <tr className="border-b border-neutral-100">
-                                <td className="px-4 py-4 font-semibold text-neutral-900">Total Cost</td>
+                                <td className="px-4 py-4 font-semibold text-neutral-900">Funded Initiatives</td>
                                 {scenarios.map(scenario => (
                                     <td key={scenario.id} className={`px-4 py-4 font-mono text-center ${scenario.id === 'baseline' ? 'bg-neutral-50' : scenario.isRecommended ? 'bg-status-green-bg/5' : ''}`}>
-                                        <div className="text-base font-bold text-neutral-900">{formatCurrency(scenario.cost)}</div>
-                                        {scenario.id !== 'baseline' && (
-                                            <div className={`text-xs mt-1 ${calculateDelta(scenario.cost, baseline.cost) < 0 ? 'text-status-green' : 'text-status-red'
-                                                }`}>
-                                                {formatDelta(calculateDelta(scenario.cost, baseline.cost))}
-                                            </div>
-                                        )}
+                                        <div className="text-base font-bold text-neutral-900">{scenario.fundedCount}</div>
                                     </td>
                                 ))}
                             </tr>
@@ -234,26 +332,21 @@ export default function ScenarioComparePage() {
                                 <td className="px-4 py-4 font-semibold text-neutral-900">Capacity Utilization</td>
                                 {scenarios.map(scenario => (
                                     <td key={scenario.id} className={`px-4 py-4 font-mono text-center ${scenario.id === 'baseline' ? 'bg-neutral-50' : scenario.isRecommended ? 'bg-status-green-bg/5' : ''}`}>
-                                        <div className="text-base font-bold text-neutral-900">{scenario.capacity} units</div>
-                                        {scenario.id !== 'baseline' && (
-                                            <div className={`text-xs mt-1 ${calculateDelta(scenario.capacity, baseline.capacity) < 0 ? 'text-status-green' : 'text-status-red'
-                                                }`}>
-                                                {formatDelta(calculateDelta(scenario.capacity, baseline.capacity))}
-                                            </div>
-                                        )}
+                                        <div className="text-base font-bold text-neutral-900">{scenario.totalCapacity} units</div>
+                                        <div className="text-xs mt-1 text-neutral-600">{scenario.capacityUtilization.toFixed(0)}%</div>
                                     </td>
                                 ))}
                             </tr>
 
                             <tr className="last:border-0">
-                                <td className="px-4 py-4 font-semibold text-neutral-900">Risk Exposure</td>
+                                <td className="px-4 py-4 font-semibold text-neutral-900">Avg Risk Score</td>
                                 {scenarios.map(scenario => (
                                     <td key={scenario.id} className={`px-4 py-4 font-mono text-center ${scenario.id === 'baseline' ? 'bg-neutral-50' : scenario.isRecommended ? 'bg-status-green-bg/5' : ''}`}>
-                                        <div className="text-base font-bold text-neutral-900">{scenario.risk.toFixed(1)}/10</div>
-                                        {scenario.id !== 'baseline' && (
-                                            <div className={`text-xs mt-1 ${calculateDelta(scenario.risk, baseline.risk) < 0 ? 'text-status-green' : 'text-status-red'
+                                        <div className="text-base font-bold text-neutral-900">{scenario.avgRisk.toFixed(1)}/5</div>
+                                        {scenario.id !== 'baseline' && baseline && (
+                                            <div className={`text-xs mt-1 ${calculateDelta(scenario.avgRisk, baseline.avgRisk) < 0 ? 'text-status-green' : 'text-status-red'
                                                 }`}>
-                                                {formatDelta(calculateDelta(scenario.risk, baseline.risk))}
+                                                {formatDelta(calculateDelta(scenario.avgRisk, baseline.avgRisk))}
                                             </div>
                                         )}
                                     </td>
@@ -292,9 +385,10 @@ export default function ScenarioComparePage() {
                         <p className="text-sm text-neutral-700 mb-4 leading-relaxed">
                             Once you've selected a recommended scenario, proceed to generate the Executive One-Pager for final approval.
                         </p>
-                        <Button variant="primary" className="w-full">
+                        <Button variant="primary" className="w-full" disabled>
                             Generate Executive Output →
                         </Button>
+                        <p className="text-xs text-neutral-500 mt-2 text-center">Coming in next phase</p>
                     </div>
                 </div>
             </main>

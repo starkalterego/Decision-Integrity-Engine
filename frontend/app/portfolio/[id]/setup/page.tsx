@@ -303,7 +303,7 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                                 <div className="flex items-center gap-3">
                                     <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium ${formData.name ? 'bg-status-green text-white' : 'bg-neutral-200 text-neutral-500'
                                         }`}>
-                                        {formData.name ? '✓' : '1'}
+                                        1
                                     </div>
                                     <span className={`text-sm ${formData.name ? 'text-neutral-900 font-medium' : 'text-neutral-600'}`}>
                                         Portfolio Name
@@ -312,7 +312,7 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                                 <div className="flex items-center gap-3">
                                     <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium ${formData.fiscalPeriod ? 'bg-status-green text-white' : 'bg-neutral-200 text-neutral-500'
                                         }`}>
-                                        {formData.fiscalPeriod ? '✓' : '2'}
+                                        2
                                     </div>
                                     <span className={`text-sm ${formData.fiscalPeriod ? 'text-neutral-900 font-medium' : 'text-neutral-600'}`}>
                                         Fiscal Period
@@ -321,7 +321,7 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                                 <div className="flex items-center gap-3">
                                     <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium ${formData.totalBudget ? 'bg-status-green text-white' : 'bg-neutral-200 text-neutral-500'
                                         }`}>
-                                        {formData.totalBudget ? '✓' : '3'}
+                                        3
                                     </div>
                                     <span className={`text-sm ${formData.totalBudget ? 'text-neutral-900 font-medium' : 'text-neutral-600'}`}>
                                         Budget
@@ -330,7 +330,7 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                                 <div className="flex items-center gap-3">
                                     <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium ${formData.totalCapacity ? 'bg-status-green text-white' : 'bg-neutral-200 text-neutral-500'
                                         }`}>
-                                        {formData.totalCapacity ? '✓' : '4'}
+                                        4
                                     </div>
                                     <span className={`text-sm ${formData.totalCapacity ? 'text-neutral-900 font-medium' : 'text-neutral-600'}`}>
                                         Capacity

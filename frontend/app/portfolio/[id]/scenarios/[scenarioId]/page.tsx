@@ -116,11 +116,32 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
         }
     };
 
-    const handleAssumptionsChange = (value: string) => {
+    const handleAssumptionsChange = async (value: string) => {
         if (!isFinalized) {
             setAssumptions(value);
+
+            // Auto-save assumptions after typing stops
+            if (saveAssumptionsTimeout) {
+                clearTimeout(saveAssumptionsTimeout);
+            }
+
+            const timeout = setTimeout(async () => {
+                try {
+                    await fetch(`/api/scenarios/${resolvedParams.scenarioId}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ assumptions: value }),
+                    });
+                } catch (error) {
+                    console.error('Error saving assumptions:', error);
+                }
+            }, 1000); // Save 1 second after user stops typing
+
+            setSaveAssumptionsTimeout(timeout);
         }
     };
+
+    const [saveAssumptionsTimeout, setSaveAssumptionsTimeout] = useState<NodeJS.Timeout | null>(null);
 
     const handleFinalize = async () => {
         // Validation per decision-logic.md lines 150-156
@@ -286,7 +307,7 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                 {isOverCapacity && (
                     <div className="mb-8 p-6 bg-status-red-bg border-l-4 border-l-status-red rounded">
                         <div className="flex items-start gap-4">
-                            <span className="text-status-red text-2xl font-bold mt-0.5">!</span>
+                            {/* Symbol removed for clean UI */}
                             <div>
                                 <h3 className="text-sm font-bold text-status-red uppercase tracking-wide mb-2">Capacity Constraint Breached</h3>
                                 <p className="text-sm text-neutral-700 leading-relaxed">
@@ -372,7 +393,7 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
 
                     {!assumptions.trim() && !isFinalized && (
                         <div className="p-4 bg-neutral-200 text-neutral-700 text-sm rounded">
-                            ℹ Assumptions required before finalization
+                            Assumptions required before finalization
                         </div>
                     )}
                 </div>

@@ -9,22 +9,31 @@ interface HeaderProps {
 
 export function Header({ portfolioName, portfolioId, currentPage }: HeaderProps) {
     return (
-        <header className="bg-white border-b border-neutral-200">
-            <div className="max-w-7xl mx-auto px-6 py-4">
+        <header className="bg-white border-b border-neutral-200 sticky top-0 z-50">
+            <div className="max-w-[1400px] mx-auto px-8 py-4">
                 <div className="flex items-center justify-between">
-                    <div>
-                        <Link href="/" className="text-2xl font-semibold text-neutral-900 hover:text-neutral-700">
-                            Decision Integrity Engine
+                    {/* Brand Section - Text Only */}
+                    <div className="flex items-center gap-6">
+                        <Link
+                            href="/"
+                            className="group flex items-center gap-3 transition-all"
+                        >
+                            <div>
+                                <h1 className="text-lg font-bold text-neutral-900 tracking-tight">
+                                    Decision Integrity Engine
+                                </h1>
+                                {portfolioName && (
+                                    <p className="text-xs text-neutral-500 font-medium mt-0.5">
+                                        {portfolioName}
+                                    </p>
+                                )}
+                            </div>
                         </Link>
-                        {portfolioName && (
-                            <p className="text-sm text-neutral-600 mt-1">
-                                Portfolio: <span className="font-medium">{portfolioName}</span>
-                            </p>
-                        )}
                     </div>
 
+                    {/* Navigation - Clean Text Links */}
                     {portfolioId && (
-                        <nav className="flex gap-1">
+                        <nav className="flex items-center gap-1">
                             <NavLink
                                 href={`/portfolio/${portfolioId}/setup`}
                                 active={currentPage === 'setup'}
@@ -75,13 +84,19 @@ function NavLink({
     return (
         <Link
             href={href}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${active
-                    ? 'bg-neutral-900 text-white'
-                    : 'text-neutral-700 hover:bg-neutral-100'
-                }`}
-            style={{ borderRadius: '2px' }}
+            className={`
+                relative px-4 py-2 text-sm font-medium rounded-sm transition-colors duration-200
+                ${active
+                    ? 'text-neutral-900 font-semibold bg-neutral-50'
+                    : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
+                }
+            `}
         >
-            {children}
+            <span>{children}</span>
+            {/* Minimal active indicator bar */}
+            {active && (
+                <div className="absolute bottom-0 left-0 w-full h-[2px] bg-neutral-900" />
+            )}
         </Link>
     );
 }

@@ -225,7 +225,7 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
                                         <td className="px-4 py-4 text-neutral-700">{initiative.sponsor}</td>
                                         <td className="px-4 py-4 text-neutral-700">{initiative.deliveryOwner}</td>
                                         <td className="px-4 py-4">
-                                            <span className="text-sm">{'★'.repeat(initiative.strategicAlignmentScore)}</span>
+                                            <span className="text-sm font-medium text-neutral-700">{initiative.strategicAlignmentScore}/5</span>
                                         </td>
                                         <td className="px-4 py-4">
                                             <div className="flex flex-wrap gap-1">
@@ -252,12 +252,10 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
                                             </span>
                                         </td>
                                         <td className="px-4 py-4 text-center">
-                                            <span className={`inline-block px-3 py-1 text-xs font-semibold ${initiative.isComplete
-                                                ? 'bg-status-green-bg text-status-green border border-status-green-border'
-                                                : 'bg-status-red-bg text-status-red border border-status-red-border'
-                                                }`} style={{ borderRadius: '2px' }}>
-                                                {initiative.isComplete ? '✓ Complete' : '! Incomplete'}
-                                            </span>
+                                            <StatusBadge
+                                                status={initiative.isComplete ? 'green' : 'red'}
+                                                text={initiative.isComplete ? 'Complete' : 'Incomplete'}
+                                            />
                                         </td>
                                         <td className="px-4 py-4 text-center">
                                             <Button

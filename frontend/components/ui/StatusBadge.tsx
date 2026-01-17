@@ -14,11 +14,9 @@ export function StatusBadge({ status, text, className = '' }: StatusBadgeProps) 
         red: 'status-badge-red',
     };
 
-    const icon = status === 'green' ? '✓' : '!';
-
     return (
-        <span className={`status-badge ${statusClasses[status]} ${className}`}>
-            <span className="font-semibold">{icon}</span>
+        <span className={`status-badge ${statusClasses[status]} ${className} inline-flex items-center gap-2`}>
+            <span className={`w-2 h-2 rounded-full ${status === 'green' ? 'bg-status-green' : 'bg-status-red'}`} />
             <span>{text}</span>
         </span>
     );

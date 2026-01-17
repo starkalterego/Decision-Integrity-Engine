@@ -55,11 +55,12 @@ export async function GET(
 // PUT /api/initiatives/[id] - Update initiative
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const body = await request.json();
-        const initiativeId = params.id;
+        const { id } = await params;
+        const initiativeId = id;
 
         // Check if initiative exists
         const existing = await prisma.initiative.findUnique({
@@ -128,10 +129,11 @@ export async function PUT(
 // DELETE /api/initiatives/[id] - Delete initiative
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const initiativeId = params.id;
+        const { id } = await params;
+        const initiativeId = id;
 
         // Check if initiative exists
         const existing = await prisma.initiative.findUnique({

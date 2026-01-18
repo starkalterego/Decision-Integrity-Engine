@@ -5,11 +5,12 @@ interface HeaderProps {
     portfolioName?: string;
     portfolioId?: string;
     currentPage?: string;
+    className?: string;
 }
 
-export function Header({ portfolioName, portfolioId, currentPage }: HeaderProps) {
+export function Header({ portfolioName, portfolioId, currentPage, className = '' }: HeaderProps) {
     return (
-        <header className="bg-white border-b border-neutral-200 sticky top-0 z-50">
+        <header className={`bg-white border-b border-neutral-200 sticky top-0 z-50 ${className}`}>
             <div className="max-w-[1400px] mx-auto px-8 py-4">
                 <div className="flex items-center justify-between">
                     {/* Brand Section - Text Only */}

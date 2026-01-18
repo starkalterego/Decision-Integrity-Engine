@@ -151,7 +151,7 @@ export default function ExecutiveOutputPage({
 
     return (
         <div className="min-h-screen bg-neutral-50 font-sans text-neutral-900 selection:bg-neutral-200">
-            <Header portfolioName={data.portfolio.name} portfolioId={resolvedParams.id} currentPage="output" />
+            <Header portfolioName={data.portfolio.name} portfolioId={resolvedParams.id} currentPage="output" className="no-print" />
 
             <main className="page-container mx-auto max-w-[1400px] p-8">
                 <div className="section-header no-print flex justify-between items-center mb-8">

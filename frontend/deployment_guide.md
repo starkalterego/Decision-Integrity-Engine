@@ -54,19 +54,26 @@ Your application uses Prisma, which requires a specific connection configuration
 ## Step 3: Verify Deployment
 
 1.  Once deployed, visit the provided URL (e.g., `decision-integrity-engine.vercel.app`).
-2.  **Test the End-to-End Flow**:
-    *   Create a new Portfolio.
-    *   Add an Initiative.
-    *   Run a Scenario.
-    *   View the Executive Output.
+2.  **Important**: If you see "Failed to save portfolio" or database errors, the environment variables are not set correctly. Go back to Step 2.3 and verify both `DATABASE_URL` and `DIRECT_URL` are configured.
 
 ---
 
 ## Troubleshooting
 
+### "Failed to save portfolio" or "Failed to create portfolio"
+*   **Cause**: Environment variables are not set in Vercel.
+*   **Fix**: 
+    1.  Go to your Vercel project dashboard
+    2.  Click **Settings** > **Environment Variables**
+    3.  Verify both `DATABASE_URL` and `DIRECT_URL` are present
+    4.  If missing, add them using the values from your Supabase dashboard
+    5.  **Redeploy** the project (Vercel > Deployments > click the three dots on latest deployment > Redeploy)
+
 ### Build Failures
 *   **Prisma Client Error**: If you see "Prisma Client not initialized", ensure `prisma generate` ran. (We added this to `package.json` scripts, so it should handle itself).
-*   **Type Errors**: If the build fails due to TypeScript errors, run `yarn build` locally to identify and fix them before pushing.
+*   **Type Errors**: If the build fails due to TypeScript errors, run `npm run build` locally to identify and fix them before pushing.
 
 ### Database Connection Errors
-*   Ensure you are using the **Pooler URL** (`pgbouncer=true`) for the `DATABASE_URL` variable. Serverless functions exhaust connections quickly without it.
+*   Ensure you are using the **Transaction Pooler URL** (`pgbouncer=true`, port 6543) for the `DATABASE_URL` variable. Serverless functions exhaust connections quickly without it.
+*   Ensure you are using the **Session URL** (port 5432) for the `DIRECT_URL` variable.
+*   **Test your connection strings** locally first by adding them to your `.env` file and running `npx prisma db push` to verify they work.

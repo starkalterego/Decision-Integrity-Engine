@@ -385,10 +385,16 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                         <p className="text-sm text-neutral-700 mb-4 leading-relaxed">
                             Once you've selected a recommended scenario, proceed to generate the Executive One-Pager for final approval.
                         </p>
-                        <Button variant="primary" className="w-full" disabled>
+                        <Button
+                            variant="primary"
+                            className="w-full"
+                            onClick={() => window.location.href = `/portfolio/${resolvedParams.id}/output`}
+                        >
                             Generate Executive Output →
                         </Button>
-                        <p className="text-xs text-neutral-500 mt-2 text-center">Coming in next phase</p>
+                        {!recommendedScenario && (
+                            <p className="text-xs text-neutral-500 mt-2 text-center">Mark a scenario as recommended first</p>
+                        )}
                     </div>
                 </div>
             </main>

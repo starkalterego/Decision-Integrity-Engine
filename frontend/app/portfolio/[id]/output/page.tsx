@@ -434,19 +434,42 @@ export default function ExecutiveOutputPage({
             overflow: hidden;
           }
           .page-container {
-            transform: scale(0.68);
+            transform: scale(0.75);
             transform-origin: top left;
-            width: 147%;
+            width: 133.33%;
             margin: 0 !important;
-            padding: 0 !important;
+            padding: 8mm 0 0 8mm !important;
           }
-          /* Remove shadows and borders for cleaner print */
+          /* Remove shadows for cleaner print */
           .shadow-xl {
             box-shadow: none !important;
+          }
+          /* Optimize spacing for print */
+          .space-y-16 > * + * {
+            margin-top: 48px !important;
+          }
+          .space-y-14 > * + * {
+            margin-top: 40px !important;
+          }
+          /* Compact metric cards slightly */
+          .grid.grid-cols-4.gap-8 {
+            gap: 20px !important;
+          }
+          /* Reduce decision ask padding */
+          .p-14.pl-16 {
+            padding: 32px 24px 32px 40px !important;
+          }
+          /* Compact main content padding */
+          .p-10.pb-14 {
+            padding: 24px 32px 32px !important;
           }
           /* Hide footer to save space */
           .mt-16.pt-8 {
             display: none !important;
+          }
+          /* Reduce bottom confidential text */
+          .mt-8.text-center {
+            margin-top: 16px !important;
           }
         }
       `}</style>

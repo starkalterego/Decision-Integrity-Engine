@@ -41,8 +41,10 @@ Your application uses Prisma, which requires a specific connection configuration
 
     | Key | Value Source | Description |
     |:---|:---|:---|
-    | `DATABASE_URL` | Supabase (Transaction Pooler) | `postgres://...:6543/postgres?pgbouncer=true` |
+    | `DATABASE_URL` | Supabase (Transaction Pooler) | `postgres://...:6543/postgres?pgbouncer=true&statement_cache_size=0` |
     | `DIRECT_URL` | Supabase (Session) | `postgres://...:5432/postgres` |
+
+    > **IMPORTANT**: For `DATABASE_URL`, you MUST add `&statement_cache_size=0` at the end of the connection string to prevent "prepared statement already exists" errors with PgBouncer.
 
 4.  **Deploy**:
     *   Click **Deploy**.
@@ -68,6 +70,15 @@ Your application uses Prisma, which requires a specific connection configuration
     3.  Verify both `DATABASE_URL` and `DIRECT_URL` are present
     4.  If missing, add them using the values from your Supabase dashboard
     5.  **Redeploy** the project (Vercel > Deployments > click the three dots on latest deployment > Redeploy)
+
+### "prepared statement 's0' already exists" Error
+*   **Cause**: PgBouncer (connection pooler) doesn't support prepared statements by default.
+*   **Fix**:
+    1.  Go to Vercel **Settings** > **Environment Variables**
+    2.  Edit your `DATABASE_URL` variable
+    3.  Add `&statement_cache_size=0` at the end of the connection string
+    4.  Example: `postgresql://postgres:password@db.xxx.supabase.co:6543/postgres?pgbouncer=true&statement_cache_size=0`
+    5.  **Redeploy** the project
 
 ### Build Failures
 *   **Prisma Client Error**: If you see "Prisma Client not initialized", ensure `prisma generate` ran. (We added this to `package.json` scripts, so it should handle itself).

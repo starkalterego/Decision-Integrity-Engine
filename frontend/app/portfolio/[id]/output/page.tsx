@@ -424,77 +424,27 @@ export default function ExecutiveOutputPage({
           }
           @page {
             size: A4 landscape;
-            margin: 8mm;
+            margin: 0;
+          }
+          html, body {
+            width: 297mm;
+            height: 210mm;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
           }
           .page-container {
-             padding: 0 !important;
-             max-width: 100%;
-             margin: 0 !important;
+            transform: scale(0.68);
+            transform-origin: top left;
+            width: 147%;
+            margin: 0 !important;
+            padding: 0 !important;
           }
-          /* Compact spacing for print */
-          .bg-white.shadow-xl {
+          /* Remove shadows and borders for cleaner print */
+          .shadow-xl {
             box-shadow: none !important;
-            border: 1px solid #e5e7eb !important;
           }
-          /* Reduce padding in header */
-          .px-10.py-4 {
-            padding: 8px 16px !important;
-          }
-          /* Reduce main content padding */
-          .p-10.pb-14 {
-            padding: 12px 16px 16px !important;
-          }
-          /* Reduce spacing between sections */
-          .space-y-16 > * + * {
-            margin-top: 24px !important;
-          }
-          .space-y-14 > * + * {
-            margin-top: 20px !important;
-          }
-          /* Compact metric cards */
-          .grid.grid-cols-4.gap-8 {
-            gap: 12px !important;
-          }
-          .bg-neutral-50\\/40.p-7 {
-            padding: 12px !important;
-          }
-          /* Reduce decision ask padding */
-          .bg-neutral-50.border.p-14 {
-            padding: 16px 20px !important;
-          }
-          /* Compact font sizes */
-          .text-5xl {
-            font-size: 2rem !important;
-          }
-          .text-\\[32px\\] {
-            font-size: 1.5rem !important;
-            line-height: 1.4 !important;
-          }
-          .text-3xl {
-            font-size: 1.75rem !important;
-          }
-          .text-2xl {
-            font-size: 1.25rem !important;
-          }
-          /* Reduce vertical spacing */
-          .py-12 {
-            padding-top: 16px !important;
-            padding-bottom: 16px !important;
-          }
-          .mb-8, .mb-10 {
-            margin-bottom: 12px !important;
-          }
-          /* Compact tables */
-          .space-y-6 > * + * {
-            margin-top: 8px !important;
-          }
-          .space-y-4 > * + * {
-            margin-top: 6px !important;
-          }
-          .space-y-3 > * + * {
-            margin-top: 4px !important;
-          }
-          /* Hide footer audit record to save space */
+          /* Hide footer to save space */
           .mt-16.pt-8 {
             display: none !important;
           }

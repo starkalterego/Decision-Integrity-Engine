@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { calculatePriorityScore } from '@/lib/priority';
 
 // Validation helper per BACKEND.md lines 73-84
 function validateInitiativeCompleteness(data: any): { isValid: boolean; errors: string[] } {
@@ -49,6 +50,14 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Calculate priority score per BACKEND.md lines 100-117
+        const priorityScore = calculatePriorityScore({
+            estimatedValue: parseFloat(body.estimatedValue),
+            strategicAlignmentScore: parseInt(body.strategicAlignmentScore),
+            riskScore: parseInt(body.riskScore),
+            capacityDemands: body.capacityDemand
+        });
+
         // Create initiative with capacity demands
         const initiative = await prisma.initiative.create({
             data: {
@@ -60,6 +69,7 @@ export async function POST(request: NextRequest) {
                 estimatedValue: parseFloat(body.estimatedValue),
                 riskScore: parseInt(body.riskScore),
                 isComplete: true,
+                priorityScore: priorityScore,
                 capacityDemands: {
                     create: body.capacityDemand.map((cd: any) => ({
                         role: cd.role,

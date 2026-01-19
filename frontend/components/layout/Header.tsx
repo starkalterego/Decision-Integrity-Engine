@@ -10,21 +10,21 @@ interface HeaderProps {
 
 export function Header({ portfolioName, portfolioId, currentPage, className = '' }: HeaderProps) {
     return (
-        <header className={`bg-white border-b border-neutral-200 sticky top-0 z-50 ${className}`}>
-            <div className="max-w-[1400px] mx-auto px-8 py-4">
+        <header className={`bg-white border-b border-neutral-200 shadow-sm sticky top-0 z-50 backdrop-blur-sm bg-white/95 ${className}`}>
+            <div className="max-w-[1400px] mx-auto px-8 py-5">
                 <div className="flex items-center justify-between">
-                    {/* Brand Section - Text Only */}
+                    {/* Brand Section */}
                     <div className="flex items-center gap-6">
                         <Link
                             href="/"
-                            className="group flex items-center gap-3 transition-all"
+                            className="group flex items-center gap-3 transition-all hover:opacity-80"
                         >
                             <div>
-                                <h1 className="text-lg font-bold text-neutral-900 tracking-tight">
+                                <h1 className="text-xl font-bold text-neutral-900 tracking-tight">
                                     Decision Integrity Engine
                                 </h1>
                                 {portfolioName && (
-                                    <p className="text-xs text-neutral-500 font-medium mt-0.5">
+                                    <p className="text-xs text-neutral-500 font-semibold mt-1 tracking-wide">
                                         {portfolioName}
                                     </p>
                                 )}
@@ -32,9 +32,9 @@ export function Header({ portfolioName, portfolioId, currentPage, className = ''
                         </Link>
                     </div>
 
-                    {/* Navigation - Clean Text Links */}
+                    {/* Navigation */}
                     {portfolioId && (
-                        <nav className="flex items-center gap-1">
+                        <nav className="flex items-center gap-2">
                             <NavLink
                                 href={`/portfolio/${portfolioId}/setup`}
                                 active={currentPage === 'setup'}
@@ -86,17 +86,16 @@ function NavLink({
         <Link
             href={href}
             className={`
-                relative px-4 py-2 text-sm font-medium rounded-sm transition-colors duration-200
+                relative px-5 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200
                 ${active
-                    ? 'text-neutral-900 font-semibold bg-neutral-50'
-                    : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
+                    ? 'text-neutral-900 bg-neutral-100 shadow-sm'
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
                 }
             `}
         >
             <span>{children}</span>
-            {/* Minimal active indicator bar */}
             {active && (
-                <div className="absolute bottom-0 left-0 w-full h-[2px] bg-neutral-900" />
+                <div className="absolute bottom-0 left-0 w-full h-[3px] bg-neutral-900 rounded-t-full" />
             )}
         </Link>
     );

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { calculatePriorityScore } from '@/lib/priority';
 
 // GET /api/initiatives/[id] - Get initiative by ID
 export async function GET(
@@ -81,6 +82,14 @@ export async function PUT(
             );
         }
 
+        // Calculate priority score per BACKEND.md lines 100-117
+        const priorityScore = calculatePriorityScore({
+            estimatedValue: parseFloat(body.estimatedValue),
+            strategicAlignmentScore: parseInt(body.strategicAlignmentScore),
+            riskScore: parseInt(body.riskScore),
+            capacityDemands: body.capacityDemand
+        });
+
         // Update initiative and capacity demands
         const initiative = await prisma.initiative.update({
             where: { id: initiativeId },
@@ -91,6 +100,7 @@ export async function PUT(
                 strategicAlignmentScore: parseInt(body.strategicAlignmentScore),
                 estimatedValue: parseFloat(body.estimatedValue),
                 riskScore: parseInt(body.riskScore),
+                priorityScore: priorityScore,
                 capacityDemands: {
                     deleteMany: {},
                     create: body.capacityDemand.map((cd: any) => ({

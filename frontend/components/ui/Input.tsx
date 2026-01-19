@@ -14,15 +14,28 @@ export function Input({
     ...props
 }: InputProps) {
     return (
-        <div className="form-group">
-            {label && <label htmlFor={props.id}>{label}</label>}
+        <div className="w-full">
+            {label && (
+                <label 
+                    htmlFor={props.id} 
+                    className="block text-sm font-semibold text-neutral-700 mb-2"
+                >
+                    {label}
+                </label>
+            )}
             <input
-                className={`${className} ${error ? 'border-status-red' : ''}`}
+                className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${
+                    error 
+                        ? 'border-red-500 focus:ring-red-500' 
+                        : 'border-neutral-300 focus:ring-neutral-900'
+                } ${className}`}
                 {...props}
             />
-            {error && <p className="error-message">{error}</p>}
+            {error && (
+                <p className="text-sm text-red-600 mt-2 font-medium">{error}</p>
+            )}
             {helperText && !error && (
-                <p className="text-xs text-neutral-600 mt-1">{helperText}</p>
+                <p className="text-xs text-neutral-500 mt-1.5">{helperText}</p>
             )}
         </div>
     );
@@ -42,15 +55,28 @@ export function Textarea({
     ...props
 }: TextareaProps) {
     return (
-        <div className="form-group">
-            {label && <label htmlFor={props.id}>{label}</label>}
+        <div className="w-full">
+            {label && (
+                <label 
+                    htmlFor={props.id} 
+                    className="block text-sm font-semibold text-neutral-700 mb-2"
+                >
+                    {label}
+                </label>
+            )}
             <textarea
-                className={`${className} ${error ? 'border-status-red' : ''}`}
+                className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent resize-vertical ${
+                    error 
+                        ? 'border-red-500 focus:ring-red-500' 
+                        : 'border-neutral-300 focus:ring-neutral-900'
+                } ${className}`}
                 {...props}
             />
-            {error && <p className="error-message">{error}</p>}
+            {error && (
+                <p className="text-sm text-red-600 mt-2 font-medium">{error}</p>
+            )}
             {helperText && !error && (
-                <p className="text-xs text-neutral-600 mt-1">{helperText}</p>
+                <p className="text-xs text-neutral-500 mt-1.5">{helperText}</p>
             )}
         </div>
     );
@@ -70,10 +96,21 @@ export function Select({
     ...props
 }: SelectProps) {
     return (
-        <div className="form-group">
-            {label && <label htmlFor={props.id}>{label}</label>}
+        <div className="w-full">
+            {label && (
+                <label 
+                    htmlFor={props.id} 
+                    className="block text-sm font-semibold text-neutral-700 mb-2"
+                >
+                    {label}
+                </label>
+            )}
             <select
-                className={`${className} ${error ? 'border-status-red' : ''}`}
+                className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent bg-white ${
+                    error 
+                        ? 'border-red-500 focus:ring-red-500' 
+                        : 'border-neutral-300 focus:ring-neutral-900'
+                } ${className}`}
                 {...props}
             >
                 <option value="">Select...</option>
@@ -83,7 +120,9 @@ export function Select({
                     </option>
                 ))}
             </select>
-            {error && <p className="error-message">{error}</p>}
+            {error && (
+                <p className="text-sm text-red-600 mt-2 font-medium">{error}</p>
+            )}
         </div>
     );
 }

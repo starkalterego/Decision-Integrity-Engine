@@ -29,16 +29,22 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
     const loadData = async () => {
         setIsLoading(true);
         try {
-            // Load portfolio
-            const portfolioRes = await fetch(`/api/portfolios/${resolvedParams.id}`);
-            const portfolioData = await portfolioRes.json();
+            // Load portfolio and scenarios in parallel
+            const [portfolioRes, scenariosRes] = await Promise.all([
+                fetch(`/api/portfolios/${resolvedParams.id}`),
+                fetch(`/api/scenarios?portfolioId=${resolvedParams.id}`)
+            ]);
+
+            const [portfolioData, scenariosData] = await Promise.all([
+                portfolioRes.json(),
+                scenariosRes.json()
+            ]);
+
+            let portfolioObj = null;
             if (portfolioData.success) {
                 setPortfolio(portfolioData.data);
+                portfolioObj = portfolioData.data;
             }
-
-            // Load all scenarios for this portfolio
-            const scenariosRes = await fetch(`/api/scenarios?portfolioId=${resolvedParams.id}`);
-            const scenariosData = await scenariosRes.json();
 
             if (scenariosData.success) {
                 // Calculate metrics for each scenario
@@ -58,8 +64,8 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                         ? fundedDecisions.reduce((sum: number, d: any) => sum + (d.initiative?.riskScore || 0), 0) / fundedDecisions.length
                         : 0;
 
-                    const capacityUtilization = portfolioData.data?.totalCapacity
-                        ? (totalCapacity / portfolioData.data.totalCapacity) * 100
+                    const capacityUtilization = portfolioObj?.totalCapacity
+                        ? (totalCapacity / portfolioObj.totalCapacity) * 100
                         : 0;
 
                     return {

@@ -138,7 +138,7 @@ export default function ExecutiveOutputPage({
         return (
             <div className="min-h-screen bg-neutral-50">
                 <Header portfolioName="Portfolio" portfolioId={resolvedParams.id} currentPage="output" />
-                <main className="page-container mx-auto max-w-[1400px] p-8">
+                <main className="page-container mx-auto max-w-350 p-8">
                     <div className="text-center py-20">
                         <p className="text-neutral-600">
                             {isLoading ? 'Loading executive summary...' : 'No finalized scenario available. Please finalize a scenario first.'}
@@ -153,9 +153,8 @@ export default function ExecutiveOutputPage({
         <div className="min-h-screen bg-neutral-50 font-sans text-neutral-900 selection:bg-neutral-200">
             <Header portfolioName={data.portfolio.name} portfolioId={resolvedParams.id} currentPage="output" className="no-print" />
 
-            <main className="page-container mx-auto max-w-[1400px] p-8">
-                <div className="section-header no-print flex justify-between items-center mb-8">
-                    <div>
+            <main className="page-container mx-auto max-w-350 p-8">
+                <div className="section-header no-print flex justify-between items-center mb-8">\n                    <div>
                         <h1 className="text-2xl font-semibold tracking-tight">Executive One-Pager</h1>
                         <p className="text-sm text-neutral-500 mt-1">Board-Ready Decision Artifact</p>
                     </div>
@@ -233,11 +232,11 @@ export default function ExecutiveOutputPage({
                             <div className="flex items-start gap-8">
                                 <div className="flex-1">
                                     <h2 className="text-[11px] font-bold text-accent-primary uppercase tracking-[0.15em] mb-5">The Decision Ask</h2>
-                                    <p className="text-[32px] font-medium text-neutral-900 leading-[1.5]">
+                                    <p className="text-[32px] font-medium text-neutral-900 leading-normal">
                                         {data.decisionAsk}
                                     </p>
                                 </div>
-                                <div className="flex flex-col gap-3 min-w-[200px]">
+                                <div className="flex flex-col gap-3 min-w-50">
                                     <button className="flex items-center gap-3 px-6 py-4 bg-white border-2 border-accent-primary rounded-lg shadow-sm hover:shadow-md transition-all group cursor-pointer text-left">
                                         <div className="w-5 h-5 rounded-full border-2 border-accent-primary flex items-center justify-center">
                                             <div className="w-2.5 h-2.5 rounded-full bg-accent-primary"></div>
@@ -294,7 +293,7 @@ export default function ExecutiveOutputPage({
                                         </div>
                                         <ul className="space-y-4">
                                             {data.tradeOffSummary.whatChanged.map((item, idx) => (
-                                                <li key={idx} className="text-sm text-neutral-700 leading-relaxed font-medium break-words">• {item}</li>
+                                                <li key={idx} className="text-sm text-neutral-700 leading-relaxed font-medium wrap-break-word">• {item}</li>
                                             ))}
                                         </ul>
                                     </div>
@@ -305,7 +304,7 @@ export default function ExecutiveOutputPage({
                                         </div>
                                         <ul className="space-y-4">
                                             {data.tradeOffSummary.whatGained.map((item, idx) => (
-                                                <li key={idx} className="text-sm text-neutral-700 leading-relaxed font-medium break-words">• {item}</li>
+                                                <li key={idx} className="text-sm text-neutral-700 leading-relaxed font-medium wrap-break-word">• {item}</li>
                                             ))}
                                         </ul>
                                     </div>

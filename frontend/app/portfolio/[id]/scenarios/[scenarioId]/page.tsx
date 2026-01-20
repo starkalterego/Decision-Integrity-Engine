@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
@@ -35,26 +35,57 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     useEffect(() => {
         loadData();
     }, [resolvedParams.id, resolvedParams.scenarioId]);
 
+    // Debounced save function
+    const debouncedSave = useCallback(async (decisionsToSave: Record<string, 'FUND' | 'PAUSE' | 'STOP'>) => {
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+
+        saveTimeoutRef.current = setTimeout(async () => {
+            try {
+                const decisionsArray = Object.entries(decisionsToSave).map(([id, dec]) => ({
+                    initiativeId: id,
+                    decision: dec
+                }));
+
+                await fetch(`/api/scenarios/${resolvedParams.scenarioId}/decisions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ decisions: decisionsArray }),
+                });
+            } catch (error) {
+                console.error('Error saving decisions:', error);
+            }
+        }, 500); // Save after 500ms of inactivity
+    }, [resolvedParams.scenarioId]);
+
     const loadData = async () => {
         setIsLoading(true);
         try {
-            // Load portfolio
-            const portfolioRes = await fetch(`/api/portfolios/${resolvedParams.id}`);
-            const portfolioData = await portfolioRes.json();
+            // Load all data in parallel for faster loading
+            const [portfolioRes, scenarioRes, initiativesRes] = await Promise.all([
+                fetch(`/api/portfolios/${resolvedParams.id}`),
+                fetch(`/api/scenarios/${resolvedParams.scenarioId}`),
+                fetch(`/api/initiatives?portfolioId=${resolvedParams.id}`)
+            ]);
+
+            const [portfolioData, scenarioData, initiativesData] = await Promise.all([
+                portfolioRes.json(),
+                scenarioRes.json(),
+                initiativesRes.json()
+            ]);
+
+            let decisionsMap: Record<string, 'FUND' | 'PAUSE' | 'STOP'> = {};
+
             if (portfolioData.success) {
                 setPortfolio(portfolioData.data);
             }
-
-            // Load scenario
-            const scenarioRes = await fetch(`/api/scenarios/${resolvedParams.scenarioId}`);
-            const scenarioData = await scenarioRes.json();
-
-            let decisionsMap: Record<string, 'FUND' | 'PAUSE' | 'STOP'> = {};
 
             if (scenarioData.success) {
                 setScenario(scenarioData.data);
@@ -68,9 +99,6 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                 setDecisions(decisionsMap);
             }
 
-            // Load initiatives
-            const initiativesRes = await fetch(`/api/initiatives?portfolioId=${resolvedParams.id}`);
-            const initiativesData = await initiativesRes.json();
             if (initiativesData.success) {
                 // Only show complete initiatives
                 const completeInitiatives = initiativesData.data.filter((i: any) => i.isComplete);
@@ -96,24 +124,12 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
     const handleDecisionChange = async (initiativeId: string, decision: 'FUND' | 'PAUSE' | 'STOP') => {
         if (isFinalized) return;
 
-        // Update local state
-        setDecisions(prev => ({ ...prev, [initiativeId]: decision }));
+        // Update local state immediately
+        const updatedDecisions = { ...decisions, [initiativeId]: decision };
+        setDecisions(updatedDecisions);
 
-        // Save to backend
-        try {
-            const decisionsArray = Object.entries({ ...decisions, [initiativeId]: decision }).map(([id, dec]) => ({
-                initiativeId: id,
-                decision: dec
-            }));
-
-            await fetch(`/api/scenarios/${resolvedParams.scenarioId}/decisions`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ decisions: decisionsArray }),
-            });
-        } catch (error) {
-            console.error('Error saving decision:', error);
-        }
+        // Debounced save to backend
+        debouncedSave(updatedDecisions);
     };
 
     const handleAssumptionsChange = async (value: string) => {
@@ -501,7 +517,7 @@ function CreateScenarioModal({
             }}
         >
             <div className="bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl rounded-lg" style={{ position: 'relative', zIndex: 10000, backgroundColor: '#ffffff' }}>
-                <div className="border-b border-neutral-200 px-8 py-6 bg-gradient-to-r from-neutral-50 to-white">
+                <div className="border-b border-neutral-200 px-8 py-6 bg-linear-to-r from-neutral-50 to-white">
                     <h2 className="text-2xl font-bold text-neutral-900 tracking-tight">
                         Create New Scenario
                     </h2>
@@ -536,7 +552,7 @@ function CreateScenarioModal({
                     </div>
                 </div>
 
-                <div className="border-t border-neutral-200 px-8 py-6 flex justify-between items-center bg-gradient-to-r from-neutral-50 to-white">
+                <div className="border-t border-neutral-200 px-8 py-6 flex justify-between items-center bg-linear-to-r from-neutral-50 to-white">
                     <p className="text-sm text-neutral-600">
                         <span className="text-red-600 font-semibold">*</span> All fields are mandatory
                     </p>

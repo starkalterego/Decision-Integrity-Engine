@@ -16,8 +16,8 @@ export function MetricCard({
     className = ''
 }: MetricCardProps) {
     const statusColors = {
-        green: 'border-l-green-500 bg-gradient-to-br from-green-50 to-white',
-        red: 'border-l-red-500 bg-gradient-to-br from-red-50 to-white',
+        green: 'border-l-green-500 bg-linear-to-br from-green-50 to-white',
+        red: 'border-l-red-500 bg-linear-to-br from-red-50 to-white',
         neutral: 'border-l-neutral-300 bg-white',
     };
 

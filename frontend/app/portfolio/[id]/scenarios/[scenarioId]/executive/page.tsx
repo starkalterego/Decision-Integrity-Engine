@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface ExecutiveSummaryData {
@@ -73,7 +73,37 @@ export default function ExecutiveOnePagerPage({
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Memoize expensive formatting functions
+    const formatCurrency = useCallback((value: number) => {
+        return `₹${(value / 10000000).toFixed(0)} Cr`;
+    }, []);
+
+    const formatPercentage = useCallback((value: number) => {
+        return `${value.toFixed(1)}%`;
+    }, []);
+
+    const formatDelta = useCallback((value: number, isPercentage = false) => {
+        const sign = value >= 0 ? '+' : '';
+        return isPercentage 
+            ? `${sign}${value.toFixed(1)}%`
+            : `${sign}${formatCurrency(value)}`;
+    }, [formatCurrency]);
+
+    // Add caching to the API call
     useEffect(() => {
+        const cacheKey = `executive-summary-${resolvedParams.scenarioId}`;
+        const cached = sessionStorage.getItem(cacheKey);
+        
+        if (cached) {
+            const { data: cachedData, timestamp } = JSON.parse(cached);
+            // Use cache if less than 2 minutes old
+            if (Date.now() - timestamp < 120000) {
+                setData(cachedData);
+                setIsLoading(false);
+                return;
+            }
+        }
+
         loadExecutiveSummary();
     }, [resolvedParams.scenarioId]);
 
@@ -88,21 +118,19 @@ export default function ExecutiveOnePagerPage({
             }
 
             setData(result.data);
+            
+            // Cache the result
+            const cacheKey = `executive-summary-${resolvedParams.scenarioId}`;
+            sessionStorage.setItem(cacheKey, JSON.stringify({
+                data: result.data,
+                timestamp: Date.now()
+            }));
         } catch (err) {
             console.error('Error loading executive summary:', err);
             setError('Failed to load executive summary');
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const formatCurrency = (value: number) => {
-        return `₹${(value / 10000000).toFixed(0)} Cr`;
-    };
-
-    const formatDelta = (delta: number) => {
-        const sign = delta > 0 ? '+' : '';
-        return `${sign}${delta.toFixed(0)}%`;
     };
 
     if (isLoading) {

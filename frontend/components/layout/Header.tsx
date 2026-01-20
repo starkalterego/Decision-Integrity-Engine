@@ -10,8 +10,8 @@ interface HeaderProps {
 
 export function Header({ portfolioName, portfolioId, currentPage, className = '' }: HeaderProps) {
     return (
-        <header className={`bg-white border-b border-neutral-200 shadow-sm sticky top-0 z-50 backdrop-blur-sm bg-white/95 ${className}`}>
-            <div className="max-w-[1400px] mx-auto px-8 py-5">
+        <header className={`border-b border-neutral-200 shadow-sm sticky top-0 z-50 backdrop-blur-sm bg-white/95 ${className}`}>
+            <div className="max-w-350 mx-auto px-8 py-5">
                 <div className="flex items-center justify-between">
                     {/* Brand Section */}
                     <div className="flex items-center gap-6">

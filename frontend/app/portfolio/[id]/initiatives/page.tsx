@@ -37,16 +37,21 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
     const loadData = async () => {
         setIsLoading(true);
         try {
-            // Load portfolio
-            const portfolioRes = await fetch(`/api/portfolios/${resolvedParams.id}`);
-            const portfolioData = await portfolioRes.json();
+            // Load portfolio and initiatives in parallel (faster)
+            const [portfolioRes, initiativesRes] = await Promise.all([
+                fetch(`/api/portfolios/${resolvedParams.id}`),
+                fetch(`/api/initiatives?portfolioId=${resolvedParams.id}`)
+            ]);
+
+            const [portfolioData, initiativesData] = await Promise.all([
+                portfolioRes.json(),
+                initiativesRes.json()
+            ]);
+
             if (portfolioData.success) {
                 setPortfolio(portfolioData.data);
             }
 
-            // Load initiatives
-            const initiativesRes = await fetch(`/api/initiatives?portfolioId=${resolvedParams.id}`);
-            const initiativesData = await initiativesRes.json();
             if (initiativesData.success) {
                 setInitiatives(initiativesData.data);
             }
@@ -429,7 +434,7 @@ function InitiativeModal({
             }}
         >
             <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl rounded-lg" style={{ position: 'relative', zIndex: 10000, backgroundColor: '#ffffff' }}>
-                <div className="border-b border-neutral-200 px-8 py-6 bg-gradient-to-r from-neutral-50 to-white">
+                <div className="border-b border-neutral-200 px-8 py-6 bg-linear-to-r from-neutral-50 to-white">
                     <h2 className="text-2xl font-bold text-neutral-900 tracking-tight">
                         {editingId ? 'Edit Initiative' : 'Add New Initiative'}
                     </h2>
@@ -563,7 +568,7 @@ function InitiativeModal({
                     </div>
                 </div>
 
-                <div className="border-t border-neutral-200 px-8 py-6 flex justify-between items-center bg-gradient-to-r from-neutral-50 to-white">
+                <div className="border-t border-neutral-200 px-8 py-6 flex justify-between items-center bg-linear-to-r from-neutral-50 to-white">
                     <p className="text-sm text-neutral-600"><span className="text-red-600 font-semibold">*</span> All fields are mandatory for initiative to be complete</p>
                     <div className="flex gap-3">
                         <Button variant="text" onClick={onClose} disabled={isSaving}>Cancel</Button>

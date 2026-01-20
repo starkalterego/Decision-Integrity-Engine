@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -24,14 +24,13 @@ export default function HomePage() {
     totalBudget: '',
     totalCapacity: ''
   });
+  const [isCreating, setIsCreating] = useState(false);
 
-  useEffect(() => {
-    fetchPortfolios();
-  }, []);
-
-  const fetchPortfolios = async () => {
+  const fetchPortfolios = useCallback(async () => {
     try {
-      const response = await fetch('/api/portfolios');
+      const response = await fetch('/api/portfolios', {
+        cache: 'no-store' // Ensure fresh data
+      });
       if (response.ok) {
         const result = await response.json();
         setPortfolios(result.data || []);
@@ -41,10 +40,18 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleCreatePortfolio = async (e: React.FormEvent) => {
+  useEffect(() => {
+    fetchPortfolios();
+  }, [fetchPortfolios]);
+
+  const handleCreatePortfolio = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isCreating) return; // Prevent double submit
+    
+    setIsCreating(true);
     try {
       const response = await fetch('/api/portfolios', {
         method: 'POST',
@@ -70,8 +77,10 @@ export default function HomePage() {
     } catch (error) {
       console.error('Failed to create portfolio:', error);
       alert('Failed to create portfolio. Please try again.');
+    } finally {
+      setIsCreating(false);
     }
-  };
+  }, [isCreating, newPortfolio, router]);
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -190,7 +199,7 @@ export default function HomePage() {
           </div>
         ) : portfolios.length === 0 ? (
           <div className="bg-white rounded-xl border border-neutral-200 p-16 text-center shadow-sm">
-            <div className="w-20 h-20 bg-gradient-to-br from-neutral-100 to-neutral-200 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <div className="w-20 h-20 bg-linear-to-br from-neutral-100 to-neutral-200 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <svg className="w-10 h-10 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
@@ -255,7 +264,7 @@ export default function HomePage() {
 
         {/* Info Banner - Only show if portfolios exist */}
         {portfolios.length > 0 && (
-          <div className="bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 text-white rounded-xl p-10 shadow-lg">
+          <div className="bg-linear-to-br from-neutral-900 via-neutral-800 to-neutral-900 text-white rounded-xl p-10 shadow-lg">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-2xl font-bold mb-4 tracking-tight">Portfolio Governance Platform</h2>
               <p className="text-neutral-300 text-base leading-relaxed">
@@ -266,7 +275,7 @@ export default function HomePage() {
         )}
 
         {/* Call to Action */}
-        <div className="bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 text-white rounded-xl p-16 text-center shadow-lg mt-16">
+        <div className="bg-linear-to-br from-neutral-900 via-neutral-800 to-neutral-900 text-white rounded-xl p-16 text-center shadow-lg mt-16">
           <h2 className="text-3xl font-bold mb-5 tracking-tight">Ready to Start?</h2>
           <p className="text-neutral-300 mb-10 max-w-2xl mx-auto text-lg leading-relaxed">
             Create your first portfolio, add initiatives, build scenarios, and generate a comprehensive decision report

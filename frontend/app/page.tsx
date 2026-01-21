@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/hooks/useAuth';
+import { authGet } from '@/lib/api';
 
 interface Portfolio {
   id: string;
@@ -15,20 +17,13 @@ interface Portfolio {
 
 export default function HomePage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth(true); // Require authentication
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newPortfolio, setNewPortfolio] = useState({
-    name: '',
-    fiscalPeriod: '',
-    totalBudget: '',
-    totalCapacity: ''
-  });
-  const [isCreating, setIsCreating] = useState(false);
 
   const fetchPortfolios = useCallback(async () => {
     try {
-      const response = await fetch('/api/portfolios', {
+      const response = await authGet('/api/portfolios', {
         cache: 'no-store' // Ensure fresh data
       });
       if (response.ok) {
@@ -46,41 +41,17 @@ export default function HomePage() {
     fetchPortfolios();
   }, [fetchPortfolios]);
 
-  const handleCreatePortfolio = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (isCreating) return; // Prevent double submit
-    
-    setIsCreating(true);
-    try {
-      const response = await fetch('/api/portfolios', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newPortfolio.name,
-          fiscalPeriod: newPortfolio.fiscalPeriod,
-          totalBudget: parseFloat(newPortfolio.totalBudget),
-          totalCapacity: parseInt(newPortfolio.totalCapacity),
-        }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data) {
-          router.push(`/portfolio/${result.data.portfolioId}/setup`);
-        }
-      } else {
-        const error = await response.json();
-        console.error('Failed to create portfolio:', error.errors);
-        alert(`Error: ${error.errors[0]?.message || 'Failed to create portfolio'}`);
-      }
-    } catch (error) {
-      console.error('Failed to create portfolio:', error);
-      alert('Failed to create portfolio. Please try again.');
-    } finally {
-      setIsCreating(false);
-    }
-  }, [isCreating, newPortfolio, router]);
+  // Show loading while checking authentication
+  if (authLoading || loading) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-neutral-200 border-t-neutral-900"></div>
+          <p className="text-neutral-600 mt-6 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -111,85 +82,14 @@ export default function HomePage() {
                 Manage portfolios, initiatives, scenarios, and generate decision reports with governance-first design principles
               </p>
             </div>
-            <button
-              onClick={() => setShowCreateForm(true)}
+            <Link
+              href="/portfolio/create"
               className="shrink-0 px-8 py-3.5 bg-neutral-900 text-white font-semibold rounded-lg hover:bg-neutral-800 hover:shadow-lg transition-all duration-200 shadow-md text-base"
             >
               + New Portfolio
-            </button>
+            </Link>
           </div>
         </div>
-
-        {/* Create Portfolio Form Modal */}
-        {showCreateForm && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
-            <div className="bg-white rounded-xl max-w-md w-full p-8 shadow-2xl">
-              <h2 className="text-2xl font-bold text-neutral-900 mb-6">Create New Portfolio</h2>
-              <form onSubmit={handleCreatePortfolio} className="space-y-5">
-                <div>
-                  <label className="block text-sm font-semibold text-neutral-700 mb-2">Portfolio Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={newPortfolio.name}
-                    onChange={(e) => setNewPortfolio({ ...newPortfolio, name: e.target.value })}
-                    className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent transition-all"
-                    placeholder="e.g., Q1 2026 Portfolio"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-neutral-700 mb-2">Fiscal Period</label>
-                  <input
-                    type="text"
-                    required
-                    value={newPortfolio.fiscalPeriod}
-                    onChange={(e) => setNewPortfolio({ ...newPortfolio, fiscalPeriod: e.target.value })}
-                    className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent transition-all"
-                    placeholder="e.g., FY2026-Q1, 2026, Jan-Mar 2026"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-neutral-700 mb-2">Total Budget (₹ Cr)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    required
-                    value={newPortfolio.totalBudget}
-                    onChange={(e) => setNewPortfolio({ ...newPortfolio, totalBudget: e.target.value })}
-                    className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent transition-all"
-                    placeholder="e.g., 100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-neutral-700 mb-2">Total Capacity (Units)</label>
-                  <input
-                    type="number"
-                    required
-                    value={newPortfolio.totalCapacity}
-                    onChange={(e) => setNewPortfolio({ ...newPortfolio, totalCapacity: e.target.value })}
-                    className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent transition-all"
-                    placeholder="e.g., 450"
-                  />
-                </div>
-                <div className="flex gap-3 pt-6">
-                  <button
-                    type="button"
-                    onClick={() => setShowCreateForm(false)}
-                    className="flex-1 px-6 py-3 border border-neutral-300 text-neutral-700 font-semibold rounded-lg hover:bg-neutral-50 hover:border-neutral-400 transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 px-6 py-3 bg-neutral-900 text-white font-semibold rounded-lg hover:bg-neutral-800 hover:shadow-lg transition-all"
-                  >
-                    Create Portfolio
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
 
         {/* Existing Portfolios */}
         {loading ? (
@@ -206,12 +106,12 @@ export default function HomePage() {
             </div>
             <h3 className="text-xl font-bold text-neutral-900 mb-3">No Portfolios Yet</h3>
             <p className="text-neutral-600 mb-8 max-w-md mx-auto">Create your first portfolio to get started with portfolio decision management and governance</p>
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="px-8 py-3.5 bg-neutral-900 text-white font-semibold rounded-lg hover:bg-neutral-800 hover:shadow-lg transition-all"
+            <Link
+              href="/portfolio/create"
+              className="inline-block px-8 py-3.5 bg-neutral-900 text-white font-semibold rounded-lg hover:bg-neutral-800 hover:shadow-lg transition-all"
             >
               Create Your First Portfolio
-            </button>
+            </Link>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
@@ -280,12 +180,12 @@ export default function HomePage() {
           <p className="text-neutral-300 mb-10 max-w-2xl mx-auto text-lg leading-relaxed">
             Create your first portfolio, add initiatives, build scenarios, and generate a comprehensive decision report
           </p>
-          <button 
-            onClick={() => setShowCreateForm(true)}
+          <Link
+            href="/portfolio/create"
             className="inline-block px-10 py-4 bg-white text-neutral-900 font-bold rounded-lg hover:bg-neutral-100 hover:shadow-xl transition-all duration-200 shadow-lg text-base"
           >
             Create Portfolio Now
-          </button>
+          </Link>
         </div>
 
       </main>

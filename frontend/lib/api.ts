@@ -1,0 +1,70 @@
+/**
+ * Utility functions for making authenticated API requests
+ */
+
+/**
+ * Makes an authenticated fetch request with the JWT token from localStorage
+ */
+export async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = localStorage.getItem('authToken');
+  
+  const headers = new Headers(options.headers);
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+}
+
+/**
+ * Makes an authenticated GET request
+ */
+export async function authGet(url: string, options: RequestInit = {}): Promise<Response> {
+  return authFetch(url, {
+    ...options,
+    method: 'GET',
+  });
+}
+
+/**
+ * Makes an authenticated POST request with JSON body
+ */
+export async function authPost(url: string, data: any, options: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(options.headers);
+  headers.set('Content-Type', 'application/json');
+  
+  return authFetch(url, {
+    ...options,
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Makes an authenticated PUT request with JSON body
+ */
+export async function authPut(url: string, data: any, options: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(options.headers);
+  headers.set('Content-Type', 'application/json');
+  
+  return authFetch(url, {
+    ...options,
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Makes an authenticated DELETE request
+ */
+export async function authDelete(url: string, options: RequestInit = {}): Promise<Response> {
+  return authFetch(url, {
+    ...options,
+    method: 'DELETE',
+  });
+}

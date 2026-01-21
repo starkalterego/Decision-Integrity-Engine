@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 interface HeaderProps {
     portfolioName?: string;
@@ -8,7 +11,9 @@ interface HeaderProps {
     className?: string;
 }
 
-export function Header({ portfolioName, portfolioId, currentPage, className = '' }: HeaderProps) {
+export default function Header({ portfolioName, portfolioId, currentPage, className = '' }: HeaderProps) {
+    const { user, isAuthenticated, logout } = useAuth();
+
     return (
         <header className={`border-b border-neutral-200 shadow-sm sticky top-0 z-50 backdrop-blur-sm bg-white/95 ${className}`}>
             <div className="max-w-350 mx-auto px-8 py-5">
@@ -66,6 +71,30 @@ export function Header({ portfolioName, portfolioId, currentPage, className = ''
                                 Output
                             </NavLink>
                         </nav>
+                    )}
+
+                    {/* User Menu */}
+                    {isAuthenticated && user && (
+                        <div className="flex items-center gap-4 ml-6 pl-6 border-l border-neutral-200">
+                            <div className="text-right">
+                                <p className="text-sm font-semibold text-neutral-900">{user.name}</p>
+                                <p className="text-xs text-neutral-500">{user.role.replace('_', ' ')}</p>
+                            </div>
+                            <button
+                                onClick={logout}
+                                className="px-4 py-2 text-sm font-semibold text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-all"
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    )}
+                    {!isAuthenticated && (
+                        <Link
+                            href="/auth"
+                            className="px-4 py-2 text-sm font-semibold text-neutral-900 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-all"
+                        >
+                            Sign In
+                        </Link>
                     )}
                 </div>
             </div>

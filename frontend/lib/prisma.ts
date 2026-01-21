@@ -11,6 +11,8 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
             url: process.env.DATABASE_URL,
         },
     },
+    // Fix for Supabase connection pooling prepared statement conflict
+    // Use DIRECT_URL for migrations, DATABASE_URL for queries without prepared statements
 })
 
 // Prevent multiple instances during hot reloads in development

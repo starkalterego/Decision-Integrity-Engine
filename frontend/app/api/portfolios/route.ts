@@ -1,10 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAuthUser } from '@/lib/auth';
 
 // POST /api/portfolios - Create a new portfolio
 // Per API_CONTRACTS.md lines 70-92
 export async function POST(request: NextRequest) {
     try {
+        // Authenticate user
+        const user = await getAuthUser(request);
+        if (!user) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    data: null,
+                    errors: [{
+                        code: 'UNAUTHORIZED',
+                        message: 'Authentication required'
+                    }]
+                },
+                { status: 401 }
+            );
+        }
+
         const body = await request.json();
 
         // Validation per BACKEND.md lines 73-84
@@ -24,9 +41,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Create portfolio
+        // Create portfolio for the authenticated user
         const portfolio = await prisma.portfolio.create({
             data: {
+                userId: user.userId,
                 name,
                 fiscalPeriod,
                 totalBudget: parseFloat(totalBudget),
@@ -60,10 +78,30 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// GET /api/portfolios - Get all portfolios (for development)
-export async function GET() {
+// GET /api/portfolios - Get all portfolios for the authenticated user
+export async function GET(request: NextRequest) {
     try {
+        // Authenticate user
+        const user = await getAuthUser(request);
+        if (!user) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    data: null,
+                    errors: [{
+                        code: 'UNAUTHORIZED',
+                        message: 'Authentication required'
+                    }]
+                },
+                { status: 401 }
+            );
+        }
+
+        // Fetch only portfolios owned by the authenticated user
         const portfolios = await prisma.portfolio.findMany({
+            where: {
+                userId: user.userId
+            },
             include: {
                 initiatives: true,
                 scenarios: true

@@ -15,31 +15,44 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
     const { user, isAuthenticated, logout } = useAuth();
 
     return (
-        <header className={`border-b border-neutral-200 shadow-sm sticky top-0 z-50 backdrop-blur-sm bg-white/95 ${className}`}>
-            <div className="max-w-350 mx-auto px-8 py-5">
-                <div className="flex items-center justify-between">
-                    {/* Brand Section */}
-                    <div className="flex items-center gap-6">
-                        <Link
-                            href="/"
-                            className="group flex items-center gap-3 transition-all hover:opacity-80"
-                        >
-                            <div>
-                                <h1 className="text-xl font-bold text-neutral-900 tracking-tight">
-                                    Decision Integrity Engine
-                                </h1>
-                                {portfolioName && (
-                                    <p className="text-xs text-neutral-500 font-semibold mt-1 tracking-wide">
-                                        {portfolioName}
-                                    </p>
-                                )}
-                            </div>
-                        </Link>
-                    </div>
+        <header 
+            className={`sticky top-0 z-50 w-full backdrop-blur-md ${className}`}
+            style={{ 
+                backgroundColor: 'rgba(11, 17, 32, 0.85)',
+                borderBottom: '1px solid var(--border-subtle)'
+            }}
+        >
+            <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                {/* Brand Section */}
+                <div className="flex items-center gap-8">
+                    <Link
+                        href="/"
+                        className="flex items-center gap-3 transition-opacity hover:opacity-90"
+                    >
+                        <div className="flex flex-col justify-center">
+                            <h1 
+                                className="text-lg font-bold tracking-tight leading-none"
+                                style={{ color: 'var(--text-primary)' }}
+                            >
+                                Decision Integrity<span style={{ color: 'var(--accent-primary)' }}>Engine</span>
+                            </h1>
+                            {portfolioName && (
+                                <span 
+                                    className="text-xs font-medium mt-1 truncate max-w-[200px]"
+                                    style={{ color: 'var(--text-tertiary)' }}
+                                >
+                                    {portfolioName}
+                                </span>
+                            )}
+                        </div>
+                    </Link>
 
                     {/* Navigation */}
                     {portfolioId && (
-                        <nav className="flex items-center gap-2">
+                        <nav 
+                            className="hidden md:flex items-center gap-1 ml-4 pl-6" 
+                            style={{ borderLeft: '1px solid var(--border-subtle)' }}
+                        >
                             <NavLink
                                 href={`/portfolio/${portfolioId}/setup`}
                                 active={currentPage === 'setup'}
@@ -72,26 +85,52 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
                             </NavLink>
                         </nav>
                     )}
+                </div>
 
-                    {/* User Menu */}
-                    {isAuthenticated && user && (
-                        <div className="flex items-center gap-4 ml-6 pl-6 border-l border-neutral-200">
-                            <div className="text-right">
-                                <p className="text-sm font-semibold text-neutral-900">{user.name}</p>
-                                <p className="text-xs text-neutral-500">{user.role.replace('_', ' ')}</p>
+                {/* User Menu */}
+                <div className="flex items-center gap-6">
+                    {isAuthenticated && user ? (
+                        <div className="flex items-center gap-4">
+                            <div className="text-right hidden sm:block">
+                                <p 
+                                    className="text-sm font-medium leading-none"
+                                    style={{ color: 'var(--text-primary)' }}
+                                >
+                                    {user.name}
+                                </p>
+                                <p 
+                                    className="text-xs mt-1"
+                                    style={{ color: 'var(--text-tertiary)' }}
+                                >
+                                    {user.role.replace('_', ' ')}
+                                </p>
+                            </div>
+                            <div 
+                                className="h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold"
+                                style={{ 
+                                    backgroundColor: 'var(--bg-elevated)', 
+                                    color: 'var(--accent-primary)',
+                                    border: '1px solid var(--border-subtle)'
+                                }}
+                            >
+                                {user.name.charAt(0)}
                             </div>
                             <button
                                 onClick={logout}
-                                className="px-4 py-2 text-sm font-semibold text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-all"
+                                className="text-sm font-medium transition-colors hover:text-red-400"
+                                style={{ color: 'var(--text-secondary)' }}
                             >
-                                Logout
+                                Sign Out
                             </button>
                         </div>
-                    )}
-                    {!isAuthenticated && (
+                    ) : (
                         <Link
                             href="/auth"
-                            className="px-4 py-2 text-sm font-semibold text-neutral-900 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-all"
+                            className="px-4 py-2 text-sm font-semibold rounded-md transition-all hover:opacity-90"
+                            style={{
+                                color: '#ffffff',
+                                backgroundColor: 'var(--accent-primary)',
+                            }}
                         >
                             Sign In
                         </Link>
@@ -114,18 +153,13 @@ function NavLink({
     return (
         <Link
             href={href}
-            className={`
-                relative px-5 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200
-                ${active
-                    ? 'text-neutral-900 bg-neutral-100 shadow-sm'
-                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
-                }
-            `}
+            className="px-3 py-2 text-sm font-medium rounded-md transition-all duration-200"
+            style={{
+                color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+                backgroundColor: active ? 'var(--bg-elevated)' : 'transparent',
+            }}
         >
-            <span>{children}</span>
-            {active && (
-                <div className="absolute bottom-0 left-0 w-full h-[3px] bg-neutral-900 rounded-t-full" />
-            )}
+            {children}
         </Link>
     );
 }

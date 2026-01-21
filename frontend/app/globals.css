@@ -1,9 +1,37 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
-/* CSS Variables for Design Tokens */
+/* CSS Variables for Design Tokens - Professional Dark Theme */
 :root {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  
+  /* Backgrounds - Deep Slate/Zinc Scale */
+  --bg-primary: #0b1120;   /* Deepest Navy/Slate - Main Page Background */
+  --bg-secondary: #151e32; /* Lighter tint for Cards/Containers */
+  --bg-tertiary: #1e2942;  /* Inputs, Headers, Secondary Areas */
+  --bg-elevated: #2d3b59;  /* Modals, Dropdowns, Hover States */
+  
+  /* Text - carefully calibrated for contrast on dark backgrounds */
+  --text-primary: #f8fafc;   /* Slate 50 - Primary Headings */
+  --text-secondary: #cbd5e1; /* Slate 300 - Body Text */
+  --text-tertiary: #94a3b8;  /* Slate 400 - Metadata/Labels */
+  --text-accent: #38bdf8;    /* Sky 400 - Links/Highlights */
+  
+  /* Borders */
+  --border-subtle: #1e293b;  /* Slate 800 */
+  --border-default: #334155; /* Slate 700 */
+  --border-strong: #475569;  /* Slate 600 */
+  
+  /* Accents - "Executive" Palette */
+  --accent-primary: #0ea5e9;   /* Sky 500 - Primary Action */
+  --accent-primary-hover: #0284c7; /* Sky 600 */
+  --accent-secondary: #6366f1; /* Indigo 500 - Secondary Action */
+  
+  /* Semantic Status Colors */
+  --accent-success: #10b981; /* Emerald 500 */
+  --accent-warning: #f59e0b; /* Amber 500 */
+  --accent-error: #ef4444;   /* Red 500 */
+  --accent-info: #3b82f6;    /* Blue 500 */
   
   /* Spacing Scale */
   --space-xs: 0.25rem;
@@ -19,11 +47,12 @@
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
   
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  /* Shadows - subtly tinted shadows for depth */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.2);
+  --shadow-glow: 0 0 20px rgba(14, 165, 233, 0.15); /* Subtle blue glow for primary elements */
   
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -44,8 +73,8 @@ body {
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.6;
-  color: #1f2937;
-  background-color: #f9fafb;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -53,27 +82,27 @@ body {
 
 /* Typography Enhancements */
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 700;
+  color: var(--text-primary);
+  font-weight: 600;
   line-height: 1.25;
-  letter-spacing: -0.02em;
-  color: #111827;
+  letter-spacing: -0.025em;
 }
 
-h1 { font-size: 2.25rem; font-weight: 800; }
-h2 { font-size: 1.875rem; font-weight: 700; }
-h3 { font-size: 1.5rem; font-weight: 700; }
-h4 { font-size: 1.25rem; font-weight: 600; }
-h5 { font-size: 1.125rem; font-weight: 600; }
-h6 { font-size: 1rem; font-weight: 600; }
+h1 { font-size: 2.25rem; font-weight: 700; }
+h2 { font-size: 1.875rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+h5 { font-size: 1.125rem; }
+h6 { font-size: 1rem; }
 
 p {
   margin-bottom: 1rem;
-  color: #4b5563;
+  color: var(--text-secondary);
 }
 
 /* Focus States */
 *:focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
 
@@ -82,7 +111,7 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
 
@@ -102,16 +131,17 @@ textarea {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f3f4f6;
+  background: var(--bg-primary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: var(--border-default);
   border-radius: 5px;
+  border: 2px solid var(--bg-primary);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+  background: var(--border-strong);
 }
 
 /* Animation for pulse effect */
@@ -150,14 +180,14 @@ textarea {
 }
 
 .card {
-  background: white;
+  background-color: var(--bg-secondary);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-default);
   transition: all var(--transition-base);
 }
 
 .card:hover {
   box-shadow: var(--shadow-md);
-  border-color: #d1d5db;
+  border-color: var(--border-strong);
 }

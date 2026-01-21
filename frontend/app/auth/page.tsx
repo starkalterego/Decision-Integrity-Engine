@@ -113,7 +113,10 @@ export default function AuthPage() {
     };
 
     return (
-        <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-6">
+        <div 
+            className="min-h-screen flex items-center justify-center px-4 py-12"
+            style={{ backgroundColor: 'var(--bg-primary)' }}
+        >
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-linear-to-br from-neutral-100 via-white to-neutral-100 opacity-50"></div>
 
@@ -122,33 +125,58 @@ export default function AuthPage() {
                 {/* Logo/Brand */}
                 <div className="text-center mb-8">
                     <Link href="/" className="inline-block">
-                        <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">
+                        <h1 
+                            className="text-3xl font-bold tracking-tight"
+                            style={{ 
+                                color: 'var(--accent-primary)',
+                                textShadow: '0 0 25px rgba(0, 217, 255, 0.4)'
+                            }}
+                        >
                             Decision Integrity Engine
                         </h1>
-                        <p className="text-sm text-neutral-500 mt-2 tracking-wide uppercase font-medium">
+                        <p 
+                            className="text-sm mt-2 tracking-wide uppercase font-medium"
+                            style={{ color: 'var(--text-tertiary)' }}
+                        >
                             Portfolio Governance Platform
                         </p>
                     </Link>
                 </div>
 
                 {/* Auth Card */}
-                <div className="bg-white rounded-xl shadow-lg border border-neutral-200 overflow-hidden">
+                <div 
+                    className="rounded-xl shadow-lg overflow-hidden"
+                    style={{ 
+                        backgroundColor: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-default)',
+                        boxShadow: '0 0 30px rgba(0, 217, 255, 0.1)'
+                    }}
+                >
                     {/* Tab Navigation */}
-                    <div className="flex border-b border-neutral-200">
+                    <div 
+                        className="flex"
+                        style={{ borderBottom: '1px solid var(--border-default)' }}
+                    >
                         <button
                             onClick={() => {
                                 setMode('login');
                                 setError('');
                             }}
-                            className={`flex-1 py-4 px-6 text-sm font-semibold transition-colors relative ${
-                                mode === 'login'
-                                    ? 'text-neutral-900 bg-white'
-                                    : 'text-neutral-500 bg-neutral-50 hover:text-neutral-700'
-                            }`}
+                            className="flex-1 py-4 px-6 text-sm font-semibold transition-colors relative"
+                            style={{
+                                color: mode === 'login' ? 'var(--accent-primary)' : 'var(--text-tertiary)',
+                                backgroundColor: mode === 'login' ? 'var(--bg-secondary)' : 'var(--bg-tertiary)'
+                            }}
                         >
                             Login
                             {mode === 'login' && (
-                                <div className="absolute bottom-0 left-0 right-0 h-0.75 bg-neutral-900"></div>
+                                <div 
+                                    className="absolute bottom-0 left-0 right-0 h-0.75"
+                                    style={{ 
+                                        backgroundColor: 'var(--accent-primary)',
+                                        boxShadow: '0 0 10px rgba(0, 217, 255, 0.5)'
+                                    }}
+                                />
                             )}
                         </button>
                         <button
@@ -156,15 +184,21 @@ export default function AuthPage() {
                                 setMode('signup');
                                 setError('');
                             }}
-                            className={`flex-1 py-4 px-6 text-sm font-semibold transition-colors relative ${
-                                mode === 'signup'
-                                    ? 'text-neutral-900 bg-white'
-                                    : 'text-neutral-500 bg-neutral-50 hover:text-neutral-700'
-                            }`}
+                            className="flex-1 py-4 px-6 text-sm font-semibold transition-colors relative"
+                            style={{
+                                color: mode === 'signup' ? 'var(--accent-primary)' : 'var(--text-tertiary)',
+                                backgroundColor: mode === 'signup' ? 'var(--bg-secondary)' : 'var(--bg-tertiary)'
+                            }}
                         >
                             Sign Up
                             {mode === 'signup' && (
-                                <div className="absolute bottom-0 left-0 right-0 h-0.75 bg-neutral-900"></div>
+                                <div 
+                                    className="absolute bottom-0 left-0 right-0 h-0.75"
+                                    style={{ 
+                                        backgroundColor: 'var(--accent-primary)',
+                                        boxShadow: '0 0 10px rgba(0, 217, 255, 0.5)'
+                                    }}
+                                />
                             )}
                         </button>
                     </div>
@@ -173,8 +207,19 @@ export default function AuthPage() {
                     <div className="p-8">
                         {/* Error Message */}
                         {error && (
-                            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                                <p className="text-sm text-red-800 font-medium">{error}</p>
+                            <div 
+                                className="mb-6 p-4 rounded-lg"
+                                style={{ 
+                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                    border: '1px solid rgba(239, 68, 68, 0.3)'
+                                }}
+                            >
+                                <p 
+                                    className="text-sm font-medium"
+                                    style={{ color: '#fca5a5' }}
+                                >
+                                    {error}
+                                </p>
                             </div>
                         )}
 
@@ -182,7 +227,10 @@ export default function AuthPage() {
                         {mode === 'login' && (
                             <form onSubmit={handleLogin} className="space-y-5">
                                 <div>
-                                    <label className="block text-sm font-semibold text-neutral-700 mb-2">
+                                    <label 
+                                        className="block text-sm font-semibold mb-2"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
                                         Email Address
                                     </label>
                                     <Input
@@ -198,7 +246,10 @@ export default function AuthPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-neutral-700 mb-2">
+                                    <label 
+                                        className="block text-sm font-semibold mb-2"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
                                         Password
                                     </label>
                                     <Input
@@ -214,16 +265,25 @@ export default function AuthPage() {
                                 </div>
 
                                 <div className="flex items-center justify-between text-sm">
-                                    <label className="flex items-center gap-2 cursor-pointer">
+                                    <label 
+                                        className="flex items-center gap-2 cursor-pointer"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
                                         <input
                                             type="checkbox"
-                                            className="w-4 h-4 rounded border-neutral-300 text-neutral-900 focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2"
+                                            className="w-4 h-4 rounded"
+                                            style={{ 
+                                                accentColor: 'var(--accent-primary)',
+                                                backgroundColor: 'var(--bg-tertiary)',
+                                                borderColor: 'var(--border-default)'
+                                            }}
                                         />
-                                        <span className="text-neutral-600">Remember me</span>
+                                        <span>Remember me</span>
                                     </label>
                                     <a
                                         href="#"
-                                        className="text-neutral-900 font-semibold hover:underline"
+                                        className="font-semibold hover:underline"
+                                        style={{ color: 'var(--accent-primary)' }}
                                     >
                                         Forgot password?
                                     </a>

@@ -14,13 +14,7 @@ export function Button({
     disabled,
     ...props
 }: ButtonProps) {
-    const baseClasses = 'font-semibold rounded-lg transition-all duration-200 inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2';
-    
-    const variantClasses = {
-        primary: 'bg-neutral-900 text-white hover:bg-neutral-800 hover:shadow-lg focus:ring-neutral-900 disabled:bg-neutral-400 disabled:cursor-not-allowed',
-        secondary: 'bg-white border-2 border-neutral-300 text-neutral-700 hover:border-neutral-400 hover:bg-neutral-50 focus:ring-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed',
-        text: 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 focus:ring-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed',
-    };
+    const baseClasses = 'font-semibold rounded-lg transition-all duration-200 inline-flex items-center justify-center focus:outline-none';
     
     const sizeClasses = {
         sm: 'px-4 py-2 text-xs',
@@ -28,10 +22,61 @@ export function Button({
         lg: 'px-8 py-3.5 text-base',
     };
 
+    const getVariantStyles = () => {
+        if (disabled) {
+            return {
+                backgroundColor: 'var(--bg-tertiary)',
+                color: 'var(--text-tertiary)',
+                cursor: 'not-allowed',
+                opacity: '0.5'
+            };
+        }
+
+        switch (variant) {
+            case 'primary':
+                return {
+                    backgroundColor: 'var(--accent-primary)',
+                    color: 'var(--bg-primary)',
+                    boxShadow: '0 0 20px rgba(0, 217, 255, 0.3)'
+                };
+            case 'secondary':
+                return {
+                    backgroundColor: 'var(--bg-elevated)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border-default)'
+                };
+            case 'text':
+                return {
+                    backgroundColor: 'transparent',
+                    color: 'var(--text-secondary)'
+                };
+            default:
+                return {};
+        }
+    };
+
     return (
         <button
-            className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+            className={`${baseClasses} ${sizeClasses[size]} ${className}`}
+            style={getVariantStyles()}
             disabled={disabled}
+            onMouseEnter={(e) => {
+                if (disabled) return;
+                if (variant === 'primary') {
+                    e.currentTarget.style.boxShadow = '0 0 30px rgba(0, 217, 255, 0.5)';
+                } else if (variant === 'secondary') {
+                    e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                } else if (variant === 'text') {
+                    e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
+                    e.currentTarget.style.color = 'var(--accent-primary)';
+                }
+            }}
+            onMouseLeave={(e) => {
+                if (disabled) return;
+                const styles = getVariantStyles();
+                Object.assign(e.currentTarget.style, styles);
+            }}
             {...props}
         >
             {children}

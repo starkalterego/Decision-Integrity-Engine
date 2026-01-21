@@ -135,9 +135,9 @@ export default function ExecutiveOnePagerPage({
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
                 <div className="text-center">
-                    <div className="text-lg text-neutral-600">Loading executive summary...</div>
+                    <div className="text-lg" style={{ color: 'var(--text-secondary)' }}>Loading executive summary...</div>
                 </div>
             </div>
         );
@@ -145,7 +145,7 @@ export default function ExecutiveOnePagerPage({
 
     if (error || !data) {
         return (
-            <div className="min-h-screen bg-white p-8">
+            <div className="min-h-screen p-8" style={{ backgroundColor: 'var(--bg-primary)' }}>
                 <div className="max-w-6xl mx-auto">
                     <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
                         <p className="text-red-800 font-medium">{error || 'Failed to load data'}</p>
@@ -162,31 +162,32 @@ export default function ExecutiveOnePagerPage({
     }
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
             <div className="max-w-6xl mx-auto p-8">
                 {/* Header */}
-                <div className="flex items-start justify-between mb-8 pb-4 border-b border-neutral-200">
+                <div className="flex items-start justify-between mb-8 pb-4" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                     <div>
-                        <h1 className="text-2xl font-bold text-neutral-900">Executive One-Pager</h1>
-                        <p className="text-sm text-neutral-500 mt-1">Board-Ready Decision Artifact</p>
+                        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Executive One-Pager</h1>
+                        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Board-Ready Decision Artifact</p>
                     </div>
-                    <button className="px-4 py-2 border border-blue-600 text-blue-600 text-sm font-medium rounded hover:bg-blue-50">
+                    <button className="px-4 py-2 border text-sm font-medium rounded transition-colors hover:bg-white/5"
+                        style={{ borderColor: 'var(--accent-primary)', color: 'var(--accent-primary)' }}>
                         Download PDF
                     </button>
                 </div>
 
                 {/* Portfolio Decision Artifact */}
                 <div className="mb-8">
-                    <div className="text-xs text-blue-600 font-semibold mb-2">PORTFOLIO DECISION ARTIFACT</div>
+                    <div className="text-xs font-semibold mb-2" style={{ color: 'var(--accent-primary)' }}>PORTFOLIO DECISION ARTIFACT</div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <div className="text-lg font-bold text-neutral-900">{data.portfolio.name}</div>
-                            <div className="text-sm text-neutral-600">{data.scenario.name}</div>
+                            <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{data.portfolio.name}</div>
+                            <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>{data.scenario.name}</div>
                         </div>
                         <div className="text-right">
-                            <div className="text-xs text-blue-600 font-semibold mb-1">DECISION OWNER</div>
-                            <div className="text-sm font-medium text-neutral-900">{data.scenario.decisionOwner}</div>
-                            <div className="text-xs text-neutral-500 mt-1">
+                            <div className="text-xs font-semibold mb-1" style={{ color: 'var(--accent-primary)' }}>DECISION OWNER</div>
+                            <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{data.scenario.decisionOwner}</div>
+                            <div className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
                                 {new Date(data.scenario.createdAt).toLocaleDateString('en-US', {
                                     month: 'long',
                                     day: 'numeric',
@@ -199,86 +200,86 @@ export default function ExecutiveOnePagerPage({
 
                 {/* Key Metrics Strip */}
                 <div className="grid grid-cols-4 gap-4 mb-8">
-                    <div className="border-l-4 border-blue-600 pl-3">
-                        <div className="text-xs text-neutral-600 mb-1">INVESTMENT</div>
-                        <div className="text-2xl font-bold text-neutral-900">{formatCurrency(data.metrics.investment)}</div>
-                        <div className="text-xs text-neutral-500 mt-1">
+                    <div className="pl-3" style={{ borderLeft: '4px solid var(--accent-primary)' }}>
+                        <div className="text-xs mb-1" style={{ color: 'var(--text-tertiary)' }}>INVESTMENT</div>
+                        <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{formatCurrency(data.metrics.investment)}</div>
+                        <div className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
                             {formatDelta(data.deltas.investment)} vs Baseline
                         </div>
                     </div>
-                    <div className="border-l-4 border-blue-600 pl-3">
-                        <div className="text-xs text-neutral-600 mb-1">EXPECTED VALUE</div>
-                        <div className="text-2xl font-bold text-neutral-900">{formatCurrency(data.metrics.expectedValue)}</div>
-                        <div className="text-xs text-green-600 font-medium mt-1">
+                    <div className="pl-3" style={{ borderLeft: '4px solid var(--accent-primary)' }}>
+                        <div className="text-xs mb-1" style={{ color: 'var(--text-tertiary)' }}>EXPECTED VALUE</div>
+                        <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{formatCurrency(data.metrics.expectedValue)}</div>
+                        <div className="text-xs font-medium mt-1" style={{ color: 'var(--accent-success)' }}>
                             {formatDelta(data.deltas.value)} vs Baseline
                         </div>
                     </div>
-                    <div className="border-l-4 border-blue-600 pl-3">
-                        <div className="text-xs text-neutral-600 mb-1">CAPACITY USE</div>
-                        <div className="text-2xl font-bold text-neutral-900">{data.metrics.capacityUse.toFixed(0)}%</div>
-                        <div className="text-xs text-neutral-500 mt-1">
+                    <div className="pl-3" style={{ borderLeft: '4px solid var(--accent-primary)' }}>
+                        <div className="text-xs mb-1" style={{ color: 'var(--text-tertiary)' }}>CAPACITY USE</div>
+                        <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{data.metrics.capacityUse.toFixed(0)}%</div>
+                        <div className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
                             Optimal Tolerance {formatDelta(data.deltas.capacity)}
                         </div>
                     </div>
-                    <div className="border-l-4 border-blue-600 pl-3">
-                        <div className="text-xs text-neutral-600 mb-1">RISK EXPOSURE</div>
-                        <div className="text-2xl font-bold text-neutral-900">{data.metrics.riskExposure}</div>
-                        <div className="text-xs text-green-600 font-medium mt-1">
+                    <div className="pl-3" style={{ borderLeft: '4px solid var(--accent-primary)' }}>
+                        <div className="text-xs mb-1" style={{ color: 'var(--text-tertiary)' }}>RISK EXPOSURE</div>
+                        <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{data.metrics.riskExposure}</div>
+                        <div className="text-xs font-medium mt-1" style={{ color: 'var(--accent-success)' }}>
                             {data.deltas.risk < 0 ? 'Reduced' : 'Managed'} vs {data.baseline.risk}
                         </div>
                     </div>
                 </div>
 
                 {/* The Decision Ask */}
-                <div className="bg-neutral-50 border border-neutral-200 rounded p-6 mb-8">
-                    <div className="text-xs text-neutral-600 font-semibold mb-2">THE DECISION ASK</div>
-                    <p className="text-lg text-neutral-900 leading-relaxed">{data.decisionAsk}</p>
+                <div className="rounded p-6 mb-8" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
+                    <div className="text-xs font-semibold mb-2" style={{ color: 'var(--text-tertiary)' }}>THE DECISION ASK</div>
+                    <p className="text-lg leading-relaxed" style={{ color: 'var(--text-primary)' }}>{data.decisionAsk}</p>
                     <div className="mt-4 flex items-center justify-between">
-                        <div className="text-sm text-green-600 font-semibold">{data.scenario.status}</div>
-                        <div className="text-xs text-blue-600 font-semibold">Recommended</div>
+                        <div className="text-sm font-semibold" style={{ color: 'var(--accent-success)' }}>{data.scenario.status}</div>
+                        <div className="text-xs font-semibold" style={{ color: 'var(--accent-primary)' }}>Recommended</div>
                     </div>
                 </div>
 
                 {/* Executive Snapshot */}
                 <div className="mb-8">
-                    <div className="text-xs text-neutral-600 font-semibold mb-3">EXECUTIVE SNAPSHOT</div>
+                    <div className="text-xs font-semibold mb-3" style={{ color: 'var(--text-tertiary)' }}>EXECUTIVE SNAPSHOT</div>
                     <div className="grid grid-cols-4 gap-4 text-sm">
                         <div>
-                            <div className="text-neutral-600">Portfolio Value</div>
-                            <div className="font-bold text-neutral-900">{formatCurrency(data.executiveSnapshot.portfolioValue)}</div>
+                            <div style={{ color: 'var(--text-secondary)' }}>Portfolio Value</div>
+                            <div className="font-bold" style={{ color: 'var(--text-primary)' }}>{formatCurrency(data.executiveSnapshot.portfolioValue)}</div>
                         </div>
                         <div>
-                            <div className="text-neutral-600">Total Cost</div>
-                            <div className="font-bold text-neutral-900">{formatCurrency(data.executiveSnapshot.totalCost)}</div>
+                            <div style={{ color: 'var(--text-secondary)' }}>Total Cost</div>
+                            <div className="font-bold" style={{ color: 'var(--text-primary)' }}>{formatCurrency(data.executiveSnapshot.totalCost)}</div>
                         </div>
                         <div>
-                            <div className="text-neutral-600">Capacity Utilization</div>
-                            <div className="font-bold text-neutral-900">{data.executiveSnapshot.capacityUtilization.toFixed(0)}%</div>
+                            <div style={{ color: 'var(--text-secondary)' }}>Capacity Utilization</div>
+                            <div className="font-bold" style={{ color: 'var(--text-primary)' }}>{data.executiveSnapshot.capacityUtilization.toFixed(0)}%</div>
                         </div>
                         <div>
-                            <div className="text-neutral-600">Risk Level</div>
-                            <div className="font-bold text-neutral-900">{data.executiveSnapshot.riskLevel}</div>
+                            <div style={{ color: 'var(--text-secondary)' }}>Risk Level</div>
+                            <div className="font-bold" style={{ color: 'var(--text-primary)' }}>{data.executiveSnapshot.riskLevel}</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Trade-Off Summary */}
                 <div className="mb-8">
-                    <div className="text-xs text-neutral-600 font-semibold mb-3">TRADE-OFF SUMMARY</div>
+                    <div className="text-xs font-semibold mb-3" style={{ color: 'var(--text-tertiary)' }}>TRADE-OFF SUMMARY</div>
                     <div className="grid grid-cols-2 gap-6">
                         <div>
-                            <div className="text-xs text-neutral-600 font-semibold mb-2">WHAT CHANGED</div>
-                            <ul className="space-y-1 text-sm text-neutral-700">
+                            <div className="text-xs font-semibold mb-2" style={{ color: 'var(--accent-info)' }}>WHAT CHANGED</div>
+                            <ul className="space-y-1 text-sm">
                                 {data.tradeOffSummary.whatChanged.map((item, idx) => (
-                                    <li key={idx}>• {item}</li>
+                                    <li key={idx} style={{ color: 'var(--text-secondary)' }}>• {item}</li>
                                 ))}
                             </ul>
                         </div>
                         <div>
-                            <div className="text-xs text-neutral-600 font-semibold mb-2">WHAT GAINED</div>
-                            <ul className="space-y-1 text-sm text-neutral-700">
+                            <div className="text-xs font-semibold mb-2" style={{ color: 'var(--accent-success)' }}>WHAT GAINED</div>
+                            <ul className="space-y-1 text-sm">
                                 {data.tradeOffSummary.whatGained.map((item, idx) => (
-                                    <li key={idx}>• {item}</li>
+                                    <li key={idx} style={{ color: 'var(--text-secondary)' }}>• {item}</li>
                                 ))}
                             </ul>
                         </div>
@@ -287,35 +288,35 @@ export default function ExecutiveOnePagerPage({
 
                 {/* Scenario Comparison */}
                 <div className="mb-8">
-                    <div className="text-xs text-neutral-600 font-semibold mb-3">SCENARIO COMPARISON</div>
+                    <div className="text-xs font-semibold mb-3" style={{ color: 'var(--text-tertiary)' }}>SCENARIO COMPARISON</div>
                     <table className="w-full text-sm border-collapse">
                         <thead>
-                            <tr className="border-b border-neutral-300">
-                                <th className="text-left py-2 font-semibold text-neutral-600">METRIC</th>
-                                <th className="text-right py-2 font-semibold text-neutral-600">BASELINE</th>
-                                <th className="text-right py-2 font-semibold text-blue-600 bg-blue-50">{data.scenario.name.split(' ')[0]}</th>
+                            <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
+                                <th className="text-left py-2 font-semibold" style={{ color: 'var(--text-tertiary)' }}>METRIC</th>
+                                <th className="text-right py-2 font-semibold" style={{ color: 'var(--text-tertiary)' }}>BASELINE</th>
+                                <th className="text-right py-2 font-semibold" style={{ backgroundColor: 'rgba(56, 189, 248, 0.1)', color: 'var(--accent-primary)' }}>{data.scenario.name.split(' ')[0]}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr className="border-b border-neutral-200">
-                                <td className="py-2 text-neutral-700">Investment</td>
-                                <td className="text-right text-neutral-900">{formatCurrency(data.scenarioComparison.baseline.investment)}</td>
-                                <td className="text-right font-bold text-neutral-900 bg-blue-50">{formatCurrency(data.scenarioComparison.current.investment)}</td>
+                            <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                                <td className="py-2" style={{ color: 'var(--text-secondary)' }}>Investment</td>
+                                <td className="text-right" style={{ color: 'var(--text-primary)' }}>{formatCurrency(data.scenarioComparison.baseline.investment)}</td>
+                                <td className="text-right font-bold" style={{ backgroundColor: 'rgba(56, 189, 248, 0.05)', color: 'var(--text-primary)' }}>{formatCurrency(data.scenarioComparison.current.investment)}</td>
                             </tr>
-                            <tr className="border-b border-neutral-200">
-                                <td className="py-2 text-neutral-700">Value</td>
-                                <td className="text-right text-neutral-900">{formatCurrency(data.scenarioComparison.baseline.value)}</td>
-                                <td className="text-right font-bold text-neutral-900 bg-blue-50">{formatCurrency(data.scenarioComparison.current.value)}</td>
+                            <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                                <td className="py-2" style={{ color: 'var(--text-secondary)' }}>Value</td>
+                                <td className="text-right" style={{ color: 'var(--text-primary)' }}>{formatCurrency(data.scenarioComparison.baseline.value)}</td>
+                                <td className="text-right font-bold" style={{ backgroundColor: 'rgba(56, 189, 248, 0.05)', color: 'var(--text-primary)' }}>{formatCurrency(data.scenarioComparison.current.value)}</td>
                             </tr>
-                            <tr className="border-b border-neutral-200">
-                                <td className="py-2 text-neutral-700">Cap. Used</td>
-                                <td className="text-right text-neutral-900">{data.scenarioComparison.baseline.capacityUsed.toFixed(0)}%</td>
-                                <td className="text-right font-bold text-neutral-900 bg-blue-50">{data.scenarioComparison.current.capacityUsed.toFixed(0)}%</td>
+                            <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                                <td className="py-2" style={{ color: 'var(--text-secondary)' }}>Cap. Used</td>
+                                <td className="text-right" style={{ color: 'var(--text-primary)' }}>{data.scenarioComparison.baseline.capacityUsed.toFixed(0)}%</td>
+                                <td className="text-right font-bold" style={{ backgroundColor: 'rgba(56, 189, 248, 0.05)', color: 'var(--text-primary)' }}>{data.scenarioComparison.current.capacityUsed.toFixed(0)}%</td>
                             </tr>
                             <tr>
-                                <td className="py-2 text-neutral-700">Risk</td>
-                                <td className="text-right text-neutral-900">{data.scenarioComparison.baseline.risk}</td>
-                                <td className="text-right font-bold text-neutral-900 bg-blue-50">{data.scenarioComparison.current.risk}</td>
+                                <td className="py-2" style={{ color: 'var(--text-secondary)' }}>Risk</td>
+                                <td className="text-right" style={{ color: 'var(--text-primary)' }}>{data.scenarioComparison.baseline.risk}</td>
+                                <td className="text-right font-bold" style={{ backgroundColor: 'rgba(56, 189, 248, 0.05)', color: 'var(--text-primary)' }}>{data.scenarioComparison.current.risk}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -323,13 +324,13 @@ export default function ExecutiveOnePagerPage({
 
                 {/* Key Risks */}
                 <div className="mb-8">
-                    <div className="text-xs text-neutral-600 font-semibold mb-3">KEY RISKS</div>
-                    <ul className="space-y-1 text-sm text-neutral-700">
+                    <div className="text-xs font-semibold mb-3" style={{ color: 'var(--text-tertiary)' }}>KEY RISKS</div>
+                    <ul className="space-y-1 text-sm">
                         {data.keyRisks.map((risk, idx) => (
-                            <li key={idx}>
-                                <span className="text-neutral-500 mr-2">•</span>
+                            <li key={idx} style={{ color: 'var(--text-secondary)' }}>
+                                <span className="mr-2" style={{ color: 'var(--text-tertiary)' }}>•</span>
                                 {risk}
-                                <span className="ml-2 text-xs text-neutral-500">
+                                <span className="ml-2 text-xs" style={{ color: 'var(--text-tertiary)' }}>
                                     {idx === 0 ? 'MEDIUM' : idx === 1 ? 'MEDIUM' : 'LOW'}
                                 </span>
                             </li>
@@ -340,27 +341,28 @@ export default function ExecutiveOnePagerPage({
                 {/* What We Are Not Funding */}
                 {data.unfundedInitiatives.length > 0 && (
                     <div className="mb-8">
-                        <div className="text-xs text-neutral-600 font-semibold mb-3">WHAT WE ARE NOT FUNDING</div>
+                        <div className="text-xs font-semibold mb-3" style={{ color: 'var(--text-tertiary)' }}>WHAT WE ARE NOT FUNDING</div>
                         <table className="w-full text-xs border-collapse">
                             <thead>
-                                <tr className="border-b border-neutral-300">
-                                    <th className="text-left py-2 font-semibold text-neutral-600">INITIATIVE</th>
-                                    <th className="text-right py-2 font-semibold text-neutral-600">INVESTMENT</th>
-                                    <th className="text-right py-2 font-semibold text-neutral-600">CAPACITY RELEASED</th>
-                                    <th className="text-center py-2 font-semibold text-neutral-600">DECISION</th>
+                                <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
+                                    <th className="text-left py-2 font-semibold" style={{ color: 'var(--text-tertiary)' }}>INITIATIVE</th>
+                                    <th className="text-right py-2 font-semibold" style={{ color: 'var(--text-tertiary)' }}>INVESTMENT</th>
+                                    <th className="text-right py-2 font-semibold" style={{ color: 'var(--text-tertiary)' }}>CAPACITY RELEASED</th>
+                                    <th className="text-center py-2 font-semibold" style={{ color: 'var(--text-tertiary)' }}>DECISION</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {data.unfundedInitiatives.slice(0, 5).map((init: any) => (
-                                    <tr key={init.id} className="border-b border-neutral-200">
-                                        <td className="py-2 text-neutral-700">{init.name}</td>
-                                        <td className="text-right text-neutral-900">{formatCurrency(init.estimatedValue)}</td>
-                                        <td className="text-right text-neutral-900">{init.capacityReleased} FTE</td>
+                                    <tr key={init.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                                        <td className="py-2" style={{ color: 'var(--text-secondary)' }}>{init.name}</td>
+                                        <td className="text-right" style={{ color: 'var(--text-primary)' }}>{formatCurrency(init.estimatedValue)}</td>
+                                        <td className="text-right" style={{ color: 'var(--text-primary)' }}>{init.capacityReleased} FTE</td>
                                         <td className="text-center">
-                                            <span className={`px-2 py-1 rounded text-xs font-medium ${init.decision === 'STOP'
-                                                    ? 'bg-red-100 text-red-700'
-                                                    : 'bg-amber-100 text-amber-700'
-                                                }`}>
+                                            <span className="px-2 py-1 rounded text-xs font-medium"
+                                                style={{ 
+                                                    backgroundColor: init.decision === 'STOP' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                                                    color: init.decision === 'STOP' ? 'var(--accent-error)' : 'var(--accent-warning)'
+                                                }}>
                                                 {init.decision}
                                             </span>
                                         </td>
@@ -372,7 +374,7 @@ export default function ExecutiveOnePagerPage({
                 )}
 
                 {/* Footer */}
-                <div className="mt-12 pt-4 border-t border-neutral-200 text-xs text-neutral-500 text-center">
+                <div className="mt-12 pt-4 text-xs text-center" style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-tertiary)' }}>
                     <p>Generated on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}</p>
                     <p className="mt-1">Scenario ID: {data.scenario.id}</p>
                 </div>

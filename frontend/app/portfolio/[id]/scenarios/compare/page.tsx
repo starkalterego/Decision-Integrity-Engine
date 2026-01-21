@@ -157,10 +157,10 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-900 mx-auto mb-4"></div>
-                    <p className="text-neutral-600">Loading comparison...</p>
+                    <p style={{ color: 'var(--text-secondary)' }}>Loading comparison...</p>
                 </div>
             </div>
         );
@@ -168,12 +168,12 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
 
     if (!baseline) {
         return (
-            <div className="min-h-screen bg-neutral-50">
+            <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
                 <Header portfolioName={portfolio?.name || 'Portfolio'} portfolioId={resolvedParams.id} currentPage="compare" />
                 <main className="page-container">
                     <div className="text-center py-20">
-                        <p className="text-neutral-600">No scenarios available for comparison.</p>
-                        <p className="text-sm text-neutral-500 mt-2">Create scenarios first to compare them.</p>
+                        <p style={{ color: 'var(--text-secondary)' }}>No scenarios available for comparison.</p>
+                        <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>Create scenarios first to compare them.</p>
                     </div>
                 </main>
             </div>
@@ -181,7 +181,7 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
     }
 
     return (
-        <div className="min-h-screen bg-neutral-50">
+        <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
             <Header portfolioName={portfolio?.name || 'Portfolio'} portfolioId={resolvedParams.id} currentPage="compare" />
 
             <main className="page-container">
@@ -189,8 +189,8 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                 <div className="mb-10">
                     <div className="flex items-start justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">Scenario Comparison</h1>
-                            <p className="text-sm text-neutral-500 mt-2">Enable explicit selection of the best scenario</p>
+                            <h1 className="text-3xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>Scenario Comparison</h1>
+                            <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>Enable explicit selection of the best scenario</p>
                         </div>
                         {recommendedScenario && (
                             <div className="px-4 py-2 bg-status-green text-white font-semibold text-sm rounded">
@@ -205,24 +205,49 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                     {scenarios.map(scenario => (
                         <div
                             key={scenario.id}
-                            className={`card p-6 ${scenario.id === 'baseline'
-                                ? 'bg-neutral-100/50 border border-neutral-300'
-                                : scenario.isRecommended
-                                    ? 'bg-status-green-bg/20 border-2 border-status-green'
-                                    : 'border border-neutral-200'
-                                }`}
+                            className="card p-6"
+                            style={{
+                                backgroundColor: scenario.id === 'baseline'
+                                    ? 'var(--bg-tertiary)'
+                                    : 'var(--bg-secondary)',
+                                border: scenario.isRecommended
+                                    ? '2px solid var(--accent-success)'
+                                    : scenario.id === 'baseline'
+                                        ? '1px solid var(--border-strong)'
+                                        : '1px solid var(--border-default)',
+                                boxShadow: scenario.isRecommended
+                                    ? '0 0 20px rgba(16, 185, 129, 0.2)'
+                                    : 'none'
+                            }}
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div>
-                                    <h3 className={`font-semibold ${scenario.id === 'baseline' ? 'text-sm text-neutral-600' : 'text-base text-neutral-900'}`}>
+                                    <h3 
+                                        className="font-semibold"
+                                        style={{
+                                            fontSize: scenario.id === 'baseline' ? '0.875rem' : '1rem',
+                                            color: scenario.id === 'baseline' ? 'var(--text-secondary)' : 'var(--text-primary)'
+                                        }}
+                                    >
                                         {scenario.name}
                                     </h3>
                                     {scenario.id === 'baseline' && (
-                                        <span className="text-xs text-neutral-500 italic">Reference</span>
+                                        <span 
+                                            className="text-xs italic"
+                                            style={{ color: 'var(--text-tertiary)' }}
+                                        >
+                                            Reference
+                                        </span>
                                     )}
                                 </div>
                                 {scenario.isRecommended && (
-                                    <span className="px-2.5 py-1 bg-status-green text-white text-xs font-semibold rounded">
+                                    <span 
+                                        className="px-2.5 py-1 text-xs font-semibold rounded"
+                                        style={{ 
+                                            backgroundColor: 'var(--accent-success)',
+                                            color: '#fff'
+                                        }}
+                                    >
                                         ✓ Recommended
                                     </span>
                                 )}
@@ -230,8 +255,14 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
 
                             <div className="space-y-3">
                                 <div>
-                                    <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-1">Portfolio Value</div>
-                                    <div className={`font-bold font-mono ${scenario.id === 'baseline' ? 'text-xl text-neutral-600' : 'text-2xl text-neutral-900'}`}>
+                                    <div className="text-xs font-medium uppercase tracking-wider mb-1" style={{ color: 'var(--text-tertiary)' }}>Portfolio Value</div>
+                                    <div 
+                                        className="font-bold font-mono"
+                                        style={{
+                                            fontSize: scenario.id === 'baseline' ? '1.25rem' : '1.5rem',
+                                            color: scenario.id === 'baseline' ? 'var(--text-secondary)' : 'var(--text-primary)'
+                                        }}
+                                    >
                                         {formatCurrency(scenario.totalValue)}
                                     </div>
                                     {scenario.id !== 'baseline' && baseline && (
@@ -242,33 +273,51 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                                     )}
                                 </div>
 
-                                <div className="border-t border-neutral-200 pt-3">
-                                    <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-1">Funded Initiatives</div>
-                                    <div className={`font-bold font-mono ${scenario.id === 'baseline' ? 'text-base text-neutral-600' : 'text-lg text-neutral-900'}`}>
+                                <div className="border-t pt-3" style={{ borderColor: 'var(--border-default)' }}>
+                                    <div className="text-xs font-medium uppercase tracking-wider mb-1" style={{ color: 'var(--text-tertiary)' }}>Funded Initiatives</div>
+                                    <div 
+                                        className="font-bold font-mono"
+                                        style={{
+                                            fontSize: scenario.id === 'baseline' ? '1rem' : '1.125rem',
+                                            color: scenario.id === 'baseline' ? 'var(--text-secondary)' : 'var(--text-primary)'
+                                        }}
+                                    >
                                         {scenario.fundedCount}
                                     </div>
                                 </div>
 
-                                <div className="border-t border-neutral-200 pt-3">
-                                    <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-1">Capacity</div>
-                                    <div className={`font-bold font-mono ${scenario.id === 'baseline' ? 'text-base text-neutral-600' : 'text-lg text-neutral-900'}`}>
+                                <div className="border-t pt-3" style={{ borderColor: 'var(--border-default)' }}>
+                                    <div className="text-xs font-medium uppercase tracking-wider mb-1" style={{ color: 'var(--text-tertiary)' }}>Capacity</div>
+                                    <div 
+                                        className="font-bold font-mono"
+                                        style={{
+                                            fontSize: scenario.id === 'baseline' ? '1rem' : '1.125rem',
+                                            color: scenario.id === 'baseline' ? 'var(--text-secondary)' : 'var(--text-primary)'
+                                        }}
+                                    >
                                         {scenario.totalCapacity} units
                                     </div>
-                                    <div className="text-xs mt-1 text-neutral-600">
+                                    <div className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
                                         {scenario.capacityUtilization.toFixed(0)}% utilized
                                     </div>
                                 </div>
 
-                                <div className="border-t border-neutral-200 pt-3">
-                                    <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-1">Avg Risk</div>
-                                    <div className={`font-bold font-mono ${scenario.id === 'baseline' ? 'text-base text-neutral-600' : 'text-lg text-neutral-900'}`}>
+                                <div className="border-t pt-3" style={{ borderColor: 'var(--border-default)' }}>
+                                    <div className="text-xs font-medium uppercase tracking-wider mb-1" style={{ color: 'var(--text-tertiary)' }}>Avg Risk</div>
+                                    <div 
+                                        className="font-bold font-mono"
+                                        style={{
+                                            fontSize: scenario.id === 'baseline' ? '1rem' : '1.125rem',
+                                            color: scenario.id === 'baseline' ? 'var(--text-secondary)' : 'var(--text-primary)'
+                                        }}
+                                    >
                                         {scenario.avgRisk.toFixed(1)}/5
                                     </div>
                                 </div>
                             </div>
 
                             {scenario.id !== 'baseline' && (
-                                <div className="mt-4 pt-4 border-t border-neutral-200">
+                                <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--border-default)' }}>
                                     <Button
                                         variant={scenario.isRecommended ? 'primary' : 'secondary'}
                                         size="sm"
@@ -285,22 +334,61 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                 </div>
 
                 {/* Enhanced Comparison Table */}
-                <div className="bg-white border border-neutral-200 rounded overflow-hidden mb-8">
+                <div 
+                    className="border rounded overflow-hidden mb-8"
+                    style={{ 
+                        backgroundColor: 'var(--bg-secondary)',
+                        borderColor: 'var(--border-default)'
+                    }}
+                >
                     <table className="w-full">
                         <thead>
-                            <tr className="bg-neutral-50 border-b border-neutral-200">
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Metric</th>
+                            <tr 
+                                style={{ 
+                                    backgroundColor: 'var(--bg-tertiary)',
+                                    borderBottom: '1px solid var(--border-default)'
+                                }}
+                            >
+                                <th 
+                                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    Metric
+                                </th>
                                 {scenarios.map(scenario => (
-                                    <th key={scenario.id} className={`px-4 py-3 text-center text-xs font-semibold text-neutral-600 uppercase tracking-wider ${scenario.id === 'baseline' ? 'bg-neutral-100' : scenario.isRecommended ? 'bg-status-green-bg/10' : ''}`}>
+                                    <th 
+                                        key={scenario.id} 
+                                        className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider"
+                                        style={{
+                                            color: 'var(--text-secondary)',
+                                            backgroundColor: scenario.id === 'baseline' 
+                                                ? 'var(--bg-elevated)' 
+                                                : scenario.isRecommended 
+                                                    ? 'rgba(16, 185, 129, 0.1)' 
+                                                    : 'transparent'
+                                        }}
+                                    >
                                         <div className="flex flex-col items-center gap-1">
                                             <span>{scenario.name}</span>
                                             {scenario.isRecommended && (
-                                                <span className="text-xs bg-status-green text-white px-2 py-0.5 rounded font-semibold">
+                                                <span 
+                                                    className="text-xs px-2 py-0.5 rounded font-semibold"
+                                                    style={{
+                                                        backgroundColor: 'var(--accent-success)',
+                                                        color: '#fff'
+                                                    }}
+                                                >
                                                     Recommended
                                                 </span>
                                             )}
                                             {scenario.id === 'baseline' && (
-                                                <span className="text-xs bg-neutral-400 text-white px-2 py-0.5 rounded font-semibold">
+                                                <span 
+                                                    className="text-xs px-2 py-0.5 rounded font-semibold"
+                                                    style={{
+                                                        backgroundColor: 'var(--text-tertiary)',
+                                                        color: '#fff'
+                                                    }}
+                                                >
                                                     Baseline
                                                 </span>
                                             )}
@@ -310,14 +398,40 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                             </tr>
                         </thead>
                         <tbody>
-                            <tr className="border-b border-neutral-100">
-                                <td className="px-4 py-4 font-semibold text-neutral-900">Portfolio Value</td>
+                            <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                                <td 
+                                    className="px-4 py-4 font-semibold"
+                                    style={{ color: 'var(--text-primary)' }}
+                                >
+                                    Portfolio Value
+                                </td>
                                 {scenarios.map(scenario => (
-                                    <td key={scenario.id} className={`px-4 py-4 font-mono text-center ${scenario.id === 'baseline' ? 'bg-neutral-50' : scenario.isRecommended ? 'bg-status-green-bg/5' : ''}`}>
-                                        <div className="text-base font-bold text-neutral-900">{formatCurrency(scenario.totalValue)}</div>
+                                    <td 
+                                        key={scenario.id} 
+                                        className="px-4 py-4 font-mono text-center"
+                                        style={{
+                                            backgroundColor: scenario.id === 'baseline' 
+                                                ? 'var(--bg-tertiary)' 
+                                                : scenario.isRecommended 
+                                                    ? 'rgba(16, 185, 129, 0.05)' 
+                                                    : 'transparent'
+                                        }}
+                                    >
+                                        <div 
+                                            className="text-base font-bold"
+                                            style={{ color: 'var(--text-primary)' }}
+                                        >
+                                            {formatCurrency(scenario.totalValue)}
+                                        </div>
                                         {scenario.id !== 'baseline' && baseline && (
-                                            <div className={`text-xs mt-1 ${calculateDelta(scenario.totalValue, baseline.totalValue) > 0 ? 'text-status-green' : 'text-status-red'
-                                                }`}>
+                                            <div 
+                                                className="text-xs mt-1"
+                                                style={{
+                                                    color: calculateDelta(scenario.totalValue, baseline.totalValue) > 0 
+                                                        ? 'var(--accent-success)' 
+                                                        : 'var(--accent-error)'
+                                                }}
+                                            >
                                                 {formatDelta(calculateDelta(scenario.totalValue, baseline.totalValue))}
                                             </div>
                                         )}
@@ -325,33 +439,104 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                                 ))}
                             </tr>
 
-                            <tr className="border-b border-neutral-100">
-                                <td className="px-4 py-4 font-semibold text-neutral-900">Funded Initiatives</td>
+                            <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                                <td 
+                                    className="px-4 py-4 font-semibold"
+                                    style={{ color: 'var(--text-primary)' }}
+                                >
+                                    Funded Initiatives
+                                </td>
                                 {scenarios.map(scenario => (
-                                    <td key={scenario.id} className={`px-4 py-4 font-mono text-center ${scenario.id === 'baseline' ? 'bg-neutral-50' : scenario.isRecommended ? 'bg-status-green-bg/5' : ''}`}>
-                                        <div className="text-base font-bold text-neutral-900">{scenario.fundedCount}</div>
+                                    <td 
+                                        key={scenario.id} 
+                                        className="px-4 py-4 font-mono text-center"
+                                        style={{
+                                            backgroundColor: scenario.id === 'baseline' 
+                                                ? 'var(--bg-tertiary)' 
+                                                : scenario.isRecommended 
+                                                    ? 'rgba(16, 185, 129, 0.05)' 
+                                                    : 'transparent'
+                                        }}
+                                    >
+                                        <div 
+                                            className="text-base font-bold"
+                                            style={{ color: 'var(--text-primary)' }}
+                                        >
+                                            {scenario.fundedCount}
+                                        </div>
                                     </td>
                                 ))}
                             </tr>
 
-                            <tr className="border-b border-neutral-100">
-                                <td className="px-4 py-4 font-semibold text-neutral-900">Capacity Utilization</td>
+                            <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                                <td 
+                                    className="px-4 py-4 font-semibold"
+                                    style={{ color: 'var(--text-primary)' }}
+                                >
+                                    Capacity Utilization
+                                </td>
                                 {scenarios.map(scenario => (
-                                    <td key={scenario.id} className={`px-4 py-4 font-mono text-center ${scenario.id === 'baseline' ? 'bg-neutral-50' : scenario.isRecommended ? 'bg-status-green-bg/5' : ''}`}>
-                                        <div className="text-base font-bold text-neutral-900">{scenario.totalCapacity} units</div>
-                                        <div className="text-xs mt-1 text-neutral-600">{scenario.capacityUtilization.toFixed(0)}%</div>
+                                    <td 
+                                        key={scenario.id} 
+                                        className="px-4 py-4 font-mono text-center"
+                                        style={{
+                                            backgroundColor: scenario.id === 'baseline' 
+                                                ? 'var(--bg-tertiary)' 
+                                                : scenario.isRecommended 
+                                                    ? 'rgba(16, 185, 129, 0.05)' 
+                                                    : 'transparent'
+                                        }}
+                                    >
+                                        <div 
+                                            className="text-base font-bold"
+                                            style={{ color: 'var(--text-primary)' }}
+                                        >
+                                            {scenario.totalCapacity} units
+                                        </div>
+                                        <div 
+                                            className="text-xs mt-1"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            {scenario.capacityUtilization.toFixed(0)}%
+                                        </div>
                                     </td>
                                 ))}
                             </tr>
 
                             <tr className="last:border-0">
-                                <td className="px-4 py-4 font-semibold text-neutral-900">Avg Risk Score</td>
+                                <td 
+                                    className="px-4 py-4 font-semibold"
+                                    style={{ color: 'var(--text-primary)' }}
+                                >
+                                    Avg Risk Score
+                                </td>
                                 {scenarios.map(scenario => (
-                                    <td key={scenario.id} className={`px-4 py-4 font-mono text-center ${scenario.id === 'baseline' ? 'bg-neutral-50' : scenario.isRecommended ? 'bg-status-green-bg/5' : ''}`}>
-                                        <div className="text-base font-bold text-neutral-900">{scenario.avgRisk.toFixed(1)}/5</div>
+                                    <td 
+                                        key={scenario.id} 
+                                        className="px-4 py-4 font-mono text-center"
+                                        style={{
+                                            backgroundColor: scenario.id === 'baseline' 
+                                                ? 'var(--bg-tertiary)' 
+                                                : scenario.isRecommended 
+                                                    ? 'rgba(16, 185, 129, 0.05)' 
+                                                    : 'transparent'
+                                        }}
+                                    >
+                                        <div 
+                                            className="text-base font-bold"
+                                            style={{ color: 'var(--text-primary)' }}
+                                        >
+                                            {scenario.avgRisk.toFixed(1)}/5
+                                        </div>
                                         {scenario.id !== 'baseline' && baseline && (
-                                            <div className={`text-xs mt-1 ${calculateDelta(scenario.avgRisk, baseline.avgRisk) < 0 ? 'text-status-green' : 'text-status-red'
-                                                }`}>
+                                            <div 
+                                                className="text-xs mt-1"
+                                                style={{
+                                                    color: calculateDelta(scenario.avgRisk, baseline.avgRisk) < 0 
+                                                        ? 'var(--accent-success)' 
+                                                        : 'var(--accent-error)'
+                                                }}
+                                            >
                                                 {formatDelta(calculateDelta(scenario.avgRisk, baseline.avgRisk))}
                                             </div>
                                         )}
@@ -364,31 +549,69 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
 
                 {/* Enhanced Governance Rules & Next Steps */}
                 <div className="grid grid-cols-2 gap-8">
-                    <div className="card bg-neutral-50 p-6">
-                        <h3 className="font-semibold mb-4 text-sm text-neutral-900 uppercase tracking-wide">Governance Rules</h3>
-                        <ul className="text-sm text-neutral-700 space-y-3 leading-relaxed">
-                            <li className="flex gap-2">
-                                <span className="text-neutral-400">•</span>
+                    <div 
+                        className="card p-6"
+                        style={{ 
+                            backgroundColor: 'var(--bg-secondary)',
+                            border: '1px solid var(--border-default)'
+                        }}
+                    >
+                        <h3 
+                            className="font-semibold mb-4 text-sm uppercase tracking-wide"
+                            style={{ color: 'var(--text-primary)' }}
+                        >
+                            Governance Rules
+                        </h3>
+                        <ul className="text-sm space-y-3 leading-relaxed">
+                            <li 
+                                className="flex gap-2"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                <span style={{ color: 'var(--text-tertiary)' }}>•</span>
                                 <span>All metrics are system-calculated only</span>
                             </li>
-                            <li className="flex gap-2">
-                                <span className="text-neutral-400">•</span>
+                            <li 
+                                className="flex gap-2"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                <span style={{ color: 'var(--text-tertiary)' }}>•</span>
                                 <span>Only one scenario can be marked as recommended</span>
                             </li>
-                            <li className="flex gap-2">
-                                <span className="text-neutral-400">•</span>
+                            <li 
+                                className="flex gap-2"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                <span style={{ color: 'var(--text-tertiary)' }}>•</span>
                                 <span>Recommended scenario becomes read-only</span>
                             </li>
-                            <li className="flex gap-2">
-                                <span className="text-neutral-400">•</span>
+                            <li 
+                                className="flex gap-2"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                <span style={{ color: 'var(--text-tertiary)' }}>•</span>
                                 <span>Deltas are always relative to baseline</span>
                             </li>
                         </ul>
                     </div>
 
-                    <div className="card border-l-4 border-l-status-green p-6">
-                        <h3 className="font-semibold mb-4 text-sm text-neutral-900 uppercase tracking-wide">Next Steps</h3>
-                        <p className="text-sm text-neutral-700 mb-4 leading-relaxed">
+                    <div 
+                        className="card p-6"
+                        style={{ 
+                            backgroundColor: 'var(--bg-secondary)',
+                            border: '1px solid var(--border-default)',
+                            borderLeft: '4px solid var(--accent-success)'
+                        }}
+                    >
+                        <h3 
+                            className="font-semibold mb-4 text-sm uppercase tracking-wide"
+                            style={{ color: 'var(--text-primary)' }}
+                        >
+                            Next Steps
+                        </h3>
+                        <p 
+                            className="text-sm mb-4 leading-relaxed"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
                             Once you've selected a recommended scenario, proceed to generate the Executive One-Pager for final approval.
                         </p>
                         <Button
@@ -399,7 +622,12 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                             Generate Executive Output →
                         </Button>
                         {!recommendedScenario && (
-                            <p className="text-xs text-neutral-500 mt-2 text-center">Mark a scenario as recommended first</p>
+                            <p 
+                                className="text-xs mt-2 text-center"
+                                style={{ color: 'var(--text-tertiary)' }}
+                            >
+                                Mark a scenario as recommended first
+                            </p>
                         )}
                     </div>
                 </div>

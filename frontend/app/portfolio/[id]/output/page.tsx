@@ -136,11 +136,11 @@ export default function ExecutiveOutputPage({
 
     if (isLoading || !data) {
         return (
-            <div className="min-h-screen bg-neutral-50">
+            <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
                 <Header portfolioName="Portfolio" portfolioId={resolvedParams.id} currentPage="output" />
                 <main className="page-container mx-auto max-w-350 p-8">
                     <div className="text-center py-20">
-                        <p className="text-neutral-600">
+                        <p style={{ color: 'var(--text-secondary)' }}>
                             {isLoading ? 'Loading executive summary...' : 'No finalized scenario available. Please finalize a scenario first.'}
                         </p>
                     </div>
@@ -150,13 +150,13 @@ export default function ExecutiveOutputPage({
     }
 
     return (
-        <div className="min-h-screen bg-neutral-50 font-sans text-neutral-900 selection:bg-neutral-200">
+        <div className="min-h-screen font-sans selection:bg-neutral-200" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
             <Header portfolioName={data.portfolio.name} portfolioId={resolvedParams.id} currentPage="output" className="no-print" />
 
             <main className="page-container mx-auto max-w-350 p-8">
                 <div className="section-header no-print flex justify-between items-center mb-8">\n                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight">Executive One-Pager</h1>
-                        <p className="text-sm text-neutral-500 mt-1">Board-Ready Decision Artifact</p>
+                        <h1 className="text-2xl font-semibold tracking-tight" style={{ color: 'var(--text-primary)' }}>Executive One-Pager</h1>
+                        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Board-Ready Decision Artifact</p>
                     </div>
                     <Button onClick={handleDownloadPDF} variant="secondary">Download PDF</Button>
                 </div>

@@ -237,17 +237,17 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-900 mx-auto mb-4"></div>
-                    <p className="text-neutral-600">Loading scenario...</p>
+                    <p style={{ color: 'var(--text-secondary)' }}>Loading scenario...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-neutral-50">
+        <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
             <Header portfolioName={portfolio?.name || 'Portfolio'} portfolioId={resolvedParams.id} currentPage="scenarios" />
 
             <main className="page-container">
@@ -259,10 +259,10 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                                 type="text"
                                 value={scenario?.name || ''}
                                 disabled={true}
-                                className="text-3xl font-bold text-neutral-900 tracking-tight bg-transparent border-none focus:outline-none w-full"
-                                style={{ maxWidth: '700px' }}
+                                className="text-3xl font-bold tracking-tight bg-transparent border-none focus:outline-none w-full"
+                                style={{ maxWidth: '700px', color: 'var(--text-primary)' }}
                             />
-                            <p className="text-sm text-neutral-500 mt-2">Explore trade-offs under constraints</p>
+                            <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>Explore trade-offs under constraints</p>
                         </div>
                         <div className="flex items-center gap-4">
                             <Button
@@ -282,8 +282,15 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                 </div>
 
                 {/* Enhanced Scenario Assumptions - MANDATORY */}
-                <div className="mb-8 bg-amber-50/30 border-l-4 border-l-amber-600 border border-amber-200 p-6 rounded">
-                    <label className="block text-base font-bold text-neutral-900 mb-3">
+                <div 
+                    className="mb-8 border-l-4 p-6 rounded"
+                    style={{
+                        backgroundColor: 'var(--bg-tertiary)',
+                        borderLeftColor: 'var(--accent-warning)',
+                        border: '1px solid var(--accent-warning)'
+                    }}
+                >
+                    <label className="block text-base font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
                         Scenario Assumptions <span className="text-red-600">*</span>
                     </label>
                     <Textarea
@@ -293,7 +300,7 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                         rows={3}
                         placeholder="Document the premise and constraints of this scenario (mandatory per governance rules)"
                     />
-                    <p className="text-xs text-neutral-600 mt-2">
+                    <p className="text-xs mt-2" style={{ color: 'var(--text-secondary)' }}>
                         <span className="text-red-600 font-semibold">*</span> Mandatory field. All scenarios must declare assumptions before finalization.
                     </p>
                 </div>
@@ -336,41 +343,75 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                 )}
 
                 {/* Enhanced Initiatives Table */}
-                <div className="card overflow-hidden mb-8">
-                    <div className="px-6 py-4 border-b border-neutral-200 bg-neutral-50">
-                        <h2 className="text-lg font-semibold text-neutral-900">Initiative Decisions</h2>
-                        <p className="text-sm text-neutral-600 mt-1">Fund, pause, or stop each initiative</p>
+                <div 
+                    className="card overflow-hidden mb-8"
+                    style={{ 
+                        backgroundColor: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-default)'
+                    }}
+                >
+                    <div 
+                        className="px-6 py-4"
+                        style={{ 
+                            borderBottom: '1px solid var(--border-default)',
+                            backgroundColor: 'var(--bg-tertiary)'
+                        }}
+                    >
+                        <h2 
+                            className="text-lg font-semibold"
+                            style={{ color: 'var(--text-primary)' }}
+                        >
+                            Initiative Decisions
+                        </h2>
+                        <p 
+                            className="text-sm mt-1"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            Fund, pause, or stop each initiative
+                        </p>
                     </div>
 
                     <table className="w-full">
                         <thead>
-                            <tr className="bg-neutral-100 border-b border-neutral-200">
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700 uppercase">Initiative</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-700 uppercase">Priority</th>
-                                <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-700 uppercase">Value</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-700 uppercase">Capacity</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-700 uppercase">Risk</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-700 uppercase">Decision</th>
+                            <tr style={{ backgroundColor: 'var(--bg-tertiary)', borderBottom: '1px solid var(--border-default)' }}>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)' }}>Initiative</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)' }}>Priority</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)' }}>Value</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)' }}>Capacity</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)' }}>Risk</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)' }}>Decision</th>
                             </tr>
                         </thead>
                         <tbody>
                             {initiatives.map((initiative) => {
                                 const totalCap = initiative.capacityDemands.reduce((s, cd) => s + cd.units, 0);
                                 return (
-                                    <tr key={initiative.id} className="border-b border-neutral-100 hover:bg-neutral-50">
+                                    <tr key={initiative.id} 
+                                        className="transition-colors hover:bg-white/5"
+                                        style={{ borderBottom: '1px solid var(--border-subtle)' }}
+                                    >
                                         <td className="px-4 py-4">
-                                            <span className="font-semibold text-neutral-900">{initiative.name}</span>
+                                            <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{initiative.name}</span>
                                         </td>
                                         <td className="px-4 py-4 text-center">
-                                            <span className="text-sm font-mono">{initiative.priorityScore?.toFixed(2) || 'N/A'}</span>
+                                            <span className="text-sm font-mono" style={{ color: 'var(--text-secondary)' }}>{initiative.priorityScore?.toFixed(2) || 'N/A'}</span>
                                         </td>
-                                        <td className="px-4 py-4 text-right font-mono font-semibold">{formatCurrency(initiative.estimatedValue)}</td>
-                                        <td className="px-4 py-4 text-center font-mono">{totalCap}</td>
+                                        <td className="px-4 py-4 text-right font-mono font-semibold" style={{ color: 'var(--text-primary)' }}>{formatCurrency(initiative.estimatedValue)}</td>
+                                        <td className="px-4 py-4 text-center font-mono" style={{ color: 'var(--text-secondary)' }}>{totalCap}</td>
                                         <td className="px-4 py-4 text-center">
-                                            <span className={`inline-block px-2.5 py-1 text-xs font-semibold ${initiative.riskScore >= 4 ? 'bg-status-red text-white' :
-                                                initiative.riskScore >= 3 ? 'bg-neutral-200 text-neutral-700' :
-                                                    'bg-status-green text-white'
-                                                }`} style={{ borderRadius: '2px' }}>
+                                            <span className="inline-block px-2.5 py-1 text-xs font-semibold" 
+                                               style={{ 
+                                                   borderRadius: '4px',
+                                                   backgroundColor: initiative.riskScore >= 4 ? 'rgba(239, 68, 68, 0.2)' : 
+                                                                    initiative.riskScore >= 3 ? 'rgba(245, 158, 11, 0.2)' : 
+                                                                    'rgba(16, 185, 129, 0.2)',
+                                                   color: initiative.riskScore >= 4 ? 'var(--accent-error)' : 
+                                                          initiative.riskScore >= 3 ? 'var(--accent-warning)' : 
+                                                          'var(--accent-success)',
+                                                   border: initiative.riskScore >= 4 ? '1px solid rgba(239, 68, 68, 0.3)' : 
+                                                           initiative.riskScore >= 3 ? '1px solid rgba(245, 158, 11, 0.3)' : 
+                                                           '1px solid rgba(16, 185, 129, 0.3)'
+                                               }}>
                                                 {initiative.riskScore}/5
                                             </span>
                                         </td>
@@ -402,13 +443,25 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                         variant="primary"
                         onClick={handleFinalize}
                         disabled={isFinalized || !assumptions.trim() || isOverCapacity || isSaving}
-                        className="bg-amber-600 hover:bg-amber-700 border-amber-600"
+                        className="bg-accent-primary hover:bg-accent-primary-hover border-accent-primary"
+                        style={{ 
+                            backgroundColor: 'var(--accent-warning)', 
+                            borderColor: 'var(--accent-warning)', 
+                            color: '#1a1a1a' 
+                        }}
                     >
                         {isSaving ? 'Finalizing...' : 'Finalize Scenario'}
                     </Button>
 
                     {!assumptions.trim() && !isFinalized && (
-                        <div className="p-4 bg-neutral-200 text-neutral-700 text-sm rounded">
+                        <div 
+                            className="p-4 text-sm rounded border"
+                            style={{ 
+                                backgroundColor: 'rgba(245, 158, 11, 0.1)', 
+                                color: 'var(--accent-warning)',
+                                borderColor: 'rgba(245, 158, 11, 0.2)'
+                            }}
+                        >
                             Assumptions required before finalization
                         </div>
                     )}
@@ -438,24 +491,34 @@ function DecisionToggle({
     const options: ('FUND' | 'PAUSE' | 'STOP')[] = ['FUND', 'PAUSE', 'STOP'];
 
     return (
-        <div className="inline-flex" style={{ borderRadius: '2px', overflow: 'hidden', border: '1px solid var(--neutral-300)' }}>
-            {options.map((option) => (
-                <button
-                    key={option}
-                    onClick={() => onChange(option)}
-                    disabled={disabled}
-                    className={`px-3 py-1.5 text-xs font-semibold transition-all ${value === option
-                        ? option === 'FUND'
-                            ? 'bg-status-green text-white'
-                            : option === 'STOP'
-                                ? 'bg-status-red text-white'
-                                : 'bg-neutral-700 text-white'
-                        : 'bg-white text-neutral-600 hover:bg-neutral-50'
-                        } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                >
-                    {option}
-                </button>
-            ))}
+        <div className="inline-flex rounded-md overflow-hidden border border-[var(--border-default)]">
+            {options.map((option, index) => {
+                const isSelected = value === option;
+                let bg = 'var(--bg-tertiary)';
+                let color = 'var(--text-secondary)';
+                
+                if (isSelected) {
+                    if (option === 'FUND') { bg = 'var(--accent-success)'; color = '#000000'; }
+                    else if (option === 'STOP') { bg = 'var(--accent-error)'; color = '#ffffff'; }
+                    else { bg = 'var(--bg-elevated)'; color = 'var(--text-primary)'; }
+                }
+
+                return (
+                    <button
+                        key={option}
+                        onClick={() => onChange(option)}
+                        disabled={disabled}
+                        className={`px-3 py-1.5 text-xs font-semibold transition-all ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-80'}`}
+                        style={{
+                            backgroundColor: bg,
+                            color: color,
+                            borderLeft: index > 0 ? '1px solid var(--border-subtle)' : 'none'
+                        }}
+                    >
+                        {option}
+                    </button>
+                );
+            })}
         </div>
     );
 }
@@ -505,7 +568,7 @@ function CreateScenarioModal({
 
     return createPortal(
         <div
-            className="fixed inset-0 bg-black flex items-center justify-center p-4"
+            className="fixed inset-0 flex items-center justify-center p-4"
             style={{
                 top: 0,
                 left: 0,
@@ -513,15 +576,35 @@ function CreateScenarioModal({
                 bottom: 0,
                 position: 'fixed',
                 zIndex: 9999,
-                backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                backgroundColor: 'rgba(0, 0, 0, 0.7)'
             }}
         >
-            <div className="bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl rounded-lg" style={{ position: 'relative', zIndex: 10000, backgroundColor: '#ffffff' }}>
-                <div className="border-b border-neutral-200 px-8 py-6 bg-linear-to-r from-neutral-50 to-white">
-                    <h2 className="text-2xl font-bold text-neutral-900 tracking-tight">
+            <div 
+                className="w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl rounded-lg" 
+                style={{ 
+                    position: 'relative', 
+                    zIndex: 10000, 
+                    backgroundColor: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-default)'
+                }}
+            >
+                <div 
+                    className="px-8 py-6"
+                    style={{ 
+                        borderBottom: '1px solid var(--border-default)',
+                        background: 'linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%)'
+                    }}
+                >
+                    <h2 
+                        className="text-2xl font-bold tracking-tight"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
                         Create New Scenario
                     </h2>
-                    <p className="text-sm text-neutral-500 mt-2">
+                    <p 
+                        className="text-sm mt-2"
+                        style={{ color: 'var(--text-secondary)' }}
+                    >
                         Define assumptions to explore alternative portfolio decisions
                     </p>
                 </div>

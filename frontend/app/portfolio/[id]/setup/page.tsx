@@ -147,17 +147,29 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+            <div 
+                className="min-h-screen flex items-center justify-center"
+                style={{ backgroundColor: 'var(--bg-primary)' }}
+            >
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-900 mx-auto mb-4"></div>
-                    <p className="text-neutral-600">Loading portfolio...</p>
+                    <div 
+                        className="animate-spin rounded-full h-12 w-12 border-4 mx-auto mb-4"
+                        style={{ 
+                            borderColor: '#1e293b',
+                            borderTopColor: '#00d9ff'
+                        }}
+                    />
+                    <p style={{ color: 'var(--text-secondary)' }}>Loading portfolio...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-neutral-50">
+        <div 
+            className="min-h-screen"
+            style={{ backgroundColor: 'var(--bg-primary)' }}
+        >
             <Header portfolioName={formData.name || 'New Portfolio'} portfolioId={portfolioId || resolvedParams.id} currentPage="setup" />
 
             <main className="page-container">
@@ -165,8 +177,18 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                 <div className="mb-10">
                     <div className="flex items-start justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">Portfolio Setup</h1>
-                            <p className="text-sm text-neutral-500 mt-2">Define the decision boundary for this portfolio</p>
+                            <h1 
+                                className="text-3xl font-bold tracking-tight"
+                                style={{ color: 'var(--text-primary)' }}
+                            >
+                                Portfolio Setup
+                            </h1>
+                            <p 
+                                className="text-sm mt-2"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                Define the decision boundary for this portfolio
+                            </p>
                         </div>
                         <div className="flex items-center gap-3">
                             {isLocked && <StatusBadge status="green" text="Locked" />}
@@ -178,8 +200,22 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                 <div className="grid grid-cols-3 gap-8">
                     {/* Main Form - 2 columns */}
                     <div className="col-span-2">
-                        <div className="card p-8">
-                            <h2 className="text-lg font-semibold mb-8 pb-4 border-b border-neutral-200">Portfolio Configuration</h2>
+                        <div 
+                            className="card p-8"
+                            style={{ 
+                                backgroundColor: 'var(--bg-secondary)',
+                                border: '1px solid var(--border-default)'
+                            }}
+                        >
+                            <h2 
+                                className="text-lg font-semibold mb-8 pb-4"
+                                style={{ 
+                                    color: 'var(--text-primary)',
+                                    borderBottom: '1px solid var(--border-default)'
+                                }}
+                            >
+                                Portfolio Configuration
+                            </h2>
 
                             <form onSubmit={(e) => e.preventDefault()}>
                                 {/* Block 1 - Portfolio Identity */}
@@ -216,7 +252,10 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                                 </div>
 
                                 {/* Subtle Divider */}
-                                <div className="border-t border-neutral-100 mb-8"></div>
+                                <div 
+                                    className="border-t mb-8"
+                                    style={{ borderColor: 'var(--border-subtle)' }}
+                                />
 
                                 {/* Block 2 - Decision Constraints */}
                                 <div className="mb-8">
@@ -249,8 +288,17 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                                     </div>
 
                                     {/* Constraint Note */}
-                                    <div className="mt-4 px-4 py-3 bg-neutral-50 border border-neutral-200 rounded">
-                                        <p className="text-xs text-neutral-600 leading-relaxed">
+                                    <div 
+                                        className="mt-4 px-4 py-3 rounded"
+                                        style={{ 
+                                            backgroundColor: 'var(--bg-tertiary)',
+                                            border: '1px solid var(--border-default)'
+                                        }}
+                                    >
+                                        <p 
+                                            className="text-xs leading-relaxed"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
                                             These limits apply to all scenarios and cannot be exceeded.
                                         </p>
                                     </div>
@@ -277,7 +325,10 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                                             {isSaving ? 'Processing...' : 'Lock Portfolio'}
                                         </Button>
                                         {!isLocked && isFormValid && (
-                                            <p className="text-xs text-neutral-500 mt-2 text-center">
+                                            <p 
+                                                className="text-xs mt-2 text-center"
+                                                style={{ color: 'var(--text-tertiary)' }}
+                                            >
                                                 Once locked, budget and capacity cannot be edited.
                                             </p>
                                         )}
@@ -297,42 +348,85 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                     {/* Sidebar - 1 column */}
                     <div className="space-y-6">
                         {/* Enhanced Setup Progress Panel */}
-                        <div className="card p-6">
-                            <h3 className="text-sm font-semibold mb-5 text-neutral-900">Setup Progress</h3>
+                        <div 
+                            className="card p-6"
+                            style={{ 
+                                backgroundColor: 'var(--bg-secondary)',
+                                border: '1px solid var(--border-default)'
+                            }}
+                        >
+                            <h3 
+                                className="text-sm font-semibold mb-5"
+                                style={{ color: 'var(--text-primary)' }}
+                            >
+                                Setup Progress
+                            </h3>
                             <div className="space-y-4">
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium ${formData.name ? 'bg-status-green text-white' : 'bg-neutral-200 text-neutral-500'
-                                        }`}>
+                                    <div 
+                                        className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium`}
+                                        style={{
+                                            backgroundColor: formData.name ? 'var(--accent-success)' : 'var(--bg-tertiary)',
+                                            color: formData.name ? '#fff' : 'var(--text-tertiary)'
+                                        }}
+                                    >
                                         1
                                     </div>
-                                    <span className={`text-sm ${formData.name ? 'text-neutral-900 font-medium' : 'text-neutral-600'}`}>
+                                    <span 
+                                        className={`text-sm ${formData.name ? 'font-medium' : ''}`}
+                                        style={{ color: formData.name ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+                                    >
                                         Portfolio Name
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium ${formData.fiscalPeriod ? 'bg-status-green text-white' : 'bg-neutral-200 text-neutral-500'
-                                        }`}>
+                                    <div 
+                                        className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium`}
+                                        style={{
+                                            backgroundColor: formData.fiscalPeriod ? 'var(--accent-success)' : 'var(--bg-tertiary)',
+                                            color: formData.fiscalPeriod ? '#fff' : 'var(--text-tertiary)'
+                                        }}
+                                    >
                                         2
                                     </div>
-                                    <span className={`text-sm ${formData.fiscalPeriod ? 'text-neutral-900 font-medium' : 'text-neutral-600'}`}>
+                                    <span 
+                                        className={`text-sm ${formData.fiscalPeriod ? 'font-medium' : ''}`}
+                                        style={{ color: formData.fiscalPeriod ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+                                    >
                                         Fiscal Period
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium ${formData.totalBudget ? 'bg-status-green text-white' : 'bg-neutral-200 text-neutral-500'
-                                        }`}>
+                                    <div 
+                                        className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium`}
+                                        style={{
+                                            backgroundColor: formData.totalBudget ? 'var(--accent-success)' : 'var(--bg-tertiary)',
+                                            color: formData.totalBudget ? '#fff' : 'var(--text-tertiary)'
+                                        }}
+                                    >
                                         3
                                     </div>
-                                    <span className={`text-sm ${formData.totalBudget ? 'text-neutral-900 font-medium' : 'text-neutral-600'}`}>
+                                    <span 
+                                        className={`text-sm ${formData.totalBudget ? 'font-medium' : ''}`}
+                                        style={{ color: formData.totalBudget ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+                                    >
                                         Budget
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium ${formData.totalCapacity ? 'bg-status-green text-white' : 'bg-neutral-200 text-neutral-500'
-                                        }`}>
+                                    <div 
+                                        className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium`}
+                                        style={{
+                                            backgroundColor: formData.totalCapacity ? 'var(--accent-success)' : 'var(--bg-tertiary)',
+                                            color: formData.totalCapacity ? '#fff' : 'var(--text-tertiary)'
+                                        }}
+                                    >
                                         4
                                     </div>
-                                    <span className={`text-sm ${formData.totalCapacity ? 'text-neutral-900 font-medium' : 'text-neutral-600'}`}>
+                                    <span 
+                                        className={`text-sm ${formData.totalCapacity ? 'font-medium' : ''}`}
+                                        style={{ color: formData.totalCapacity ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+                                    >
                                         Capacity
                                     </span>
                                 </div>
@@ -340,33 +434,77 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                         </div>
 
                         {/* Enhanced Governance Rules */}
-                        <div className="card bg-neutral-100 p-6 border-l-2 border-l-neutral-400">
-                            <h3 className="text-sm font-semibold mb-2 text-neutral-900">Governance Rules</h3>
-                            <p className="text-xs text-neutral-600 mb-5">These rules are enforced by the system.</p>
-                            <ul className="text-xs text-neutral-700 space-y-3.5 leading-relaxed">
-                                <li className="flex gap-2">
-                                    <span className="text-neutral-400 mt-0.5">•</span>
+                        <div 
+                            className="card p-6"
+                            style={{ 
+                                backgroundColor: 'var(--bg-secondary)',
+                                border: '1px solid var(--border-default)',
+                                borderLeft: '2px solid var(--text-tertiary)'
+                            }}
+                        >
+                            <h3 
+                                className="text-sm font-semibold mb-2"
+                                style={{ color: 'var(--text-primary)' }}
+                            >
+                                Governance Rules
+                            </h3>
+                            <p 
+                                className="text-xs mb-5"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                These rules are enforced by the system.
+                            </p>
+                            <ul className="text-xs space-y-3.5 leading-relaxed">
+                                <li 
+                                    className="flex gap-2"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    <span style={{ color: 'var(--text-tertiary)' }} className="mt-0.5">•</span>
                                     <span>All fields are mandatory before portfolio can be locked</span>
                                 </li>
-                                <li className="flex gap-2">
-                                    <span className="text-neutral-400 mt-0.5">•</span>
+                                <li 
+                                    className="flex gap-2"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    <span style={{ color: 'var(--text-tertiary)' }} className="mt-0.5">•</span>
                                     <span>Portfolio cannot be edited once scenarios exist</span>
                                 </li>
-                                <li className="flex gap-2">
-                                    <span className="text-neutral-400 mt-0.5">•</span>
+                                <li 
+                                    className="flex gap-2"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    <span style={{ color: 'var(--text-tertiary)' }} className="mt-0.5">•</span>
                                     <span>Budget and capacity are hard constraints for all scenarios</span>
                                 </li>
-                                <li className="flex gap-2">
-                                    <span className="text-neutral-400 mt-0.5">•</span>
+                                <li 
+                                    className="flex gap-2"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    <span style={{ color: 'var(--text-tertiary)' }} className="mt-0.5">•</span>
                                     <span>Validation errors must be resolved before proceeding</span>
                                 </li>
                             </ul>
                         </div>
 
                         {/* Enhanced Next Steps */}
-                        <div className="card border-l-4 border-l-accent-primary p-6">
-                            <h3 className="text-sm font-semibold mb-3 text-neutral-900">Next Steps</h3>
-                            <p className="text-xs text-neutral-700 leading-relaxed">
+                        <div 
+                            className="card p-6"
+                            style={{ 
+                                backgroundColor: 'var(--bg-secondary)',
+                                border: '1px solid var(--border-default)',
+                                borderLeft: '4px solid var(--accent-primary)'
+                            }}
+                        >
+                            <h3 
+                                className="text-sm font-semibold mb-3"
+                                style={{ color: 'var(--text-primary)' }}
+                            >
+                                Next Steps
+                            </h3>
+                            <p 
+                                className="text-xs leading-relaxed"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
                                 After locking the portfolio, proceed to Initiative Intake to add decision-grade initiatives.
                             </p>
                         </div>

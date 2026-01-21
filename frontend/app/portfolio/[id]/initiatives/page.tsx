@@ -114,17 +114,29 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+            <div 
+                className="min-h-screen flex items-center justify-center"
+                style={{ backgroundColor: 'var(--bg-primary)' }}
+            >
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-900 mx-auto mb-4"></div>
-                    <p className="text-neutral-600">Loading initiatives...</p>
+                    <div 
+                        className="animate-spin rounded-full h-12 w-12 border-4 mx-auto mb-4"
+                        style={{ 
+                            borderColor: '#1e293b',
+                            borderTopColor: '#00d9ff'
+                        }}
+                    />
+                    <p style={{ color: 'var(--text-secondary)' }}>Loading initiatives...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-neutral-50">
+        <div 
+            className="min-h-screen"
+            style={{ backgroundColor: 'var(--bg-primary)' }}
+        >
             <Header portfolioName={portfolio?.name || 'Portfolio'} portfolioId={resolvedParams.id} currentPage="initiatives" />
 
             <main className="page-container">
@@ -132,13 +144,22 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
                 <div className="mb-10">
                     <div className="flex items-start justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">Initiative Intake</h1>
-                            <p className="text-sm text-neutral-500 mt-2">Add decision-grade initiatives to the portfolio</p>
+                            <h1 
+                                className="text-3xl font-bold tracking-tight"
+                                style={{ color: 'var(--text-primary)' }}
+                            >
+                                Initiative Intake
+                            </h1>
+                            <p 
+                                className="text-sm mt-2"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                Add decision-grade initiatives to the portfolio
+                            </p>
                         </div>
                         <Button
                             variant="primary"
                             onClick={handleAddInitiative}
-                            className="bg-neutral-900 hover:bg-neutral-800"
                         >
                             + Add Initiative
                         </Button>
@@ -147,19 +168,79 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
 
                 {/* Enhanced Summary Cards */}
                 <div className="grid grid-cols-3 gap-6 mb-10">
-                    <div className="card p-6">
-                        <p className="text-xs text-neutral-500 uppercase tracking-wide mb-2">Total Initiatives</p>
-                        <p className="text-3xl font-bold text-neutral-900">{initiatives.length}</p>
+                    <div 
+                        className="card p-6"
+                        style={{ 
+                            backgroundColor: 'var(--bg-secondary)',
+                            border: '1px solid var(--border-default)'
+                        }}
+                    >
+                        <p 
+                            className="text-xs uppercase tracking-wide mb-2"
+                            style={{ color: 'var(--text-tertiary)' }}
+                        >
+                            Total Initiatives
+                        </p>
+                        <p 
+                            className="text-3xl font-bold"
+                            style={{ color: 'var(--text-primary)' }}
+                        >
+                            {initiatives.length}
+                        </p>
                     </div>
-                    <div className="card p-6 border-l-4 border-l-status-green">
-                        <p className="text-xs text-neutral-500 uppercase tracking-wide mb-2">Complete</p>
-                        <p className="text-3xl font-bold text-status-green">{completeCount}</p>
-                        <p className="text-xs text-neutral-600 mt-2">Ready for prioritization</p>
+                    <div 
+                        className="card p-6"
+                        style={{ 
+                            backgroundColor: 'var(--bg-secondary)',
+                            border: '1px solid var(--border-default)',
+                            borderLeft: '4px solid var(--accent-success)'
+                        }}
+                    >
+                        <p 
+                            className="text-xs uppercase tracking-wide mb-2"
+                            style={{ color: 'var(--text-tertiary)' }}
+                        >
+                            Complete
+                        </p>
+                        <p 
+                            className="text-3xl font-bold"
+                            style={{ color: 'var(--accent-success)' }}
+                        >
+                            {completeCount}
+                        </p>
+                        <p 
+                            className="text-xs mt-2"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            Ready for prioritization
+                        </p>
                     </div>
-                    <div className="card p-6 border-l-4 border-l-status-red">
-                        <p className="text-xs text-neutral-500 uppercase tracking-wide mb-2">Incomplete</p>
-                        <p className="text-3xl font-bold text-status-red">{incompleteCount}</p>
-                        <p className="text-xs text-neutral-600 mt-2">Missing required fields</p>
+                    <div 
+                        className="card p-6"
+                        style={{ 
+                            backgroundColor: 'var(--bg-secondary)',
+                            border: '1px solid var(--border-default)',
+                            borderLeft: '4px solid var(--accent-error)'
+                        }}
+                    >
+                        <p 
+                            className="text-xs uppercase tracking-wide mb-2"
+                            style={{ color: 'var(--text-tertiary)' }}
+                        >
+                            Incomplete
+                        </p>
+                        <p 
+                            className="text-3xl font-bold"
+                            style={{ color: 'var(--accent-error)' }}
+                        >
+                            {incompleteCount}
+                        </p>
+                        <p 
+                            className="text-xs mt-2"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            Missing required fields
+                        </p>
                     </div>
                 </div>
 
@@ -200,53 +281,123 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
                 </div>
 
                 {/* Enhanced Initiatives Table */}
-                <div className="card overflow-hidden">
+                <div 
+                    className="card overflow-hidden"
+                    style={{ 
+                        backgroundColor: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-default)'
+                    }}
+                >
                     <table className="w-full">
                         <thead>
-                            <tr className="bg-neutral-100 border-b border-neutral-200">
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wide">Initiative</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wide">Sponsor</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wide">Delivery Owner</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wide">Alignment</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wide">Capacity</th>
-                                <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-700 uppercase tracking-wide">Value</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-700 uppercase tracking-wide">Risk</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-700 uppercase tracking-wide">Status</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold text-neutral-700 uppercase tracking-wide">Actions</th>
+                            <tr 
+                                style={{ 
+                                    backgroundColor: 'var(--bg-tertiary)',
+                                    borderBottom: '1px solid var(--border-default)'
+                                }}
+                            >
+                                <th 
+                                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    Initiative
+                                </th>
+                                <th 
+                                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    Sponsor
+                                </th>
+                                <th 
+                                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    Delivery Owner
+                                </th>
+                                <th 
+                                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    Alignment
+                                </th>
+                                <th 
+                                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    Capacity
+                                </th>
+                                <th 
+                                    className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    Value
+                                </th>
+                                <th 
+                                    className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    Risk
+                                </th>
+                                <th 
+                                    className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    Status
+                                </th>
+                                <th 
+                                    className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    Actions
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredInitiatives.length === 0 ? (
                                 <tr>
-                                    <td colSpan={9} className="px-4 py-12 text-center text-neutral-500">
+                                    <td colSpan={9} className="px-4 py-12 text-center" style={{ color: 'var(--text-secondary)' }}>
                                         No initiatives found. Click "+ Add Initiative" to get started.
                                     </td>
                                 </tr>
                             ) : (
                                 filteredInitiatives.map((initiative) => (
-                                    <tr key={initiative.id} className="border-b border-neutral-100 hover:bg-neutral-50 transition-colors">
+                                    <tr 
+                                        key={initiative.id} 
+                                        className="border-b transition-colors" 
+                                        style={{ 
+                                            borderColor: 'var(--border-default)',
+                                            '&:hover': { backgroundColor: 'var(--bg-hover)' }
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                    >
                                         <td className="px-4 py-4">
-                                            <span className="font-semibold text-neutral-900">{initiative.name}</span>
+                                            <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{initiative.name}</span>
                                         </td>
-                                        <td className="px-4 py-4 text-neutral-700">{initiative.sponsor}</td>
-                                        <td className="px-4 py-4 text-neutral-700">{initiative.deliveryOwner}</td>
+                                        <td className="px-4 py-4" style={{ color: 'var(--text-secondary)' }}>{initiative.sponsor}</td>
+                                        <td className="px-4 py-4" style={{ color: 'var(--text-secondary)' }}>{initiative.deliveryOwner}</td>
                                         <td className="px-4 py-4">
-                                            <span className="text-sm font-medium text-neutral-700">{initiative.strategicAlignmentScore}/5</span>
+                                            <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>{initiative.strategicAlignmentScore}/5</span>
                                         </td>
                                         <td className="px-4 py-4">
                                             <div className="flex flex-wrap gap-1">
                                                 {initiative.capacityDemands.map((cd, idx) => (
                                                     <span
                                                         key={idx}
-                                                        className="inline-block px-2 py-0.5 text-xs bg-neutral-100 text-neutral-700 border border-neutral-200"
-                                                        style={{ borderRadius: '2px' }}
+                                                        className="inline-block px-2 py-0.5 text-xs"
+                                                        style={{ 
+                                                            backgroundColor: 'var(--bg-tertiary)',
+                                                            color: 'var(--text-secondary)',
+                                                            border: '1px solid var(--border-default)',
+                                                            borderRadius: '2px'
+                                                        }}
                                                     >
                                                         {cd.role}: {cd.units}
                                                     </span>
                                                 ))}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-4 font-mono text-right font-semibold text-neutral-900">{formatCurrency(initiative.estimatedValue)}</td>
+                                        <td className="px-4 py-4 font-mono text-right font-semibold" style={{ color: 'var(--text-primary)' }}>{formatCurrency(initiative.estimatedValue)}</td>
                                         <td className="px-4 py-4 text-center">
                                             <span className={`inline-block px-2.5 py-1 text-xs font-semibold ${initiative.riskScore >= 4
                                                 ? 'bg-status-red text-white'
@@ -422,7 +573,7 @@ function InitiativeModal({
 
     return createPortal(
         <div
-            className="fixed inset-0 bg-black flex items-center justify-center p-4"
+            className="fixed inset-0 flex items-center justify-center p-4"
             style={{
                 top: 0,
                 left: 0,
@@ -430,15 +581,37 @@ function InitiativeModal({
                 bottom: 0,
                 position: 'fixed',
                 zIndex: 9999,
-                backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                backgroundColor: 'rgba(0, 0, 0, 0.7)'
             }}
         >
-            <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl rounded-lg" style={{ position: 'relative', zIndex: 10000, backgroundColor: '#ffffff' }}>
-                <div className="border-b border-neutral-200 px-8 py-6 bg-linear-to-r from-neutral-50 to-white">
-                    <h2 className="text-2xl font-bold text-neutral-900 tracking-tight">
+            <div 
+                className="w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl rounded-lg" 
+                style={{ 
+                    position: 'relative', 
+                    zIndex: 10000, 
+                    backgroundColor: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-default)'
+                }}
+            >
+                <div 
+                    className="px-8 py-6"
+                    style={{ 
+                        borderBottom: '1px solid var(--border-default)',
+                        background: 'linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%)'
+                    }}
+                >
+                    <h2 
+                        className="text-2xl font-bold tracking-tight"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
                         {editingId ? 'Edit Initiative' : 'Add New Initiative'}
                     </h2>
-                    <p className="text-sm text-neutral-500 mt-2">All fields marked with <span className="text-red-600 font-semibold">*</span> are mandatory</p>
+                    <p 
+                        className="text-sm mt-2"
+                        style={{ color: 'var(--text-secondary)' }}
+                    >
+                        All fields marked with <span style={{ color: 'var(--accent-error)', fontWeight: '600' }}>*</span> are mandatory
+                    </p>
                 </div>
 
                 <div className="px-8 py-8">

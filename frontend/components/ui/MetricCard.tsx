@@ -15,22 +15,62 @@ export function MetricCard({
     statusText,
     className = ''
 }: MetricCardProps) {
-    const statusColors = {
-        green: 'border-l-green-500 bg-linear-to-br from-green-50 to-white',
-        red: 'border-l-red-500 bg-linear-to-br from-red-50 to-white',
-        neutral: 'border-l-neutral-300 bg-white',
+    const getStatusStyles = () => {
+        switch (status) {
+            case 'green':
+                return {
+                    borderLeftColor: 'var(--accent-success)',
+                    backgroundColor: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-default)'
+                };
+            case 'red':
+                return {
+                    borderLeftColor: 'var(--accent-error)',
+                    backgroundColor: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-default)'
+                };
+            default:
+                return {
+                    borderLeftColor: 'var(--accent-primary)',
+                    backgroundColor: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-default)'
+                };
+        }
+    };
+
+    const getStatusTextColor = () => {
+        switch (status) {
+            case 'green':
+                return 'var(--accent-success)';
+            case 'red':
+                return 'var(--accent-error)';
+            default:
+                return 'var(--text-secondary)';
+        }
     };
 
     return (
-        <div className={`p-6 border-l-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ${statusColors[status]} ${className}`}>
-            <div className="text-sm font-semibold text-neutral-600 uppercase tracking-wide mb-2">{label}</div>
-            <div className="text-3xl font-bold text-neutral-900 mb-1">{value}</div>
+        <div 
+            className={`p-6 border-l-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ${className}`}
+            style={getStatusStyles()}
+        >
+            <div 
+                className="text-sm font-semibold uppercase tracking-wide mb-2"
+                style={{ color: 'var(--text-tertiary)' }}
+            >
+                {label}
+            </div>
+            <div 
+                className="text-3xl font-bold mb-1"
+                style={{ color: 'var(--text-primary)' }}
+            >
+                {value}
+            </div>
             {statusText && (
-                <div className={`text-sm font-medium mt-2 ${
-                    status === 'green' ? 'text-green-700' :
-                    status === 'red' ? 'text-red-700' :
-                    'text-neutral-600'
-                }`}>
+                <div 
+                    className="text-sm font-medium mt-2"
+                    style={{ color: getStatusTextColor() }}
+                >
                     {statusText}
                 </div>
             )}

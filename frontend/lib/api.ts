@@ -32,7 +32,7 @@ export async function authGet(url: string, options: RequestInit = {}): Promise<R
 /**
  * Makes an authenticated POST request with JSON body
  */
-export async function authPost(url: string, data: any, options: RequestInit = {}): Promise<Response> {
+export async function authPost(url: string, data: unknown, options: RequestInit = {}): Promise<Response> {
   const headers = new Headers(options.headers);
   headers.set('Content-Type', 'application/json');
   
@@ -47,7 +47,7 @@ export async function authPost(url: string, data: any, options: RequestInit = {}
 /**
  * Makes an authenticated PUT request with JSON body
  */
-export async function authPut(url: string, data: any, options: RequestInit = {}): Promise<Response> {
+export async function authPut(url: string, data: unknown, options: RequestInit = {}): Promise<Response> {
   const headers = new Headers(options.headers);
   headers.set('Content-Type', 'application/json');
   

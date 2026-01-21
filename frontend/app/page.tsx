@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { authGet } from '@/lib/api';
+import { authGet, authPost } from '@/lib/api';
 
 interface Portfolio {
   id: string;
@@ -20,6 +20,7 @@ export default function HomePage() {
   const { user, loading: authLoading } = useAuth(true); // Require authentication
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
 
   const fetchPortfolios = useCallback(async () => {
     try {
@@ -41,13 +42,62 @@ export default function HomePage() {
     fetchPortfolios();
   }, [fetchPortfolios]);
 
+  const handleCreatePortfolio = useCallback(async () => {
+    if (isCreating) return; // Prevent double submit
+    
+    setIsCreating(true);
+    try {
+      // Create a new portfolio with default values
+      const response = await authPost('/api/portfolios', {
+        name: 'New Portfolio',
+        fiscalPeriod: new Date().getFullYear().toString(),
+        totalBudget: 100,
+        totalCapacity: 450,
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        if (result.data && result.data.portfolioId) {
+          router.push(`/portfolio/${result.data.portfolioId}/setup`);
+        }
+      } else {
+        console.error('Failed to create portfolio:', result.errors);
+        const errorMessage = result.errors?.[0]?.message || 'Failed to create portfolio';
+        alert(`Error: ${errorMessage}`);
+        setIsCreating(false);
+      }
+    } catch (error) {
+      console.error('Failed to create portfolio:', error);
+      alert('Failed to create portfolio. Please try again.');
+      setIsCreating(false);
+    }
+  }, [isCreating, router]);
+
   // Show loading while checking authentication
-  if (authLoading || loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-neutral-200 border-t-neutral-900"></div>
           <p className="text-neutral-600 mt-6 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (will be redirected by useAuth)
+  if (!user) {
+    return null;
+  }
+
+  // Show loading while fetching data
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-neutral-200 border-t-neutral-900"></div>
+          <p className="text-neutral-600 mt-6 font-medium">Loading portfolios...</p>
         </div>
       </div>
     );
@@ -82,12 +132,13 @@ export default function HomePage() {
                 Manage portfolios, initiatives, scenarios, and generate decision reports with governance-first design principles
               </p>
             </div>
-            <Link
-              href="/portfolio/create"
-              className="shrink-0 px-8 py-3.5 bg-neutral-900 text-white font-semibold rounded-lg hover:bg-neutral-800 hover:shadow-lg transition-all duration-200 shadow-md text-base"
+            <button
+              onClick={handleCreatePortfolio}
+              disabled={isCreating}
+              className="shrink-0 px-8 py-3.5 bg-neutral-900 text-white font-semibold rounded-lg hover:bg-neutral-800 hover:shadow-lg transition-all duration-200 shadow-md text-base disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              + New Portfolio
-            </Link>
+              {isCreating ? 'Creating...' : '+ New Portfolio'}
+            </button>
           </div>
         </div>
 
@@ -106,12 +157,13 @@ export default function HomePage() {
             </div>
             <h3 className="text-xl font-bold text-neutral-900 mb-3">No Portfolios Yet</h3>
             <p className="text-neutral-600 mb-8 max-w-md mx-auto">Create your first portfolio to get started with portfolio decision management and governance</p>
-            <Link
-              href="/portfolio/create"
-              className="inline-block px-8 py-3.5 bg-neutral-900 text-white font-semibold rounded-lg hover:bg-neutral-800 hover:shadow-lg transition-all"
+            <button
+              onClick={handleCreatePortfolio}
+              disabled={isCreating}
+              className="px-8 py-3.5 bg-neutral-900 text-white font-semibold rounded-lg hover:bg-neutral-800 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create Your First Portfolio
-            </Link>
+              {isCreating ? 'Creating...' : 'Create Your First Portfolio'}
+            </button>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
@@ -180,12 +232,13 @@ export default function HomePage() {
           <p className="text-neutral-300 mb-10 max-w-2xl mx-auto text-lg leading-relaxed">
             Create your first portfolio, add initiatives, build scenarios, and generate a comprehensive decision report
           </p>
-          <Link
-            href="/portfolio/create"
-            className="inline-block px-10 py-4 bg-white text-neutral-900 font-bold rounded-lg hover:bg-neutral-100 hover:shadow-xl transition-all duration-200 shadow-lg text-base"
+          <button 
+            onClick={handleCreatePortfolio}
+            disabled={isCreating}
+            className="inline-block px-10 py-4 bg-white text-neutral-900 font-bold rounded-lg hover:bg-neutral-100 hover:shadow-xl transition-all duration-200 shadow-lg text-base disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Create Portfolio Now
-          </Link>
+            {isCreating ? 'Creating Portfolio...' : 'Create Portfolio Now'}
+          </button>
         </div>
 
       </main>

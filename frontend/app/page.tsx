@@ -182,7 +182,13 @@ export default function HomePage() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-12">
             {portfolios.map((portfolio) => (
-              <div key={portfolio.id} className="rounded-lg p-5 transition-all duration-200 group hover:border-[var(--border-strong)]" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
+              <div 
+                key={portfolio.id} 
+                className="rounded-lg p-5 transition-all duration-200 group" 
+                style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--border-strong)'}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-default)'}
+              >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h3 className="text-base font-bold mb-1.5 transition-colors" style={{ color: 'var(--text-primary)' }}>{portfolio.name}</h3>
@@ -206,25 +212,31 @@ export default function HomePage() {
                 <div className="grid grid-cols-3 gap-2">
                   <Link
                     href={`/portfolio/${portfolio.id}/setup`}
-                    className="text-xs text-center px-2 py-2 font-medium rounded-md transition-all hover:bg-[var(--bg-elevated)]"
+                    className="text-xs text-center px-2 py-2 font-medium rounded-md transition-all"
                     style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-elevated)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
                   >
                     Setup
                   </Link>
                   <Link
                     href={`/portfolio/${portfolio.id}/initiatives`}
-                    className="text-xs text-center px-2 py-2 font-medium rounded-md transition-all hover:bg-[var(--bg-elevated)]"
+                    className="text-xs text-center px-2 py-2 font-medium rounded-md transition-all"
                     style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-elevated)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
                   >
                     Initiatives
                   </Link>
                   <Link
                     href={`/portfolio/${portfolio.id}/output`}
-                    className="text-xs text-center px-2 py-2 font-semibold rounded-md transition-all hover:opacity-90"
+                    className="text-xs text-center px-2 py-2 font-semibold rounded-md transition-all"
                     style={{ 
                       backgroundColor: 'var(--accent-primary)', 
-                      color: '#ffffff'
+                      color: 'var(--accent-primary-text)'
                     }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary)'}
                   >
                     Report
                   </Link>

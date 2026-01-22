@@ -223,7 +223,7 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                             }}
                         >
                             <div className="flex items-start justify-between mb-3">
-                                <div>
+                                <div className="flex-1">
                                     <h3 
                                         className="font-semibold text-base mb-0.5"
                                         style={{
@@ -238,6 +238,18 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                                             style={{ color: 'var(--text-tertiary)' }}
                                         >
                                             Reference
+                                        </span>
+                                    )}
+                                    {scenario.id !== 'baseline' && scenario.fundedCount === 0 && (
+                                        <span 
+                                            className="text-xs px-2 py-0.5 rounded mt-1 inline-block"
+                                            style={{ 
+                                                backgroundColor: 'rgba(196, 162, 74, 0.1)',
+                                                color: 'var(--accent-warning)',
+                                                border: '1px solid rgba(196, 162, 74, 0.2)'
+                                            }}
+                                        >
+                                            No decisions made
                                         </span>
                                     )}
                                 </div>
@@ -316,15 +328,26 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
 
                             {scenario.id !== 'baseline' && (
                                 <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-                                    <Button
-                                        variant={scenario.isRecommended ? 'primary' : 'secondary'}
-                                        size="sm"
-                                        className="w-full text-sm"
-                                        onClick={() => handleMarkRecommended(scenario.id)}
-                                        disabled={scenario.isRecommended}
-                                    >
-                                        {scenario.isRecommended ? '✓ Recommended' : 'Mark as Recommended'}
-                                    </Button>
+                                    {scenario.fundedCount === 0 ? (
+                                        <Button
+                                            variant="primary"
+                                            size="sm"
+                                            className="w-full text-sm"
+                                            onClick={() => window.location.href = `/portfolio/${resolvedParams.id}/scenarios/${scenario.id}`}
+                                        >
+                                            Make Decisions →
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            variant={scenario.isRecommended ? 'primary' : 'secondary'}
+                                            size="sm"
+                                            className="w-full text-sm"
+                                            onClick={() => handleMarkRecommended(scenario.id)}
+                                            disabled={scenario.isRecommended}
+                                        >
+                                            {scenario.isRecommended ? '✓ Recommended' : 'Mark as Recommended'}
+                                        </Button>
+                                    )}
                                 </div>
                             )}
                         </div>

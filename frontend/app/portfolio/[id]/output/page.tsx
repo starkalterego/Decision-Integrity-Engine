@@ -24,6 +24,12 @@ interface ScenarioMetrics {
     risk: string;
 }
 
+interface Scenario {
+    id: string;
+    name: string;
+    isFinalized: boolean;
+}
+
 interface ExecutiveSummaryData {
     portfolio: {
         name: string;
@@ -92,6 +98,8 @@ export default function ExecutiveOutputPage({
     const [data, setData] = useState<ExecutiveSummaryData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [scenarios, setScenarios] = useState<Scenario[]>([]);
 
     useEffect(() => {
         loadScenarios();
@@ -106,35 +114,55 @@ export default function ExecutiveOutputPage({
 
     const loadScenarios = async () => {
         try {
+            setIsLoading(true);
+            setError(null);
             const res = await fetch(`/api/scenarios?portfolioId=${resolvedParams.id}`);
             const result = await res.json();
 
+            console.log('Scenarios loaded:', result);
+
             if (result.success && result.data.length > 0) {
+                setScenarios(result.data);
                 // Find first finalized scenario
                 const finalizedScenario = result.data.find((s: { isFinalized: boolean; id: string }) => s.isFinalized);
+                console.log('Finalized scenario:', finalizedScenario);
                 if (finalizedScenario) {
                     setSelectedScenarioId(finalizedScenario.id);
+                } else {
+                    setError('No finalized scenario found. Please finalize a scenario first.');
+                    setIsLoading(false);
                 }
+            } else {
+                setError('No scenarios found. Please create and finalize a scenario first.');
+                setIsLoading(false);
             }
         } catch (err) {
             console.error('Error loading scenarios:', err);
+            setError('Failed to load scenarios. Please try again.');
+            setIsLoading(false);
         }
     };
 
     const loadExecutiveSummary = async (scenarioId: string) => {
         try {
             setIsLoading(true);
+            setError(null);
             const res = await fetch(`/api/scenarios/${scenarioId}/executive-summary`);
             const result = await res.json();
 
+            console.log('Executive summary response:', result);
+
             if (!result.success) {
                 console.error('Error:', result.errors);
+                setError(result.errors[0]?.message || 'Failed to load executive summary');
+                setIsLoading(false);
                 return;
             }
 
             setData(result.data);
         } catch (err) {
             console.error('Error loading executive summary:', err);
+            setError('Failed to load executive summary. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -155,11 +183,68 @@ export default function ExecutiveOutputPage({
         return (
             <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
                 <Header portfolioName="Portfolio" portfolioId={resolvedParams.id} currentPage="output" />
-                <main className="page-container mx-auto max-w-350 p-8">
+                <main className="page-container mx-auto max-w-7xl p-8">
                     <div className="text-center py-20">
-                        <p style={{ color: 'var(--text-secondary)' }}>
-                            {isLoading ? 'Loading executive summary...' : 'No finalized scenario available. Please finalize a scenario first.'}
-                        </p>
+                        {isLoading ? (
+                            <>
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: 'var(--accent-primary)' }}></div>
+                                <p style={{ color: 'var(--text-secondary)' }}>Loading executive summary...</p>
+                            </>
+                        ) : error ? (
+                            <div>
+                                <div className="mb-6">
+                                    <svg className="mx-auto h-12 w-12 mb-4" style={{ color: 'var(--accent-warning)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>{error}</h2>
+                                </div>
+                                {scenarios.length > 0 && (
+                                    <div className="max-w-2xl mx-auto">
+                                        <div 
+                                            className="rounded-lg p-5 mb-4"
+                                            style={{ 
+                                                backgroundColor: 'var(--bg-secondary)',
+                                                border: '1px solid var(--border-default)'
+                                            }}
+                                        >
+                                            <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Available Scenarios:</h3>
+                                            <ul className="space-y-2 text-left">
+                                                {scenarios.map((s) => (
+                                                    <li 
+                                                        key={s.id} 
+                                                        className="flex items-center justify-between text-sm p-2 rounded"
+                                                        style={{ backgroundColor: 'var(--bg-tertiary)' }}
+                                                    >
+                                                        <span style={{ color: 'var(--text-secondary)' }}>{s.name}</span>
+                                                        <span 
+                                                            className="px-2 py-1 text-xs font-semibold rounded"
+                                                            style={{
+                                                                backgroundColor: s.isFinalized ? 'rgba(63, 174, 106, 0.1)' : 'rgba(196, 162, 74, 0.1)',
+                                                                color: s.isFinalized ? 'var(--accent-success)' : 'var(--accent-warning)',
+                                                                border: s.isFinalized ? '1px solid rgba(63, 174, 106, 0.2)' : '1px solid rgba(196, 162, 74, 0.2)'
+                                                            }}
+                                                        >
+                                                            {s.isFinalized ? 'Finalized' : 'Draft'}
+                                                        </span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                        <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                                            Go to the scenario workspace and finalize a scenario to generate the executive output.
+                                        </p>
+                                        <Button
+                                            variant="primary"
+                                            onClick={() => window.location.href = `/portfolio/${resolvedParams.id}/scenarios/baseline`}
+                                        >
+                                            Go to Scenarios
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <p style={{ color: 'var(--text-secondary)' }}>No data available.</p>
+                        )}
                     </div>
                 </main>
             </div>
@@ -167,241 +252,245 @@ export default function ExecutiveOutputPage({
     }
 
     return (
-        <div className="min-h-screen font-sans selection:bg-neutral-200" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+        <div className="min-h-screen font-sans" style={{ backgroundColor: '#f5f5f5', color: '#000000' }}>
             <Header portfolioName={data.portfolio.name} portfolioId={resolvedParams.id} currentPage="output" className="no-print" />
 
-            <main className="page-container mx-auto max-w-350 p-8">
-                <div className="section-header no-print flex justify-between items-center mb-8">\n                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight" style={{ color: 'var(--text-primary)' }}>Executive One-Pager</h1>
-                        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Board-Ready Decision Artifact</p>
+            <main className="max-w-7xl mx-auto px-8 py-8">
+                {/* Page Header */}
+                <div className="no-print flex justify-between items-start mb-6">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">Executive One-Pager</h1>
+                        <p className="text-sm text-gray-500 mt-1">Board-Ready Decision Artifact</p>
                     </div>
                     <Button onClick={handleDownloadPDF} variant="secondary">Download PDF</Button>
                 </div>
 
-                {/* BOARD-READY ARTIFACT CONTAINER */}
-                <div className="bg-white shadow-xl rounded-sm border border-neutral-200 overflow-hidden print:shadow-none print:border-none">
-
-                    {/* Header Block */}
-                    <div className="px-10 py-4 border-b border-neutral-100 flex justify-between items-end">
+                {/* White Paper Container */}
+                <div className="bg-white shadow-sm border border-gray-200 rounded-sm overflow-hidden">
+                    
+                    {/* Header Section */}
+                    <div className="px-12 py-6 border-b border-gray-200 flex justify-between items-start">
                         <div>
-                            <div className="text-[10px] font-medium uppercase tracking-widest text-neutral-400 mb-1">Portfolio Decision Artifact</div>
-                            <div className="text-3xl font-bold tracking-tight text-neutral-900">{data.portfolio.name}</div>
-                            <div className="text-sm text-neutral-400 mt-0.5 font-normal">Scenario: {data.scenario.name}</div>
+                            <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
+                                Portfolio Decision Artifact
+                            </div>
+                            <div className="text-2xl font-bold text-gray-900 tracking-tight">
+                                {data.portfolio.name}
+                            </div>
+                            <div className="text-sm text-gray-500 mt-1">
+                                Scenario: {data.scenario.name}
+                            </div>
                         </div>
                         <div className="text-right">
-                            <div className="text-[10px] uppercase tracking-widest text-neutral-400 mb-0.5">Decision Owner</div>
-                            <div className="text-sm font-medium text-neutral-500">{data.scenario.decisionOwner}</div>
-                            <div className="text-xs text-neutral-400 font-mono mt-0.5">
+                            <div className="text-xs uppercase tracking-wider text-gray-400 mb-0.5">Decision Owner</div>
+                            <div className="text-sm font-medium text-gray-600">{data.scenario.decisionOwner}</div>
+                            <div className="text-xs text-gray-400 mt-1">
                                 {new Date(data.scenario.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                             </div>
                         </div>
                     </div>
 
-                    <div className="p-10 pb-14 space-y-16">
-
+                    <div className="p-12 space-y-12">
+                        
                         {/* Top Metric Cards */}
-                        <div className="grid grid-cols-4 gap-8">
-                            <div className="bg-neutral-50/40 rounded-lg p-7 border-0 hover:bg-neutral-50/60 transition-all">
-                                <div className="text-[10px] font-medium uppercase tracking-widest text-neutral-400 mb-4">Investment</div>
-                                <div className="text-5xl font-bold text-neutral-900 tracking-tight font-mono mb-3">{formatCurrency(data.metrics.investment)}</div>
+                        <div className="grid grid-cols-4 gap-6">
+                            <div className="bg-gray-50 rounded-lg p-6 border border-gray-100">
+                                <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Investment</div>
+                                <div className="text-3xl font-bold text-gray-900 mb-2">{formatCurrency(data.metrics.investment)}</div>
                                 <div className="flex items-center gap-2">
-                                    <span className={`text-[11px] font-semibold ${data.deltas.investment < 0 ? 'text-status-red bg-status-red-bg' : 'text-neutral-600 bg-neutral-100'} px-2 py-0.5 rounded`}>
+                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${data.deltas.investment < 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'}`}>
                                         {formatDelta(data.deltas.investment)}
                                     </span>
-                                    <span className="text-[11px] text-neutral-400 font-normal">vs Baseline</span>
+                                    <span className="text-xs text-gray-500">vs Baseline</span>
                                 </div>
                             </div>
-                            <div className="bg-neutral-50/40 rounded-lg p-7 border-0 hover:bg-neutral-50/60 transition-all">
-                                <div className="text-[10px] font-medium uppercase tracking-widest text-neutral-400 mb-4">Expected Value</div>
-                                <div className="text-5xl font-bold text-neutral-900 tracking-tight font-mono mb-3">{formatCurrency(data.metrics.expectedValue)}</div>
+                            
+                            <div className="bg-gray-50 rounded-lg p-6 border border-gray-100">
+                                <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Expected Value</div>
+                                <div className="text-3xl font-bold text-gray-900 mb-2">{formatCurrency(data.metrics.expectedValue)}</div>
                                 <div className="flex items-center gap-2">
-                                    <span className={`text-[11px] font-semibold ${data.deltas.value > 0 ? 'text-status-green bg-status-green-bg' : 'text-neutral-600 bg-neutral-100'} px-2 py-0.5 rounded`}>
+                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${data.deltas.value > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                                         {formatDelta(data.deltas.value)}
                                     </span>
-                                    <span className="text-[11px] text-neutral-400 font-normal">vs Baseline</span>
+                                    <span className="text-xs text-gray-500">vs Baseline</span>
                                 </div>
                             </div>
-                            <div className="bg-neutral-50/40 rounded-lg p-7 border-0 hover:bg-neutral-50/60 transition-all">
-                                <div className="text-[10px] font-medium uppercase tracking-widest text-neutral-400 mb-4">Capacity Use</div>
-                                <div className="text-5xl font-bold text-neutral-900 tracking-tight font-mono mb-3">{data.metrics.capacityUse.toFixed(0)}%</div>
+                            
+                            <div className="bg-gray-50 rounded-lg p-6 border border-gray-100">
+                                <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Capacity Use</div>
+                                <div className="text-3xl font-bold text-gray-900 mb-2">{data.metrics.capacityUse.toFixed(0)}%</div>
                                 <div className="flex items-center gap-2">
-                                    <span className={`text-[11px] font-semibold ${data.metrics.capacityUse < 95 ? 'text-status-green bg-status-green-bg' : 'text-neutral-600 bg-neutral-100'} px-2 py-0.5 rounded`}>
+                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${data.metrics.capacityUse < 95 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                                         {data.metrics.capacityUse < 95 ? 'Optimal' : 'High'}
                                     </span>
-                                    <span className="text-[11px] text-neutral-400 font-normal">Tolerance &lt;95%</span>
+                                    <span className="text-xs text-gray-500">Tolerance &lt;95%</span>
                                 </div>
                             </div>
-                            <div className="bg-neutral-50/40 rounded-lg p-7 border-0 hover:bg-neutral-50/60 transition-all">
-                                <div className="text-[10px] font-medium uppercase tracking-widest text-neutral-400 mb-4">Risk Exposure</div>
-                                <div className="text-5xl font-bold text-neutral-900 tracking-tight font-mono mb-3">{data.metrics.riskExposure}</div>
+                            
+                            <div className="bg-gray-50 rounded-lg p-6 border border-gray-100">
+                                <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Risk Exposure</div>
+                                <div className="text-3xl font-bold text-gray-900 mb-2">{data.metrics.riskExposure}</div>
                                 <div className="flex items-center gap-2">
-                                    <span className={`text-[11px] font-semibold ${data.deltas.risk < 0 ? 'text-status-green bg-status-green-bg' : 'text-neutral-600 bg-neutral-100'} px-2 py-0.5 rounded`}>
+                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${data.deltas.risk < 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                                         {data.deltas.risk < 0 ? 'Reduced' : 'Managed'}
                                     </span>
-                                    <span className="text-[11px] text-neutral-400 font-normal">vs {data.baseline.risk}</span>
+                                    <span className="text-xs text-gray-500">vs {data.baseline.risk}</span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* THE DECISION ASK */}
-                        <div className="relative bg-neutral-50 border border-neutral-200 rounded-lg p-14 pl-16 overflow-hidden">
-                            <div className="absolute left-0 top-0 bottom-0 w-3 bg-accent-primary"></div>
+                        {/* The Decision Ask */}
+                        <div className="bg-gray-50 border-l-4 border-blue-500 rounded-lg p-8">
                             <div className="flex items-start gap-8">
                                 <div className="flex-1">
-                                    <h2 className="text-[11px] font-bold text-accent-primary uppercase tracking-[0.15em] mb-5">The Decision Ask</h2>
-                                    <p className="text-[32px] font-medium text-neutral-900 leading-normal">
+                                    <h2 className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-4">The Decision Ask</h2>
+                                    <p className="text-2xl font-medium text-gray-900 leading-relaxed">
                                         {data.decisionAsk}
                                     </p>
                                 </div>
-                                <div className="flex flex-col gap-3 min-w-50">
-                                    <button className="flex items-center gap-3 px-6 py-4 bg-white border-2 border-accent-primary rounded-lg shadow-sm hover:shadow-md transition-all group cursor-pointer text-left">
-                                        <div className="w-5 h-5 rounded-full border-2 border-accent-primary flex items-center justify-center">
-                                            <div className="w-2.5 h-2.5 rounded-full bg-accent-primary"></div>
+                                <div className="flex flex-col gap-2 min-w-fit">
+                                    <button className="flex items-center gap-3 px-5 py-3 bg-white border-2 border-blue-500 rounded-lg shadow-sm hover:shadow transition-shadow">
+                                        <div className="w-4 h-4 rounded-full border-2 border-blue-500 flex items-center justify-center">
+                                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                                         </div>
-                                        <div>
-                                            <div className="text-sm font-bold text-neutral-900">Approve</div>
-                                            <div className="text-xs text-neutral-500">{data.scenario.status}</div>
+                                        <div className="text-left">
+                                            <div className="text-sm font-bold text-gray-900">Approve</div>
+                                            <div className="text-xs text-gray-500">{data.scenario.status}</div>
                                         </div>
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="py-12"></div>
-
                         {/* Single Column Layout */}
                         <div className="space-y-14">
 
-                            {/* Executive Snapshot */}
-                            <div>
-                                <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400 mb-8 pb-2 border-b border-neutral-100">
-                                    Executive Snapshot
-                                </h3>
-                                <div className="space-y-6">
-                                    {[
-                                        { label: "Portfolio Value", value: formatCurrency(data.executiveSnapshot.portfolioValue), sub: formatDelta(data.deltas.value), trend: data.deltas.value > 0 ? "up" : "neutral" },
-                                        { label: "Total Cost", value: formatCurrency(data.executiveSnapshot.totalCost), sub: formatDelta(data.deltas.investment), trend: data.deltas.investment < 0 ? "down" : "neutral" },
-                                        { label: "Capacity Utilization", value: `${data.executiveSnapshot.capacityUtilization.toFixed(0)}%`, sub: data.executiveSnapshot.capacityUtilization < 95 ? "Optimal" : "High", trend: "neutral" },
-                                        { label: "Risk Level", value: data.executiveSnapshot.riskLevel, sub: data.deltas.risk < 0 ? "Lower" : "Managed", trend: data.deltas.risk < 0 ? "down" : "neutral" }
-                                    ].map((item, i) => (
-                                        <div key={i} className="flex justify-between items-baseline py-4 border-b border-neutral-50 last:border-0 hover:bg-neutral-50/50 transition-colors px-3 -mx-3 rounded">
-                                            <span className="text-sm font-medium text-neutral-600">{item.label}</span>
-                                            <div className="text-right flex items-baseline gap-8">
-                                                <span className={`text-[11px] font-medium ${item.trend === 'up' || (item.trend === 'down' && (item.label.includes('Risk') || item.label.includes('Cost'))) ? 'text-status-green' : 'text-neutral-400'}`}>
-                                                    {item.sub}
-                                                </span>
-                                                <span className="text-2xl font-bold font-mono text-neutral-900 w-32 text-right">{item.value}</span>
-                                            </div>
+                        {/* Executive Snapshot */}
+                        <div>
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-6 pb-3 border-b border-gray-200">
+                                Executive Snapshot
+                            </h3>
+                            <div className="space-y-3">
+                                {[
+                                    { label: "Portfolio Value", value: formatCurrency(data.executiveSnapshot.portfolioValue), delta: formatDelta(data.deltas.value) },
+                                    { label: "Total Cost", value: formatCurrency(data.executiveSnapshot.totalCost), delta: formatDelta(data.deltas.investment) },
+                                    { label: "Capacity Utilization", value: `${data.executiveSnapshot.capacityUtilization.toFixed(0)}%`, delta: data.executiveSnapshot.capacityUtilization < 95 ? "Optimal" : "High" },
+                                    { label: "Risk Level", value: data.executiveSnapshot.riskLevel, delta: data.deltas.risk < 0 ? "Reduced" : "Managed" }
+                                ].map((item, i) => (
+                                    <div key={i} className="flex justify-between items-center py-3 border-b border-gray-100 last:border-0">
+                                        <span className="text-sm font-medium text-gray-600">{item.label}</span>
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-xs text-gray-500">{item.delta}</span>
+                                            <span className="text-xl font-bold text-gray-900 min-w-25 text-right">{item.value}</span>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Trade-Off Summary */}
-                            <div>
-                                <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400 mb-8 pb-2 border-b border-neutral-100">
-                                    Trade-Off Summary
-                                </h3>
-                                <div className="grid grid-cols-2 gap-8">
-                                    <div className="bg-status-red-bg/40 p-7 rounded-lg border border-status-red-border/40">
-                                        <div className="flex items-center gap-2 mb-6">
-                                            <div className="w-2 h-2 rounded-full bg-status-red"></div>
-                                            <span className="text-[11px] font-bold text-status-red uppercase tracking-[0.08em]">What Changed</span>
-                                        </div>
-                                        <ul className="space-y-4">
-                                            {data.tradeOffSummary.whatChanged.map((item, idx) => (
-                                                <li key={idx} className="text-sm text-neutral-700 leading-relaxed font-medium wrap-break-word">• {item}</li>
-                                            ))}
-                                        </ul>
                                     </div>
-                                    <div className="bg-status-green-bg/40 p-7 rounded-lg border border-status-green-border/40">
-                                        <div className="flex items-center gap-2 mb-6">
-                                            <div className="w-2 h-2 rounded-full bg-status-green"></div>
-                                            <span className="text-[11px] font-bold text-status-green uppercase tracking-[0.08em]">What Gained</span>
-                                        </div>
-                                        <ul className="space-y-4">
-                                            {data.tradeOffSummary.whatGained.map((item, idx) => (
-                                                <li key={idx} className="text-sm text-neutral-700 leading-relaxed font-medium wrap-break-word">• {item}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
-
-                            {/* Scenario Comparison */}
-                            <div>
-                                <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400 mb-8 pb-2 border-b border-neutral-100">
-                                    Scenario Comparison
-                                </h3>
-                                <div className="border border-neutral-200 rounded-lg overflow-hidden text-sm max-w-2xl">
-                                    <div className="grid grid-cols-3 bg-neutral-50 border-b border-neutral-200">
-                                        <div className="p-4 font-semibold text-[10px] text-neutral-500 uppercase tracking-wider">Metric</div>
-                                        <div className="p-4 text-center font-medium text-[10px] text-neutral-400 uppercase tracking-wider">Baseline</div>
-                                        <div className="p-4 text-center font-bold text-[10px] text-accent-primary uppercase tracking-wider bg-accent-primary/10">{data.scenario.name.split(' ')[0]} ★</div>
-                                    </div>
-                                    {[
-                                        { label: 'Investment', b: formatCurrency(data.scenarioComparison.baseline.investment), r: formatCurrency(data.scenarioComparison.current.investment) },
-                                        { label: 'Value', b: formatCurrency(data.scenarioComparison.baseline.value), r: formatCurrency(data.scenarioComparison.current.value) },
-                                        { label: 'Cap. Used', b: `${data.scenarioComparison.baseline.capacityUsed.toFixed(0)}%`, r: `${data.scenarioComparison.current.capacityUsed.toFixed(0)}%` },
-                                        { label: 'Risk', b: data.scenarioComparison.baseline.risk, r: data.scenarioComparison.current.risk },
-                                    ].map((row, i) => (
-                                        <div key={i} className="grid grid-cols-3 border-b border-neutral-100 last:border-0 hover:bg-neutral-50/30">
-                                            <div className="p-4 font-medium text-neutral-600">{row.label}</div>
-                                            <div className="p-4 text-center text-neutral-400 font-mono text-sm">{row.b}</div>
-                                            <div className="p-4 text-center font-bold font-mono text-neutral-900 bg-accent-primary/10 text-sm">
-                                                {row.r}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Key Risks */}
-                            <div>
-                                <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400 mb-8 pb-2 border-b border-neutral-100">
-                                    Key Risks
-                                </h3>
-                                <div className="space-y-6">
-                                    {data.keyRisks.map((risk, idx) => (
-                                        <div key={idx} className="border-l-2 border-neutral-200 pl-6 py-3 hover:border-neutral-400 transition-colors group">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div className="font-semibold text-neutral-800 text-sm">{risk}</div>
-                                                <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-400 bg-neutral-100 py-1 px-2.5 rounded-full whitespace-nowrap">
-                                                    {idx === 0 || idx === 1 ? 'MEDIUM' : 'LOW'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
                         </div>
 
-                        <div className="py-12"></div>
+                        {/* Trade-Off Summary */}
+                        <div>
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-6 pb-3 border-b border-gray-200">
+                                Trade-Off Summary
+                            </h3>
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="bg-red-50 p-6 rounded-lg border border-red-100">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                                        <span className="text-xs font-bold text-red-600 uppercase tracking-wide">What Changed</span>
+                                    </div>
+                                    <ul className="space-y-2">
+                                        {data.tradeOffSummary.whatChanged.map((item, idx) => (
+                                            <li key={idx} className="text-sm text-gray-700">• {item}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                                <div className="bg-green-50 p-6 rounded-lg border border-green-100">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                        <span className="text-xs font-bold text-green-600 uppercase tracking-wide">What Gained</span>
+                                    </div>
+                                    <ul className="space-y-2">
+                                        {data.tradeOffSummary.whatGained.map((item, idx) => (
+                                            <li key={idx} className="text-sm text-gray-700">• {item}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Scenario Comparison */}
+                        <div>
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-6 pb-3 border-b border-gray-200">
+                                Scenario Comparison
+                            </h3>
+                            <div className="border border-gray-200 rounded-lg overflow-hidden">
+                                <div className="grid grid-cols-3 bg-gray-100 border-b border-gray-200">
+                                    <div className="p-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Metric</div>
+                                    <div className="p-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">Baseline</div>
+                                    <div className="p-3 text-center text-xs font-bold text-blue-600 uppercase tracking-wide bg-blue-50">
+                                        {data.scenario.name}
+                                    </div>
+                                </div>
+                                {[
+                                    { label: 'Investment', b: formatCurrency(data.scenarioComparison.baseline.investment), r: formatCurrency(data.scenarioComparison.current.investment) },
+                                    { label: 'Value', b: formatCurrency(data.scenarioComparison.baseline.value), r: formatCurrency(data.scenarioComparison.current.value) },
+                                    { label: 'Cap. Used', b: `${data.scenarioComparison.baseline.capacityUsed.toFixed(0)}%`, r: `${data.scenarioComparison.current.capacityUsed.toFixed(0)}%` },
+                                    { label: 'Risk', b: data.scenarioComparison.baseline.risk, r: data.scenarioComparison.current.risk },
+                                ].map((row, i) => (
+                                    <div key={i} className="grid grid-cols-3 border-b border-gray-100 last:border-0">
+                                        <div className="p-3 text-sm font-medium text-gray-700">{row.label}</div>
+                                        <div className="p-3 text-center text-sm text-gray-600">{row.b}</div>
+                                        <div className="p-3 text-center text-sm font-bold text-gray-900 bg-blue-50">
+                                            {row.r}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Key Risks */}
+                        <div>
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-6 pb-3 border-b border-gray-200">
+                                Key Risks
+                            </h3>
+                            <div className="space-y-3">
+                                {data.keyRisks.map((risk, idx) => (
+                                    <div key={idx} className="border-l-2 border-gray-300 pl-4 py-2">
+                                        <div className="flex justify-between items-start">
+                                            <span className="text-sm font-medium text-gray-700">{risk}</span>
+                                            <span className="text-xs font-semibold uppercase px-2 py-1 rounded bg-gray-100 text-gray-600 ml-4">
+                                                {idx === 0 || idx === 1 ? 'MEDIUM' : 'LOW'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
 
                         {/* What We Are Not Funding */}
                         {data.unfundedInitiatives.length > 0 && (
-                            <div className="bg-neutral-50 rounded-lg p-10 border border-neutral-100">
-                                <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400 mb-8 pb-2 border-b border-neutral-200/50">
+                            <div className="bg-gray-50 rounded-lg p-8 border border-gray-200">
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-6 pb-3 border-b border-gray-200">
                                     What We Are Not Funding
                                 </h3>
-                                <div className="flex flex-wrap gap-x-12 gap-y-6 mb-10 pb-8 border-b border-neutral-200/60">
+                                <div className="flex gap-8 mb-6">
                                     <div>
-                                        <div className="text-[10px] text-neutral-400 uppercase tracking-widest mb-2">Initiatives Stopped</div>
-                                        <div className="text-2xl font-bold text-neutral-900 font-mono">{data.decisions.stop.length}</div>
+                                        <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Initiatives Stopped</div>
+                                        <div className="text-xl font-bold text-gray-900">{data.decisions.stop.length}</div>
                                     </div>
                                     <div>
-                                        <div className="text-[10px] text-neutral-400 uppercase tracking-widest mb-2">Capacity Released</div>
-                                        <div className="text-2xl font-bold text-neutral-900 font-mono">
-                                            {data.unfundedInitiatives.reduce((sum: number, init: UnfundedInitiative) => sum + init.capacityReleased, 0)} <span className="text-xs text-neutral-400 font-sans font-medium">FTE</span>
+                                        <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Capacity Released</div>
+                                        <div className="text-xl font-bold text-gray-900">
+                                            {data.unfundedInitiatives.reduce((sum: number, init: UnfundedInitiative) => sum + init.capacityReleased, 0)} <span className="text-xs text-gray-500 font-normal">FTE</span>
                                         </div>
                                     </div>
                                 </div>
-                                <ul className="space-y-3">
+                                <ul className="space-y-2">
                                     {data.unfundedInitiatives.slice(0, 5).map((init: UnfundedInitiative) => (
-                                        <li key={init.id} className="text-sm text-neutral-400 flex items-center gap-3">
-                                            <span className="w-1.5 h-1.5 bg-neutral-300 rounded-full"></span>
-                                            {init.name} <span className="text-xs text-neutral-500">({init.decision})</span>
+                                        <li key={init.id} className="text-sm text-gray-600 flex items-center gap-2">
+                                            <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+                                            {init.name} <span className="text-xs text-gray-400">({init.decision})</span>
                                         </li>
                                     ))}
                                 </ul>
@@ -409,21 +498,23 @@ export default function ExecutiveOutputPage({
                         )}
 
                         {/* Footer */}
-                        <div className="mt-16 pt-8 border-t border-neutral-200/50">
-                            <div className="flex flex-wrap justify-between items-center gap-4 opacity-40 hover:opacity-100 transition-opacity">
-                                <div className="text-[9px] font-medium text-neutral-400 uppercase tracking-widest">Audit Record</div>
-                                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[9px] text-neutral-400">
-                                    <span className="font-mono whitespace-nowrap">ID: {data.scenario.id.substring(0, 12)}</span>
-                                    <span className="whitespace-nowrap">Prepared By: {data.scenario.decisionOwner}</span>
-                                    <span className="whitespace-nowrap">{new Date(data.scenario.createdAt).toLocaleDateString()}</span>
+                        <div className="pt-8 border-t border-gray-200">
+                            <div className="flex justify-between items-center text-xs text-gray-400">
+                                <span className="font-semibold uppercase tracking-wide">Audit Record</span>
+                                <div className="flex gap-4">
+                                    <span>ID: {data.scenario.id.substring(0, 12)}</span>
+                                    <span>Prepared By: {data.scenario.decisionOwner}</span>
+                                    <span>{new Date(data.scenario.createdAt).toLocaleDateString()}</span>
                                 </div>
                             </div>
+                        </div>
+
                         </div>
 
                     </div>
                 </div>
 
-                <div className="mt-8 text-center text-xs text-neutral-400 no-print pb-10">
+                <div className="mt-6 text-center text-xs text-gray-400 no-print pb-8">
                     <p>Confidential • Internal Use Only • Board Decision Record</p>
                 </div>
             </main>
@@ -440,52 +531,7 @@ export default function ExecutiveOutputPage({
           }
           @page {
             size: A4 landscape;
-            margin: 0;
-          }
-          html, body {
-            width: 297mm;
-            height: 210mm;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-          }
-          .page-container {
-            transform: scale(0.75);
-            transform-origin: top left;
-            width: 133.33%;
-            margin: 0 !important;
-            padding: 8mm 0 0 8mm !important;
-          }
-          /* Remove shadows for cleaner print */
-          .shadow-xl {
-            box-shadow: none !important;
-          }
-          /* Optimize spacing for print */
-          .space-y-16 > * + * {
-            margin-top: 48px !important;
-          }
-          .space-y-14 > * + * {
-            margin-top: 40px !important;
-          }
-          /* Compact metric cards slightly */
-          .grid.grid-cols-4.gap-8 {
-            gap: 20px !important;
-          }
-          /* Reduce decision ask padding */
-          .p-14.pl-16 {
-            padding: 32px 24px 32px 40px !important;
-          }
-          /* Compact main content padding */
-          .p-10.pb-14 {
-            padding: 24px 32px 32px !important;
-          }
-          /* Hide footer to save space */
-          .mt-16.pt-8 {
-            display: none !important;
-          }
-          /* Reduce bottom confidential text */
-          .mt-8.text-center {
-            margin-top: 16px !important;
+            margin: 15mm;
           }
         }
       `}</style>

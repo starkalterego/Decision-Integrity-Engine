@@ -551,7 +551,11 @@ function CreateScenarioModal({
 }) {
     const [formData, setFormData] = useState({
         name: '',
-        assumptions: ''
+        assumptions: '',
+        targetValue: '',
+        targetCapacity: '',
+        riskTolerance: 'medium',
+        strategicFocus: ''
     });
     const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
 
@@ -577,7 +581,19 @@ function CreateScenarioModal({
 
     const handleSave = () => {
         if (isValid) {
-            onSave(formData);
+            // Combine all fields into assumptions for now (since schema only has assumptions field)
+            const enhancedAssumptions = `${formData.assumptions}
+
+--- Scenario Parameters ---
+${formData.targetValue ? `Target Portfolio Value: ${formData.targetValue}` : ''}
+${formData.targetCapacity ? `Target Capacity Utilization: ${formData.targetCapacity}%` : ''}
+Risk Tolerance: ${formData.riskTolerance.charAt(0).toUpperCase() + formData.riskTolerance.slice(1)}
+${formData.strategicFocus ? `Strategic Focus: ${formData.strategicFocus}` : ''}`;
+
+            onSave({
+                name: formData.name,
+                assumptions: enhancedAssumptions.trim()
+            });
             onClose();
         }
     };
@@ -633,29 +649,95 @@ function CreateScenarioModal({
                         label="Scenario Name *"
                         value={formData.name}
                         onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                        placeholder="e.g., Aggressive Growth, Conservative Approach"
-                        helperText="Descriptive name for this scenario"
+                        placeholder="e.g., Aggressive Growth, Conservative Approach, Risk-Averse"
+                        helperText="Descriptive name that indicates the strategy"
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input
+                            id="target-value"
+                            label="Target Portfolio Value (Optional)"
+                            value={formData.targetValue}
+                            onChange={(e) => setFormData(prev => ({ ...prev, targetValue: e.target.value }))}
+                            placeholder="e.g., ₹500Cr"
+                            helperText="Expected value outcome"
+                        />
+                        <Input
+                            id="target-capacity"
+                            label="Target Capacity % (Optional)"
+                            value={formData.targetCapacity}
+                            onChange={(e) => setFormData(prev => ({ ...prev, targetCapacity: e.target.value }))}
+                            placeholder="e.g., 85"
+                            helperText="Max capacity utilization"
+                        />
+                    </div>
+
+                    <div>
+                        <label 
+                            className="block text-sm font-semibold mb-2"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            Risk Tolerance
+                        </label>
+                        <div className="grid grid-cols-3 gap-3">
+                            {['low', 'medium', 'high'].map((level) => (
+                                <button
+                                    key={level}
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, riskTolerance: level }))}
+                                    className="px-4 py-3 rounded-lg text-sm font-medium transition-all"
+                                    style={{
+                                        backgroundColor: formData.riskTolerance === level ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                                        color: formData.riskTolerance === level ? 'var(--accent-primary-text)' : 'var(--text-secondary)',
+                                        border: formData.riskTolerance === level ? 'none' : '1px solid var(--border-default)'
+                                    }}
+                                >
+                                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                                </button>
+                            ))}
+                        </div>
+                        <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
+                            Indicates willingness to fund higher-risk initiatives
+                        </p>
+                    </div>
+
+                    <Input
+                        id="strategic-focus"
+                        label="Strategic Focus (Optional)"
+                        value={formData.strategicFocus}
+                        onChange={(e) => setFormData(prev => ({ ...prev, strategicFocus: e.target.value }))}
+                        placeholder="e.g., Customer Experience, Cost Reduction, Innovation"
+                        helperText="Primary strategic objective for this scenario"
                     />
 
                     <div>
-                        <label className="block text-sm font-bold mb-2 text-neutral-900">
-                            Assumptions <span className="text-red-600">*</span>
+                        <label 
+                            className="block text-sm font-semibold mb-2"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            Assumptions & Context <span style={{ color: 'var(--accent-error)' }}>*</span>
                         </label>
                         <Textarea
                             value={formData.assumptions}
                             onChange={(e) => setFormData(prev => ({ ...prev, assumptions: e.target.value }))}
-                            placeholder="e.g., Accelerated hiring in Q2, regulatory approval by March, focus on high-value initiatives"
-                            rows={4}
+                            placeholder="e.g., Accelerated hiring in Q2, regulatory approval by March, focus on high-value initiatives, budget constraints relaxed for strategic programs"
+                            rows={5}
                         />
-                        <p className="text-xs text-neutral-600 mt-2">
-                            <span className="text-red-600 font-semibold">*</span> Mandatory: Document the premise and constraints of this scenario per governance rules
+                        <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
+                            <span style={{ color: 'var(--accent-error)' }}>*</span> Mandatory: Document the premise, constraints, and decision-making context for this scenario
                         </p>
                     </div>
                 </div>
 
-                <div className="border-t border-neutral-200 px-8 py-6 flex justify-between items-center bg-linear-to-r from-neutral-50 to-white">
-                    <p className="text-sm text-neutral-600">
-                        <span className="text-red-600 font-semibold">*</span> All fields are mandatory
+                <div 
+                    className="px-8 py-6 flex justify-between items-center"
+                    style={{ 
+                        borderTop: '1px solid var(--border-default)',
+                        backgroundColor: 'var(--bg-tertiary)'
+                    }}
+                >
+                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                        <span style={{ color: 'var(--accent-error)' }}>*</span> Required fields must be filled
                     </p>
                     <div className="flex gap-3">
                         <Button variant="text" onClick={onClose}>Cancel</Button>
@@ -663,7 +745,6 @@ function CreateScenarioModal({
                             variant="primary"
                             onClick={handleSave}
                             disabled={!isValid}
-                            className="bg-neutral-900 hover:bg-neutral-800"
                         >
                             Create Scenario
                         </Button>

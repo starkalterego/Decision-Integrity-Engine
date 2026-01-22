@@ -18,7 +18,7 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
         <header 
             className={`sticky top-0 z-50 w-full backdrop-blur-md ${className}`}
             style={{ 
-                backgroundColor: 'rgba(11, 17, 32, 0.85)',
+                backgroundColor: 'rgba(15, 22, 32, 0.90)',
                 borderBottom: '1px solid var(--border-subtle)'
             }}
         >
@@ -34,11 +34,11 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
                                 className="text-lg font-bold tracking-tight leading-none"
                                 style={{ color: 'var(--text-primary)' }}
                             >
-                                Decision Integrity<span style={{ color: 'var(--accent-primary)' }}>Engine</span>
+                                Decision Integrity<span style={{ color: 'var(--secondary-text)' }}>Engine</span>
                             </h1>
                             {portfolioName && (
                                 <span 
-                                    className="text-xs font-medium mt-1 truncate max-w-[200px]"
+                                    className="text-xs font-medium mt-1 truncate max-w-50"
                                     style={{ color: 'var(--text-tertiary)' }}
                                 >
                                     {portfolioName}
@@ -98,11 +98,11 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
                                 onMouseLeave={(e) => e.currentTarget.style.borderColor = 'transparent'}
                             >
                                 <div 
-                                    className="h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold ring-2 ring-offset-2 ring-offset-transparent transition-all"
+                                    className="h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold ring-1 transition-all"
                                     style={{ 
-                                        backgroundColor: 'var(--accent-primary)', 
-                                        color: '#ffffff',
-                                        boxShadow: '0 2px 8px rgba(14, 165, 233, 0.25)'
+                                        backgroundColor: 'var(--bg-elevated)', 
+                                        color: 'var(--text-primary)',
+                                        border: '1px solid var(--border-default)'
                                     }}
                                 >
                                     {user.name.charAt(0).toUpperCase()}
@@ -147,9 +147,8 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
                             href="/auth"
                             className="px-5 py-2.5 text-sm font-semibold rounded-lg transition-all hover:opacity-90"
                             style={{
-                                color: '#ffffff',
-                                backgroundColor: 'var(--accent-primary)',
-                                boxShadow: '0 2px 8px rgba(14, 165, 233, 0.3)'
+                                color: 'var(--accent-primary-text)',
+                                backgroundColor: 'var(--accent-primary)'
                             }}
                         >
                             Sign In

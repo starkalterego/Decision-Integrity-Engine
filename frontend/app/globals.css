@@ -1,37 +1,52 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
-/* CSS Variables for Design Tokens - Professional Dark Theme */
+/* CSS Variables for Design Tokens - Governance Dark Theme */
 :root {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   
-  /* Backgrounds - Deep Slate/Zinc Scale */
-  --bg-primary: #0b1120;   /* Deepest Navy/Slate - Main Page Background */
-  --bg-secondary: #151e32; /* Lighter tint for Cards/Containers */
-  --bg-tertiary: #1e2942;  /* Inputs, Headers, Secondary Areas */
-  --bg-elevated: #2d3b59;  /* Modals, Dropdowns, Hover States */
+  /* Backgrounds - Layered Charcoal + Slate */
+  --bg-primary: #0B0F14;   /* App Background - Deep charcoal */
+  --bg-secondary: #0F1620; /* Primary Surface - Cards/Containers */
+  --bg-tertiary: #141C27;  /* Secondary Surface - Inputs, Headers */
+  --bg-elevated: #182231;  /* Elevated Card - Modals, Dropdowns */
   
-  /* Text - carefully calibrated for contrast on dark backgrounds */
-  --text-primary: #f8fafc;   /* Slate 50 - Primary Headings */
-  --text-secondary: #cbd5e1; /* Slate 300 - Body Text */
-  --text-tertiary: #94a3b8;  /* Slate 400 - Metadata/Labels */
-  --text-accent: #38bdf8;    /* Sky 400 - Links/Highlights */
+  /* Text Hierarchy - Never Pure White */
+  --text-primary: #E5E7EB;   /* Primary Text - Headings */
+  --text-secondary: #B6C0CC; /* Secondary Text - Body */
+  --text-tertiary: #8A97A6;  /* Muted Text - Labels, hints */
+  --text-disabled: #5B6573;  /* Disabled Text */
   
-  /* Borders */
-  --border-subtle: #1e293b;  /* Slate 800 */
-  --border-default: #334155; /* Slate 700 */
-  --border-strong: #475569;  /* Slate 600 */
+  /* Borders & Dividers - Structure Over Decoration */
+  --border-subtle: #1F2A37;  /* Subtle Border */
+  --border-default: #2A3646; /* Strong Divider */
+  --border-strong: #334155;  /* Focus Ring */
   
-  /* Accents - "Executive" Palette */
-  --accent-primary: #0ea5e9;   /* Sky 500 - Primary Action */
-  --accent-primary-hover: #0284c7; /* Sky 600 */
-  --accent-secondary: #6366f1; /* Indigo 500 - Secondary Action */
+  /* Primary Actions - Institutional, Light on Dark */
+  --accent-primary: #E2E8F0;   /* Primary Button Background */
+  --accent-primary-hover: #CBD5E1; /* Primary Button Hover */
+  --accent-primary-text: #0B0F14; /* Primary Button Text */
   
-  /* Semantic Status Colors */
-  --accent-success: #10b981; /* Emerald 500 */
-  --accent-warning: #f59e0b; /* Amber 500 */
-  --accent-error: #ef4444;   /* Red 500 */
-  --accent-info: #3b82f6;    /* Blue 500 */
+  /* Semantic Status Colors - Governance-Safe, Muted */
+  --accent-success: #3FAE6A; /* Success / Funded */
+  --accent-warning: #C4A24A; /* Warning / Paused */
+  --accent-error: #C76B6B;   /* Risk / High Risk */
+  --accent-critical: #9F3A3A; /* Critical / Stop */
+  /* Semantic Status Colors - Governance-Safe, Muted */
+  --accent-success: #3FAE6A; /* Success / Funded */
+  --accent-warning: #C4A24A; /* Warning / Paused */
+  --accent-error: #C76B6B;   /* Risk / High Risk */
+  --accent-critical: #9F3A3A; /* Critical / Stop */
+  
+  /* Selection & Focus States */
+  --state-selected: #1C2736;  /* Selected Row Background */
+  --state-hover: #16202D;     /* Hover Row Background */
+  --state-active-border: #4F6FAF; /* Active Card Border */
+  
+  /* Secondary Actions */
+  --secondary-border: #334155;
+  --secondary-text: #CBD5E1;
+  --secondary-hover-bg: #1F2A37;
   
   /* Spacing Scale */
   --space-xs: 0.25rem;
@@ -47,12 +62,11 @@
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
   
-  /* Shadows - subtly tinted shadows for depth */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.2);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.2);
-  --shadow-glow: 0 0 20px rgba(14, 165, 233, 0.15); /* Subtle blue glow for primary elements */
+  /* Shadows - Subtle depth without glow */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.3);
   
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -100,9 +114,9 @@ p {
   color: var(--text-secondary);
 }
 
-/* Focus States */
+/* Focus States - Clear affordance without flashiness */
 *:focus-visible {
-  outline: 2px solid var(--accent-primary);
+  outline: 2px solid var(--border-strong);
   outline-offset: 2px;
 }
 
@@ -111,7 +125,7 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--accent-primary);
+  outline: 2px solid var(--border-strong);
   outline-offset: 2px;
 }
 

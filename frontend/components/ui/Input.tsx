@@ -33,8 +33,8 @@ export function Input({
                 }}
                 onFocus={(e) => {
                     if (!error) {
-                        e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0, 217, 255, 0.1)';
+                        e.currentTarget.style.borderColor = 'var(--border-strong)';
+                        e.currentTarget.style.boxShadow = 'none';
                     }
                 }}
                 onBlur={(e) => {
@@ -96,8 +96,8 @@ export function Textarea({
                 }}
                 onFocus={(e) => {
                     if (!error) {
-                        e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0, 217, 255, 0.1)';
+                        e.currentTarget.style.borderColor = 'var(--border-strong)';
+                        e.currentTarget.style.boxShadow = 'none';
                     }
                 }}
                 onBlur={(e) => {

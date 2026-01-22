@@ -26,9 +26,9 @@ export function Button({
         if (disabled) {
             return {
                 backgroundColor: 'var(--bg-tertiary)',
-                color: 'var(--text-tertiary)',
+                color: 'var(--text-disabled)',
                 cursor: 'not-allowed',
-                opacity: '0.5'
+                opacity: '0.6'
             };
         }
 
@@ -36,14 +36,14 @@ export function Button({
             case 'primary':
                 return {
                     backgroundColor: 'var(--accent-primary)',
-                    color: 'var(--bg-primary)',
-                    boxShadow: '0 0 20px rgba(0, 217, 255, 0.3)'
+                    color: 'var(--accent-primary-text)',
+                    border: 'none'
                 };
             case 'secondary':
                 return {
-                    backgroundColor: 'var(--bg-elevated)',
-                    color: 'var(--text-primary)',
-                    border: '1px solid var(--border-default)'
+                    backgroundColor: 'transparent',
+                    color: 'var(--secondary-text)',
+                    border: '1px solid var(--secondary-border)'
                 };
             case 'text':
                 return {
@@ -63,13 +63,11 @@ export function Button({
             onMouseEnter={(e) => {
                 if (disabled) return;
                 if (variant === 'primary') {
-                    e.currentTarget.style.boxShadow = '0 0 30px rgba(0, 217, 255, 0.5)';
+                    e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)';
                 } else if (variant === 'secondary') {
-                    e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
-                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                    e.currentTarget.style.backgroundColor = 'var(--secondary-hover-bg)';
                 } else if (variant === 'text') {
-                    e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
-                    e.currentTarget.style.color = 'var(--accent-primary)';
+                    e.currentTarget.style.backgroundColor = 'var(--state-hover)';
                 }
             }}
             onMouseLeave={(e) => {

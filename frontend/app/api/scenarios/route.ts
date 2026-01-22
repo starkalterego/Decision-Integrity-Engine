@@ -47,6 +47,25 @@ export async function POST(request: NextRequest) {
             }
         });
 
+        // Initialize scenario with default PAUSE decisions for all complete initiatives
+        const initiatives = await prisma.initiative.findMany({
+            where: {
+                portfolioId: body.portfolioId,
+                isComplete: true
+            }
+        });
+
+        // Create default PAUSE decisions for all initiatives
+        if (initiatives.length > 0) {
+            await prisma.scenarioDecision.createMany({
+                data: initiatives.map(initiative => ({
+                    scenarioId: scenario.id,
+                    initiativeId: initiative.id,
+                    decision: 'PAUSE'
+                }))
+            });
+        }
+
         // Create governance record
         await prisma.governanceDecisionRecord.create({
             data: {
@@ -55,7 +74,10 @@ export async function POST(request: NextRequest) {
                 entityId: scenario.id,
                 entityType: 'SCENARIO',
                 rationale: `Created scenario: ${scenario.name}`,
-                metadata: JSON.stringify({ assumptions: scenario.assumptions })
+                metadata: JSON.stringify({ 
+                    assumptions: scenario.assumptions,
+                    initiativeCount: initiatives.length
+                })
             }
         });
 

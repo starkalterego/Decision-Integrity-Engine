@@ -1,7 +1,18 @@
 'use client';
 
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+
+interface Initiative {
+    id: string;
+    name: string;
+    sponsor: string;
+    estimatedValue: number;
+    riskScore: number;
+    strategicAlignmentScore: number;
+    capacityReleased?: number;
+    decision?: string;
+}
 
 interface ExecutiveSummaryData {
     portfolio: {
@@ -50,15 +61,31 @@ interface ExecutiveSummaryData {
         whatGained: string[];
     };
     decisions: {
-        fund: any[];
-        pause: any[];
-        stop: any[];
+        fund: Initiative[];
+        pause: Initiative[];
+        stop: Initiative[];
     };
-    unfundedInitiatives: any[];
+    unfundedInitiatives: Initiative[];
     keyRisks: string[];
     scenarioComparison: {
-        baseline: any;
-        current: any;
+        baseline: {
+            portfolioValue: number;
+            fundedCount: number;
+            capacityUsed: number;
+            avgRisk: number;
+            investment: number;
+            value: number;
+            risk: string;
+        };
+        current: {
+            portfolioValue: number;
+            fundedCount: number;
+            capacityUsed: number;
+            avgRisk: number;
+            investment: number;
+            value: number;
+            risk: string;
+        };
     };
 }
 
@@ -76,10 +103,6 @@ export default function ExecutiveOnePagerPage({
     // Memoize expensive formatting functions
     const formatCurrency = useCallback((value: number) => {
         return `₹${(value / 10000000).toFixed(0)} Cr`;
-    }, []);
-
-    const formatPercentage = useCallback((value: number) => {
-        return `${value.toFixed(1)}%`;
     }, []);
 
     const formatDelta = useCallback((value: number, isPercentage = false) => {
@@ -105,6 +128,7 @@ export default function ExecutiveOnePagerPage({
         }
 
         loadExecutiveSummary();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resolvedParams.scenarioId]);
 
     const loadExecutiveSummary = async () => {
@@ -352,7 +376,7 @@ export default function ExecutiveOnePagerPage({
                                 </tr>
                             </thead>
                             <tbody>
-                                {data.unfundedInitiatives.slice(0, 5).map((init: any) => (
+                                {data.unfundedInitiatives.slice(0, 5).map((init: Initiative) => (
                                     <tr key={init.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                                         <td className="py-2" style={{ color: 'var(--text-secondary)' }}>{init.name}</td>
                                         <td className="text-right" style={{ color: 'var(--text-primary)' }}>{formatCurrency(init.estimatedValue)}</td>

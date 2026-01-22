@@ -88,37 +88,56 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
                 </div>
 
                 {/* User Menu */}
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3">
                     {isAuthenticated && user ? (
-                        <div className="flex items-center gap-4">
-                            <div className="text-right hidden sm:block">
-                                <p 
-                                    className="text-sm font-medium leading-none"
-                                    style={{ color: 'var(--text-primary)' }}
+                        <div className="flex items-center gap-3">
+                            <div 
+                                className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer hover:bg-white/5"
+                                style={{ border: '1px solid transparent' }}
+                                onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
+                                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'transparent'}
+                            >
+                                <div 
+                                    className="h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold ring-2 ring-offset-2 ring-offset-transparent transition-all"
+                                    style={{ 
+                                        backgroundColor: 'var(--accent-primary)', 
+                                        color: '#ffffff',
+                                        boxShadow: '0 2px 8px rgba(14, 165, 233, 0.25)'
+                                    }}
                                 >
-                                    {user.name}
-                                </p>
-                                <p 
-                                    className="text-xs mt-1"
-                                    style={{ color: 'var(--text-tertiary)' }}
-                                >
-                                    {user.role.replace('_', ' ')}
-                                </p>
+                                    {user.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="text-left hidden sm:block">
+                                    <p 
+                                        className="text-sm font-semibold leading-none"
+                                        style={{ color: 'var(--text-primary)' }}
+                                    >
+                                        {user.name}
+                                    </p>
+                                    <p 
+                                        className="text-xs mt-1.5 capitalize"
+                                        style={{ color: 'var(--text-tertiary)' }}
+                                    >
+                                        {user.role.replace('_', ' ').toLowerCase()}
+                                    </p>
+                                </div>
                             </div>
                             <div 
-                                className="h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold"
-                                style={{ 
-                                    backgroundColor: 'var(--bg-elevated)', 
-                                    color: 'var(--accent-primary)',
-                                    border: '1px solid var(--border-subtle)'
-                                }}
-                            >
-                                {user.name.charAt(0)}
-                            </div>
+                                className="h-8 w-px"
+                                style={{ backgroundColor: 'var(--border-subtle)' }}
+                            />
                             <button
                                 onClick={logout}
-                                className="text-sm font-medium transition-colors hover:text-red-400"
+                                className="px-3 py-2 text-sm font-medium rounded-md transition-all"
                                 style={{ color: 'var(--text-secondary)' }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.color = 'var(--accent-error)';
+                                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.color = 'var(--text-secondary)';
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                }}
                             >
                                 Sign Out
                             </button>
@@ -126,10 +145,11 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
                     ) : (
                         <Link
                             href="/auth"
-                            className="px-4 py-2 text-sm font-semibold rounded-md transition-all hover:opacity-90"
+                            className="px-5 py-2.5 text-sm font-semibold rounded-lg transition-all hover:opacity-90"
                             style={{
                                 color: '#ffffff',
                                 backgroundColor: 'var(--accent-primary)',
+                                boxShadow: '0 2px 8px rgba(14, 165, 233, 0.3)'
                             }}
                         >
                             Sign In

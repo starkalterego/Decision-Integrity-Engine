@@ -172,20 +172,20 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
         >
             <Header portfolioName={formData.name || 'New Portfolio'} portfolioId={portfolioId || resolvedParams.id} currentPage="setup" />
 
-            <main className="page-container">
+            <main className="max-w-7xl mx-auto px-6 py-8">
                 {/* Enhanced Page Title & Intent */}
-                <div className="mb-10">
-                    <div className="flex items-start justify-between">
+                <div className="mb-8">
+                    <div className="flex items-start justify-between gap-6">
                         <div>
                             <h1 
-                                className="text-3xl font-bold tracking-tight"
+                                className="text-2xl font-bold tracking-tight mb-1"
                                 style={{ color: 'var(--text-primary)' }}
                             >
                                 Portfolio Setup
                             </h1>
                             <p 
-                                className="text-sm mt-2"
-                                style={{ color: 'var(--text-secondary)' }}
+                                className="text-sm"
+                                style={{ color: 'var(--text-tertiary)' }}
                             >
                                 Define the decision boundary for this portfolio
                             </p>
@@ -197,21 +197,21 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                     </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Form - 2 columns */}
-                    <div className="col-span-2">
+                    <div className="lg:col-span-2">
                         <div 
-                            className="card p-8"
+                            className="rounded-lg p-6"
                             style={{ 
                                 backgroundColor: 'var(--bg-secondary)',
                                 border: '1px solid var(--border-default)'
                             }}
                         >
                             <h2 
-                                className="text-lg font-semibold mb-8 pb-4"
+                                className="text-base font-semibold mb-6 pb-3"
                                 style={{ 
                                     color: 'var(--text-primary)',
-                                    borderBottom: '1px solid var(--border-default)'
+                                    borderBottom: '1px solid var(--border-subtle)'
                                 }}
                             >
                                 Portfolio Configuration
@@ -219,8 +219,8 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
 
                             <form onSubmit={(e) => e.preventDefault()}>
                                 {/* Block 1 - Portfolio Identity */}
-                                <div className="mb-8">
-                                    <div className="grid grid-cols-2 gap-6">
+                                <div className="mb-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <Input
                                             id="name"
                                             name="name"
@@ -253,13 +253,13 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
 
                                 {/* Subtle Divider */}
                                 <div 
-                                    className="border-t mb-8"
+                                    className="border-t mb-6"
                                     style={{ borderColor: 'var(--border-subtle)' }}
                                 />
 
                                 {/* Block 2 - Decision Constraints */}
-                                <div className="mb-8">
-                                    <div className="grid grid-cols-2 gap-6">
+                                <div className="mb-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <Input
                                             id="totalBudget"
                                             name="totalBudget"
@@ -289,29 +289,34 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
 
                                     {/* Constraint Note */}
                                     <div 
-                                        className="mt-4 px-4 py-3 rounded"
+                                        className="mt-3 px-3 py-2.5 rounded-md"
                                         style={{ 
                                             backgroundColor: 'var(--bg-tertiary)',
-                                            border: '1px solid var(--border-default)'
+                                            border: '1px solid var(--border-subtle)',
+                                            borderLeft: '3px solid var(--accent-warning)'
                                         }}
                                     >
                                         <p 
                                             className="text-xs leading-relaxed"
-                                            style={{ color: 'var(--text-secondary)' }}
+                                            style={{ color: 'var(--text-tertiary)' }}
                                         >
                                             These limits apply to all scenarios and cannot be exceeded.
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="divider"></div>
+                                <div 
+                                    className="border-t pt-5"
+                                    style={{ borderColor: 'var(--border-subtle)' }}
+                                ></div>
 
                                 {/* Primary Actions - Critical Moment Design */}
-                                <div className="flex gap-4">
+                                <div className="flex flex-col sm:flex-row gap-3">
                                     <Button
                                         variant="secondary"
                                         onClick={handleSaveDraft}
                                         disabled={isLocked || isSaving}
+                                        className="text-sm"
                                     >
                                         {isSaving ? 'Saving...' : 'Save Draft'}
                                     </Button>
@@ -320,13 +325,13 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                                             variant="primary"
                                             onClick={handleLockPortfolio}
                                             disabled={!isFormValid || isLocked || isSaving}
-                                            className="w-full bg-amber-600 hover:bg-amber-700 border-amber-600"
+                                            className="w-full bg-amber-600 hover:bg-amber-700 border-amber-600 text-sm"
                                         >
                                             {isSaving ? 'Processing...' : 'Lock Portfolio'}
                                         </Button>
                                         {!isLocked && isFormValid && (
                                             <p 
-                                                className="text-xs mt-2 text-center"
+                                                className="text-xs mt-1.5 text-center"
                                                 style={{ color: 'var(--text-tertiary)' }}
                                             >
                                                 Once locked, budget and capacity cannot be edited.
@@ -336,7 +341,14 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                                 </div>
 
                                 {isLocked && (
-                                    <div className="mt-6 p-4 bg-status-green-bg border border-status-green-border text-sm text-status-green rounded">
+                                    <div 
+                                        className="mt-4 p-3 text-sm rounded-md"
+                                        style={{
+                                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                                            color: 'var(--accent-success)'
+                                        }}
+                                    >
                                         <strong>✓ Portfolio Locked:</strong> This portfolio cannot be edited once scenarios exist.
                                         All constraints are now fixed.
                                     </div>
@@ -346,22 +358,22 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                     </div>
 
                     {/* Sidebar - 1 column */}
-                    <div className="space-y-6">
+                    <div className="space-y-5">
                         {/* Enhanced Setup Progress Panel */}
                         <div 
-                            className="card p-6"
+                            className="rounded-lg p-5"
                             style={{ 
                                 backgroundColor: 'var(--bg-secondary)',
                                 border: '1px solid var(--border-default)'
                             }}
                         >
                             <h3 
-                                className="text-sm font-semibold mb-5"
+                                className="text-sm font-semibold mb-4 uppercase tracking-wide"
                                 style={{ color: 'var(--text-primary)' }}
                             >
                                 Setup Progress
                             </h3>
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 <div className="flex items-center gap-3">
                                     <div 
                                         className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium`}
@@ -396,9 +408,9 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                                         Fiscal Period
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2.5">
                                     <div 
-                                        className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium`}
+                                        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold`}
                                         style={{
                                             backgroundColor: formData.totalBudget ? 'var(--accent-success)' : 'var(--bg-tertiary)',
                                             color: formData.totalBudget ? '#fff' : 'var(--text-tertiary)'
@@ -413,9 +425,9 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                                         Budget
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2.5">
                                     <div 
-                                        className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium`}
+                                        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold`}
                                         style={{
                                             backgroundColor: formData.totalCapacity ? 'var(--accent-success)' : 'var(--bg-tertiary)',
                                             color: formData.totalCapacity ? '#fff' : 'var(--text-tertiary)'
@@ -435,26 +447,25 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
 
                         {/* Enhanced Governance Rules */}
                         <div 
-                            className="card p-6"
+                            className="rounded-lg p-5"
                             style={{ 
                                 backgroundColor: 'var(--bg-secondary)',
-                                border: '1px solid var(--border-default)',
-                                borderLeft: '2px solid var(--text-tertiary)'
+                                border: '1px solid var(--border-default)'
                             }}
                         >
                             <h3 
-                                className="text-sm font-semibold mb-2"
+                                className="text-sm font-semibold mb-1.5 uppercase tracking-wide"
                                 style={{ color: 'var(--text-primary)' }}
                             >
                                 Governance Rules
                             </h3>
                             <p 
-                                className="text-xs mb-5"
-                                style={{ color: 'var(--text-secondary)' }}
+                                className="text-xs mb-3"
+                                style={{ color: 'var(--text-tertiary)' }}
                             >
                                 These rules are enforced by the system.
                             </p>
-                            <ul className="text-xs space-y-3.5 leading-relaxed">
+                            <ul className="text-xs space-y-2 leading-relaxed">
                                 <li 
                                     className="flex gap-2"
                                     style={{ color: 'var(--text-secondary)' }}
@@ -488,15 +499,15 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
 
                         {/* Enhanced Next Steps */}
                         <div 
-                            className="card p-6"
+                            className="rounded-lg p-5"
                             style={{ 
                                 backgroundColor: 'var(--bg-secondary)',
                                 border: '1px solid var(--border-default)',
-                                borderLeft: '4px solid var(--accent-primary)'
+                                borderLeft: '3px solid var(--accent-success)'
                             }}
                         >
                             <h3 
-                                className="text-sm font-semibold mb-3"
+                                className="text-sm font-semibold mb-2 uppercase tracking-wide"
                                 style={{ color: 'var(--text-primary)' }}
                             >
                                 Next Steps

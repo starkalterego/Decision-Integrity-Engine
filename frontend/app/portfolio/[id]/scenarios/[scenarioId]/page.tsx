@@ -18,16 +18,28 @@ interface Initiative {
     capacityDemands: Array<{ role: string; units: number }>;
 }
 
-interface ScenarioDecision {
-    initiativeId: string;
-    decision: 'FUND' | 'PAUSE' | 'STOP';
+interface Scenario {
+    id: string;
+    name: string;
+    assumptions: string;
+    isFinalized: boolean;
+    decisions?: Array<{
+        initiativeId: string;
+        decision: 'FUND' | 'PAUSE' | 'STOP';
+    }>;
+}
+
+interface Portfolio {
+    id: string;
+    name: string;
+    totalCapacity: number;
 }
 
 export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id: string; scenarioId: string }> }) {
     const router = useRouter();
     const resolvedParams = React.use(params);
-    const [scenario, setScenario] = useState<any>(null);
-    const [portfolio, setPortfolio] = useState<any>(null);
+    const [scenario, setScenario] = useState<Scenario | null>(null);
+    const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
     const [initiatives, setInitiatives] = useState<Initiative[]>([]);
     const [decisions, setDecisions] = useState<Record<string, 'FUND' | 'PAUSE' | 'STOP'>>({});
     const [assumptions, setAssumptions] = useState('');
@@ -39,6 +51,7 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
 
     useEffect(() => {
         loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resolvedParams.id, resolvedParams.scenarioId]);
 
     // Debounced save function
@@ -81,7 +94,7 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                 initiativesRes.json()
             ]);
 
-            let decisionsMap: Record<string, 'FUND' | 'PAUSE' | 'STOP'> = {};
+            const decisionsMap: Record<string, 'FUND' | 'PAUSE' | 'STOP'> = {};
 
             if (portfolioData.success) {
                 setPortfolio(portfolioData.data);
@@ -93,7 +106,7 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                 setIsFinalized(scenarioData.data.isFinalized);
 
                 // Set existing decisions
-                scenarioData.data.decisions?.forEach((d: any) => {
+                scenarioData.data.decisions?.forEach((d: { initiativeId: string; decision: 'FUND' | 'PAUSE' | 'STOP' }) => {
                     decisionsMap[d.initiativeId] = d.decision;
                 });
                 setDecisions(decisionsMap);
@@ -101,7 +114,7 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
 
             if (initiativesData.success) {
                 // Only show complete initiatives
-                const completeInitiatives = initiativesData.data.filter((i: any) => i.isComplete);
+                const completeInitiatives = initiativesData.data.filter((i: { isComplete: boolean }) => i.isComplete);
                 setInitiatives(completeInitiatives);
 
                 // Initialize decisions for initiatives without decisions
@@ -168,7 +181,7 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
 
         // Validation per BACKEND.md lines 134-137: Capacity enforcement
         if (isOverCapacity) {
-            alert(`Cannot finalize: Capacity constraint breached. Total capacity demand (${totalCapacity}) exceeds limit (${portfolio.totalCapacity}). Please adjust initiative decisions.`);
+            alert(`Cannot finalize: Capacity constraint breached. Total capacity demand (${totalCapacity}) exceeds limit (${portfolio?.totalCapacity}). Please adjust initiative decisions.`);
             return;
         }
 
@@ -250,25 +263,25 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
         <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
             <Header portfolioName={portfolio?.name || 'Portfolio'} portfolioId={resolvedParams.id} currentPage="scenarios" />
 
-            <main className="page-container">
+            <main className="max-w-7xl mx-auto px-6 py-8">
                 {/* Enhanced Page Header */}
-                <div className="mb-10">
-                    <div className="flex items-start justify-between">
+                <div className="mb-8">
+                    <div className="flex items-start justify-between gap-6">
                         <div className="flex-1">
                             <input
                                 type="text"
                                 value={scenario?.name || ''}
                                 disabled={true}
-                                className="text-3xl font-bold tracking-tight bg-transparent border-none focus:outline-none w-full"
+                                className="text-2xl font-bold tracking-tight bg-transparent border-none focus:outline-none w-full mb-1"
                                 style={{ maxWidth: '700px', color: 'var(--text-primary)' }}
                             />
-                            <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>Explore trade-offs under constraints</p>
+                            <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Explore trade-offs under constraints</p>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                             <Button
                                 variant="primary"
                                 onClick={() => setShowCreateModal(true)}
-                                className="bg-neutral-900 hover:bg-neutral-800"
+                                style={{ backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                             >
                                 + New Scenario
                             </Button>
@@ -283,15 +296,15 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
 
                 {/* Enhanced Scenario Assumptions - MANDATORY */}
                 <div 
-                    className="mb-8 border-l-4 p-6 rounded"
+                    className="mb-6 rounded-lg p-5"
                     style={{
-                        backgroundColor: 'var(--bg-tertiary)',
-                        borderLeftColor: 'var(--accent-warning)',
-                        border: '1px solid var(--accent-warning)'
+                        backgroundColor: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-default)',
+                        borderLeft: '3px solid var(--accent-warning)'
                     }}
                 >
-                    <label className="block text-base font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
-                        Scenario Assumptions <span className="text-red-600">*</span>
+                    <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                        Scenario Assumptions <span style={{ color: 'var(--accent-error)' }}>*</span>
                     </label>
                     <Textarea
                         value={assumptions}
@@ -300,13 +313,13 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                         rows={3}
                         placeholder="Document the premise and constraints of this scenario (mandatory per governance rules)"
                     />
-                    <p className="text-xs mt-2" style={{ color: 'var(--text-secondary)' }}>
-                        <span className="text-red-600 font-semibold">*</span> Mandatory field. All scenarios must declare assumptions before finalization.
+                    <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
+                        <span style={{ color: 'var(--accent-error)' }}>*</span> Mandatory field. All scenarios must declare assumptions before finalization.
                     </p>
                 </div>
 
                 {/* Enhanced Real-Time Metrics */}
-                <div className="grid grid-cols-4 gap-6 mb-10">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     <MetricCard
                         label="Total Value"
                         value={formatCurrency(totalValue)}
@@ -328,44 +341,51 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
 
                 {/* Capacity Breach Warning */}
                 {isOverCapacity && (
-                    <div className="mb-8 p-6 bg-status-red-bg border-l-4 border-l-status-red rounded">
-                        <div className="flex items-start gap-4">
-                            {/* Symbol removed for clean UI */}
-                            <div>
-                                <h3 className="text-sm font-bold text-status-red uppercase tracking-wide mb-2">Capacity Constraint Breached</h3>
-                                <p className="text-sm text-neutral-700 leading-relaxed">
-                                    Total capacity demand ({totalCapacity} units) exceeds portfolio limit ({capacityLimit} units).
-                                    Scenario cannot be finalized until capacity is within limits.
-                                </p>
-                            </div>
-                        </div>
+                    <div 
+                        className="mb-6 p-4 rounded-lg"
+                        style={{
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            borderLeft: '3px solid var(--accent-error)'
+                        }}
+                    >
+                        <h3 
+                            className="text-sm font-semibold uppercase tracking-wide mb-1.5"
+                            style={{ color: 'var(--accent-error)' }}
+                        >
+                            Capacity Constraint Breached
+                        </h3>
+                        <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                            Total capacity demand ({totalCapacity} units) exceeds portfolio limit ({capacityLimit} units).
+                            Scenario cannot be finalized until capacity is within limits.
+                        </p>
                     </div>
                 )}
 
                 {/* Enhanced Initiatives Table */}
                 <div 
-                    className="card overflow-hidden mb-8"
+                    className="rounded-lg overflow-hidden mb-6"
                     style={{ 
                         backgroundColor: 'var(--bg-secondary)',
                         border: '1px solid var(--border-default)'
                     }}
                 >
                     <div 
-                        className="px-6 py-4"
+                        className="px-5 py-4"
                         style={{ 
                             borderBottom: '1px solid var(--border-default)',
                             backgroundColor: 'var(--bg-tertiary)'
                         }}
                     >
                         <h2 
-                            className="text-lg font-semibold"
+                            className="text-base font-semibold"
                             style={{ color: 'var(--text-primary)' }}
                         >
                             Initiative Decisions
                         </h2>
                         <p 
-                            className="text-sm mt-1"
-                            style={{ color: 'var(--text-secondary)' }}
+                            className="text-xs mt-1"
+                            style={{ color: 'var(--text-tertiary)' }}
                         >
                             Fund, pause, or stop each initiative
                         </p>
@@ -430,41 +450,39 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                 </div>
 
                 {/* Enhanced Action Buttons */}
-                <div className="flex justify-between items-center">
-                    <div className="flex gap-4">
+                <div className="flex flex-col gap-3">
+                    {!assumptions.trim() && !isFinalized && (
+                        <div 
+                            className="p-3 text-sm rounded-lg"
+                            style={{ 
+                                backgroundColor: 'rgba(245, 158, 11, 0.1)', 
+                                color: 'var(--accent-warning)',
+                                border: '1px solid rgba(245, 158, 11, 0.2)'
+                            }}
+                        >
+                            Assumptions required before finalization
+                        </div>
+                    )}
+                    <div className="flex justify-between items-center">
                         <Button
                             variant="secondary"
                             onClick={() => router.push(`/portfolio/${resolvedParams.id}/scenarios/compare`)}
                         >
                             Compare Scenarios
                         </Button>
-                    </div>
-                    <Button
-                        variant="primary"
-                        onClick={handleFinalize}
-                        disabled={isFinalized || !assumptions.trim() || isOverCapacity || isSaving}
-                        className="bg-accent-primary hover:bg-accent-primary-hover border-accent-primary"
-                        style={{ 
-                            backgroundColor: 'var(--accent-warning)', 
-                            borderColor: 'var(--accent-warning)', 
-                            color: '#1a1a1a' 
-                        }}
-                    >
-                        {isSaving ? 'Finalizing...' : 'Finalize Scenario'}
-                    </Button>
-
-                    {!assumptions.trim() && !isFinalized && (
-                        <div 
-                            className="p-4 text-sm rounded border"
+                        <Button
+                            variant="primary"
+                            onClick={handleFinalize}
+                            disabled={isFinalized || !assumptions.trim() || isOverCapacity || isSaving}
                             style={{ 
-                                backgroundColor: 'rgba(245, 158, 11, 0.1)', 
-                                color: 'var(--accent-warning)',
-                                borderColor: 'rgba(245, 158, 11, 0.2)'
+                                backgroundColor: isFinalized || !assumptions.trim() || isOverCapacity ? 'var(--bg-elevated)' : 'var(--accent-warning)', 
+                                color: isFinalized || !assumptions.trim() || isOverCapacity ? 'var(--text-tertiary)' : '#000000',
+                                cursor: isFinalized || !assumptions.trim() || isOverCapacity ? 'not-allowed' : 'pointer'
                             }}
                         >
-                            Assumptions required before finalization
-                        </div>
-                    )}
+                            {isSaving ? 'Finalizing...' : 'Finalize Scenario'}
+                        </Button>
+                    </div>
                 </div>
             </main>
 
@@ -491,7 +509,7 @@ function DecisionToggle({
     const options: ('FUND' | 'PAUSE' | 'STOP')[] = ['FUND', 'PAUSE', 'STOP'];
 
     return (
-        <div className="inline-flex rounded-md overflow-hidden border border-[var(--border-default)]">
+        <div className="inline-flex rounded-md overflow-hidden border" style={{ borderColor: 'var(--border-default)' }}>
             {options.map((option, index) => {
                 const isSelected = value === option;
                 let bg = 'var(--bg-tertiary)';

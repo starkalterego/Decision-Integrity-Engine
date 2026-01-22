@@ -1,9 +1,28 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
+
+interface Initiative {
+    id: string;
+    name: string;
+    decision: string;
+}
+
+interface UnfundedInitiative {
+    id: string;
+    name: string;
+    decision: string;
+    capacityReleased: number;
+}
+
+interface ScenarioMetrics {
+    investment: number;
+    value: number;
+    capacityUsed: number;
+    risk: string;
+}
 
 interface ExecutiveSummaryData {
     portfolio: {
@@ -52,15 +71,15 @@ interface ExecutiveSummaryData {
         whatGained: string[];
     };
     decisions: {
-        fund: any[];
-        pause: any[];
-        stop: any[];
+        fund: Initiative[];
+        pause: Initiative[];
+        stop: Initiative[];
     };
-    unfundedInitiatives: any[];
+    unfundedInitiatives: UnfundedInitiative[];
     keyRisks: string[];
     scenarioComparison: {
-        baseline: any;
-        current: any;
+        baseline: ScenarioMetrics;
+        current: ScenarioMetrics;
     };
 }
 
@@ -70,14 +89,13 @@ export default function ExecutiveOutputPage({
     params: Promise<{ id: string }>;
 }) {
     const resolvedParams = React.use(params);
-    const router = useRouter();
     const [data, setData] = useState<ExecutiveSummaryData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
-    const [scenarios, setScenarios] = useState<any[]>([]);
 
     useEffect(() => {
         loadScenarios();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resolvedParams.id]);
 
     useEffect(() => {
@@ -92,9 +110,8 @@ export default function ExecutiveOutputPage({
             const result = await res.json();
 
             if (result.success && result.data.length > 0) {
-                setScenarios(result.data);
-                // Find first finalized scenario or use first scenario
-                const finalizedScenario = result.data.find((s: any) => s.isFinalized);
+                // Find first finalized scenario
+                const finalizedScenario = result.data.find((s: { isFinalized: boolean; id: string }) => s.isFinalized);
                 if (finalizedScenario) {
                     setSelectedScenarioId(finalizedScenario.id);
                 }
@@ -376,12 +393,12 @@ export default function ExecutiveOutputPage({
                                     <div>
                                         <div className="text-[10px] text-neutral-400 uppercase tracking-widest mb-2">Capacity Released</div>
                                         <div className="text-2xl font-bold text-neutral-900 font-mono">
-                                            {data.unfundedInitiatives.reduce((sum: number, init: any) => sum + init.capacityReleased, 0)} <span className="text-xs text-neutral-400 font-sans font-medium">FTE</span>
+                                            {data.unfundedInitiatives.reduce((sum: number, init: UnfundedInitiative) => sum + init.capacityReleased, 0)} <span className="text-xs text-neutral-400 font-sans font-medium">FTE</span>
                                         </div>
                                     </div>
                                 </div>
                                 <ul className="space-y-3">
-                                    {data.unfundedInitiatives.slice(0, 5).map((init: any) => (
+                                    {data.unfundedInitiatives.slice(0, 5).map((init: UnfundedInitiative) => (
                                         <li key={init.id} className="text-sm text-neutral-400 flex items-center gap-3">
                                             <span className="w-1.5 h-1.5 bg-neutral-300 rounded-full"></span>
                                             {init.name} <span className="text-xs text-neutral-500">({init.decision})</span>

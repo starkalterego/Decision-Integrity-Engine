@@ -4,6 +4,12 @@ import React, { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 
+interface Portfolio {
+    id: string;
+    name: string;
+    totalCapacity: number;
+}
+
 interface ScenarioMetrics {
     id: string;
     name: string;
@@ -17,13 +23,14 @@ interface ScenarioMetrics {
 
 export default function ScenarioComparePage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = React.use(params);
-    const [portfolio, setPortfolio] = useState<any>(null);
+    const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
     const [scenarios, setScenarios] = useState<ScenarioMetrics[]>([]);
     const [baseline, setBaseline] = useState<ScenarioMetrics | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resolvedParams.id]);
 
     const loadData = async () => {
@@ -48,20 +55,20 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
 
             if (scenariosData.success) {
                 // Calculate metrics for each scenario
-                const scenariosWithMetrics = scenariosData.data.map((scenario: any) => {
-                    const fundedDecisions = scenario.decisions?.filter((d: any) => d.decision === 'FUND') || [];
+                const scenariosWithMetrics = scenariosData.data.map((scenario: { id: string; name: string; isBaseline: boolean; isRecommended: boolean; decisions?: { decision: string; initiative?: { estimatedValue: number; riskScore: number; capacityDemands?: { units: number }[] } }[] }) => {
+                    const fundedDecisions = scenario.decisions?.filter((d: { decision: string }) => d.decision === 'FUND') || [];
 
-                    const totalValue = fundedDecisions.reduce((sum: number, d: any) =>
-                        sum + (d.initiative?.estimatedValue || 0), 0
-                    );
+                    const totalValue = fundedDecisions.reduce((sum: number, d: { initiative?: { estimatedValue: number } }) =>
+                        sum + (d.initiative?.estimatedValue || 0)
+                    , 0);
 
-                    const totalCapacity = fundedDecisions.reduce((sum: number, d: any) => {
-                        const initCapacity = d.initiative?.capacityDemands?.reduce((s: number, cd: any) => s + cd.units, 0) || 0;
+                    const totalCapacity = fundedDecisions.reduce((sum: number, d: { initiative?: { capacityDemands?: { units: number }[] } }) => {
+                        const initCapacity = d.initiative?.capacityDemands?.reduce((s: number, cd: { units: number }) => s + cd.units, 0) || 0;
                         return sum + initCapacity;
                     }, 0);
 
                     const avgRisk = fundedDecisions.length > 0
-                        ? fundedDecisions.reduce((sum: number, d: any) => sum + (d.initiative?.riskScore || 0), 0) / fundedDecisions.length
+                        ? fundedDecisions.reduce((sum: number, d: { initiative?: { riskScore: number } }) => sum + (d.initiative?.riskScore || 0), 0) / fundedDecisions.length
                         : 0;
 
                     const capacityUtilization = portfolioObj?.totalCapacity
@@ -81,7 +88,7 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                 });
 
                 // Find baseline (or create virtual baseline)
-                const baselineScenario = scenariosWithMetrics.find((s: any) => s.name.toLowerCase().includes('baseline'));
+                const baselineScenario = scenariosWithMetrics.find((s: ScenarioMetrics) => s.name.toLowerCase().includes('baseline'));
                 if (baselineScenario) {
                     setBaseline(baselineScenario);
                     setScenarios(scenariosWithMetrics);
@@ -184,48 +191,42 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
         <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
             <Header portfolioName={portfolio?.name || 'Portfolio'} portfolioId={resolvedParams.id} currentPage="compare" />
 
-            <main className="page-container">
+            <main className="max-w-7xl mx-auto px-6 py-8">
                 {/* Enhanced Page Header & Context */}
-                <div className="mb-10">
-                    <div className="flex items-start justify-between">
+                <div className="mb-8">
+                    <div className="flex items-start justify-between gap-6">
                         <div>
-                            <h1 className="text-3xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>Scenario Comparison</h1>
-                            <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>Enable explicit selection of the best scenario</p>
+                            <h1 className="text-2xl font-bold tracking-tight mb-1" style={{ color: 'var(--text-primary)' }}>Scenario Comparison</h1>
+                            <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Enable explicit selection of the best scenario</p>
                         </div>
                         {recommendedScenario && (
-                            <div className="px-4 py-2 bg-status-green text-white font-semibold text-sm rounded">
-                                Recommended: {recommendedScenario.name}
+                            <div className="px-3 py-1.5 rounded-md font-semibold text-sm" style={{ backgroundColor: 'rgba(16, 185, 129, 0.2)', color: 'var(--accent-success)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                                ✓ Recommended: {recommendedScenario.name}
                             </div>
                         )}
                     </div>
                 </div>
 
                 {/* Enhanced Scenario Summary Cards */}
-                <div className="grid grid-cols-3 gap-6 mb-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                     {scenarios.map(scenario => (
                         <div
                             key={scenario.id}
-                            className="card p-6"
+                            className="rounded-lg p-5 transition-all"
                             style={{
                                 backgroundColor: scenario.id === 'baseline'
                                     ? 'var(--bg-tertiary)'
                                     : 'var(--bg-secondary)',
                                 border: scenario.isRecommended
                                     ? '2px solid var(--accent-success)'
-                                    : scenario.id === 'baseline'
-                                        ? '1px solid var(--border-strong)'
-                                        : '1px solid var(--border-default)',
-                                boxShadow: scenario.isRecommended
-                                    ? '0 0 20px rgba(16, 185, 129, 0.2)'
-                                    : 'none'
+                                    : '1px solid var(--border-default)'
                             }}
                         >
-                            <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-start justify-between mb-3">
                                 <div>
                                     <h3 
-                                        className="font-semibold"
+                                        className="font-semibold text-base mb-0.5"
                                         style={{
-                                            fontSize: scenario.id === 'baseline' ? '0.875rem' : '1rem',
                                             color: scenario.id === 'baseline' ? 'var(--text-secondary)' : 'var(--text-primary)'
                                         }}
                                     >
@@ -233,7 +234,7 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                                     </h3>
                                     {scenario.id === 'baseline' && (
                                         <span 
-                                            className="text-xs italic"
+                                            className="text-xs"
                                             style={{ color: 'var(--text-tertiary)' }}
                                         >
                                             Reference
@@ -242,24 +243,24 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                                 </div>
                                 {scenario.isRecommended && (
                                     <span 
-                                        className="px-2.5 py-1 text-xs font-semibold rounded"
+                                        className="px-2 py-1 text-xs font-semibold rounded-md"
                                         style={{ 
-                                            backgroundColor: 'var(--accent-success)',
-                                            color: '#fff'
+                                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                                            color: 'var(--accent-success)',
+                                            border: '1px solid rgba(16, 185, 129, 0.3)'
                                         }}
                                     >
-                                        ✓ Recommended
+                                        ✓
                                     </span>
                                 )}
                             </div>
 
-                            <div className="space-y-3">
+                            <div className="space-y-2.5">
                                 <div>
-                                    <div className="text-xs font-medium uppercase tracking-wider mb-1" style={{ color: 'var(--text-tertiary)' }}>Portfolio Value</div>
+                                    <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--text-tertiary)' }}>Portfolio Value</div>
                                     <div 
-                                        className="font-bold font-mono"
+                                        className="font-bold font-mono text-lg"
                                         style={{
-                                            fontSize: scenario.id === 'baseline' ? '1.25rem' : '1.5rem',
                                             color: scenario.id === 'baseline' ? 'var(--text-secondary)' : 'var(--text-primary)'
                                         }}
                                     >
@@ -273,12 +274,11 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                                     )}
                                 </div>
 
-                                <div className="border-t pt-3" style={{ borderColor: 'var(--border-default)' }}>
-                                    <div className="text-xs font-medium uppercase tracking-wider mb-1" style={{ color: 'var(--text-tertiary)' }}>Funded Initiatives</div>
+                                <div className="border-t pt-2.5" style={{ borderColor: 'var(--border-subtle)' }}>
+                                    <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--text-tertiary)' }}>Funded Initiatives</div>
                                     <div 
-                                        className="font-bold font-mono"
+                                        className="font-bold font-mono text-base"
                                         style={{
-                                            fontSize: scenario.id === 'baseline' ? '1rem' : '1.125rem',
                                             color: scenario.id === 'baseline' ? 'var(--text-secondary)' : 'var(--text-primary)'
                                         }}
                                     >
@@ -286,28 +286,26 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                                     </div>
                                 </div>
 
-                                <div className="border-t pt-3" style={{ borderColor: 'var(--border-default)' }}>
-                                    <div className="text-xs font-medium uppercase tracking-wider mb-1" style={{ color: 'var(--text-tertiary)' }}>Capacity</div>
+                                <div className="border-t pt-2.5" style={{ borderColor: 'var(--border-subtle)' }}>
+                                    <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--text-tertiary)' }}>Capacity</div>
                                     <div 
-                                        className="font-bold font-mono"
+                                        className="font-bold font-mono text-base"
                                         style={{
-                                            fontSize: scenario.id === 'baseline' ? '1rem' : '1.125rem',
                                             color: scenario.id === 'baseline' ? 'var(--text-secondary)' : 'var(--text-primary)'
                                         }}
                                     >
                                         {scenario.totalCapacity} units
                                     </div>
-                                    <div className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                    <div className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
                                         {scenario.capacityUtilization.toFixed(0)}% utilized
                                     </div>
                                 </div>
 
-                                <div className="border-t pt-3" style={{ borderColor: 'var(--border-default)' }}>
-                                    <div className="text-xs font-medium uppercase tracking-wider mb-1" style={{ color: 'var(--text-tertiary)' }}>Avg Risk</div>
+                                <div className="border-t pt-2.5" style={{ borderColor: 'var(--border-subtle)' }}>
+                                    <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--text-tertiary)' }}>Avg Risk</div>
                                     <div 
-                                        className="font-bold font-mono"
+                                        className="font-bold font-mono text-base"
                                         style={{
-                                            fontSize: scenario.id === 'baseline' ? '1rem' : '1.125rem',
                                             color: scenario.id === 'baseline' ? 'var(--text-secondary)' : 'var(--text-primary)'
                                         }}
                                     >
@@ -317,11 +315,11 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                             </div>
 
                             {scenario.id !== 'baseline' && (
-                                <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--border-default)' }}>
+                                <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
                                     <Button
                                         variant={scenario.isRecommended ? 'primary' : 'secondary'}
                                         size="sm"
-                                        className="w-full"
+                                        className="w-full text-sm"
                                         onClick={() => handleMarkRecommended(scenario.id)}
                                         disabled={scenario.isRecommended}
                                     >
@@ -335,10 +333,10 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
 
                 {/* Enhanced Comparison Table */}
                 <div 
-                    className="border rounded overflow-hidden mb-8"
+                    className="rounded-lg overflow-hidden mb-6"
                     style={{ 
                         backgroundColor: 'var(--bg-secondary)',
-                        borderColor: 'var(--border-default)'
+                        border: '1px solid var(--border-default)'
                     }}
                 >
                     <table className="w-full">
@@ -350,32 +348,33 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                                 }}
                             >
                                 <th 
-                                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
-                                    style={{ color: 'var(--text-secondary)' }}
+                                    className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide"
+                                    style={{ color: 'var(--text-tertiary)' }}
                                 >
                                     Metric
                                 </th>
                                 {scenarios.map(scenario => (
                                     <th 
                                         key={scenario.id} 
-                                        className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider"
+                                        className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wide"
                                         style={{
-                                            color: 'var(--text-secondary)',
+                                            color: 'var(--text-tertiary)',
                                             backgroundColor: scenario.id === 'baseline' 
                                                 ? 'var(--bg-elevated)' 
                                                 : scenario.isRecommended 
-                                                    ? 'rgba(16, 185, 129, 0.1)' 
+                                                    ? 'rgba(16, 185, 129, 0.08)' 
                                                     : 'transparent'
                                         }}
                                     >
-                                        <div className="flex flex-col items-center gap-1">
-                                            <span>{scenario.name}</span>
+                                        <div className="flex flex-col items-center gap-1.5">
+                                            <span style={{ color: 'var(--text-primary)' }}>{scenario.name}</span>
                                             {scenario.isRecommended && (
                                                 <span 
-                                                    className="text-xs px-2 py-0.5 rounded font-semibold"
+                                                    className="text-xs px-1.5 py-0.5 rounded-md font-semibold"
                                                     style={{
-                                                        backgroundColor: 'var(--accent-success)',
-                                                        color: '#fff'
+                                                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                                                        color: 'var(--accent-success)',
+                                                        border: '1px solid rgba(16, 185, 129, 0.3)'
                                                     }}
                                                 >
                                                     Recommended
@@ -383,10 +382,11 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                                             )}
                                             {scenario.id === 'baseline' && (
                                                 <span 
-                                                    className="text-xs px-2 py-0.5 rounded font-semibold"
+                                                    className="text-xs px-1.5 py-0.5 rounded-md font-medium"
                                                     style={{
-                                                        backgroundColor: 'var(--text-tertiary)',
-                                                        color: '#fff'
+                                                        backgroundColor: 'var(--bg-elevated)',
+                                                        color: 'var(--text-tertiary)',
+                                                        border: '1px solid var(--border-default)'
                                                     }}
                                                 >
                                                     Baseline
@@ -400,7 +400,7 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                         <tbody>
                             <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                                 <td 
-                                    className="px-4 py-4 font-semibold"
+                                    className="px-4 py-3 font-medium"
                                     style={{ color: 'var(--text-primary)' }}
                                 >
                                     Portfolio Value
@@ -470,7 +470,7 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
 
                             <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                                 <td 
-                                    className="px-4 py-4 font-semibold"
+                                    className="px-4 py-3 font-medium"
                                     style={{ color: 'var(--text-primary)' }}
                                 >
                                     Capacity Utilization
@@ -478,24 +478,24 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                                 {scenarios.map(scenario => (
                                     <td 
                                         key={scenario.id} 
-                                        className="px-4 py-4 font-mono text-center"
+                                        className="px-4 py-3 font-mono text-center"
                                         style={{
                                             backgroundColor: scenario.id === 'baseline' 
-                                                ? 'var(--bg-tertiary)' 
+                                                ? 'var(--bg-elevated)' 
                                                 : scenario.isRecommended 
                                                     ? 'rgba(16, 185, 129, 0.05)' 
                                                     : 'transparent'
                                         }}
                                     >
                                         <div 
-                                            className="text-base font-bold"
+                                            className="text-sm font-semibold"
                                             style={{ color: 'var(--text-primary)' }}
                                         >
                                             {scenario.totalCapacity} units
                                         </div>
                                         <div 
-                                            className="text-xs mt-1"
-                                            style={{ color: 'var(--text-secondary)' }}
+                                            className="text-xs mt-0.5"
+                                            style={{ color: 'var(--text-tertiary)' }}
                                         >
                                             {scenario.capacityUtilization.toFixed(0)}%
                                         </div>
@@ -505,7 +505,7 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
 
                             <tr className="last:border-0">
                                 <td 
-                                    className="px-4 py-4 font-semibold"
+                                    className="px-4 py-3 font-medium"
                                     style={{ color: 'var(--text-primary)' }}
                                 >
                                     Avg Risk Score
@@ -513,24 +513,24 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                                 {scenarios.map(scenario => (
                                     <td 
                                         key={scenario.id} 
-                                        className="px-4 py-4 font-mono text-center"
+                                        className="px-4 py-3 font-mono text-center"
                                         style={{
                                             backgroundColor: scenario.id === 'baseline' 
-                                                ? 'var(--bg-tertiary)' 
+                                                ? 'var(--bg-elevated)' 
                                                 : scenario.isRecommended 
                                                     ? 'rgba(16, 185, 129, 0.05)' 
                                                     : 'transparent'
                                         }}
                                     >
                                         <div 
-                                            className="text-base font-bold"
+                                            className="text-sm font-semibold"
                                             style={{ color: 'var(--text-primary)' }}
                                         >
                                             {scenario.avgRisk.toFixed(1)}/5
                                         </div>
                                         {scenario.id !== 'baseline' && baseline && (
                                             <div 
-                                                className="text-xs mt-1"
+                                                className="text-xs mt-0.5"
                                                 style={{
                                                     color: calculateDelta(scenario.avgRisk, baseline.avgRisk) < 0 
                                                         ? 'var(--accent-success)' 
@@ -548,21 +548,21 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                 </div>
 
                 {/* Enhanced Governance Rules & Next Steps */}
-                <div className="grid grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div 
-                        className="card p-6"
+                        className="rounded-lg p-5"
                         style={{ 
                             backgroundColor: 'var(--bg-secondary)',
                             border: '1px solid var(--border-default)'
                         }}
                     >
                         <h3 
-                            className="font-semibold mb-4 text-sm uppercase tracking-wide"
+                            className="font-semibold mb-3 text-sm uppercase tracking-wide"
                             style={{ color: 'var(--text-primary)' }}
                         >
                             Governance Rules
                         </h3>
-                        <ul className="text-sm space-y-3 leading-relaxed">
+                        <ul className="text-sm space-y-2 leading-relaxed">
                             <li 
                                 className="flex gap-2"
                                 style={{ color: 'var(--text-secondary)' }}
@@ -595,28 +595,28 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                     </div>
 
                     <div 
-                        className="card p-6"
+                        className="rounded-lg p-5"
                         style={{ 
                             backgroundColor: 'var(--bg-secondary)',
                             border: '1px solid var(--border-default)',
-                            borderLeft: '4px solid var(--accent-success)'
+                            borderLeft: '3px solid var(--accent-success)'
                         }}
                     >
                         <h3 
-                            className="font-semibold mb-4 text-sm uppercase tracking-wide"
+                            className="font-semibold mb-3 text-sm uppercase tracking-wide"
                             style={{ color: 'var(--text-primary)' }}
                         >
                             Next Steps
                         </h3>
                         <p 
-                            className="text-sm mb-4 leading-relaxed"
+                            className="text-sm mb-3 leading-relaxed"
                             style={{ color: 'var(--text-secondary)' }}
                         >
-                            Once you've selected a recommended scenario, proceed to generate the Executive One-Pager for final approval.
+                            Once you&apos;ve selected a recommended scenario, proceed to generate the Executive One-Pager for final approval.
                         </p>
                         <Button
                             variant="primary"
-                            className="w-full"
+                            className="w-full text-sm"
                             onClick={() => window.location.href = `/portfolio/${resolvedParams.id}/output`}
                         >
                             Generate Executive Output →

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
-import { Input, Textarea, Select } from '@/components/ui/Input';
+import { Input, Select } from '@/components/ui/Input';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 
 interface Initiative {
@@ -20,10 +20,18 @@ interface Initiative {
     capacityDemands: Array<{ role: string; units: number }>;
 }
 
+interface Portfolio {
+    id: string;
+    name: string;
+    status: string;
+    totalBudget: number;
+    totalCapacity: number;
+}
+
 export default function InitiativesPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = React.use(params);
     const [initiatives, setInitiatives] = useState<Initiative[]>([]);
-    const [portfolio, setPortfolio] = useState<any>(null);
+    const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [filterStatus, setFilterStatus] = useState<'all' | 'complete' | 'incomplete'>('all');
@@ -32,6 +40,7 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
     // Load portfolio and initiatives
     useEffect(() => {
         loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resolvedParams.id]);
 
     const loadData = async () => {
@@ -73,7 +82,7 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
         setShowModal(true);
     };
 
-    const handleSaveInitiative = async (initiativeData: any) => {
+    const handleSaveInitiative = async (initiativeData: InitiativeFormData) => {
         try {
             const response = await fetch('/api/initiatives', {
                 method: 'POST',
@@ -356,7 +365,7 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
                             {filteredInitiatives.length === 0 ? (
                                 <tr>
                                     <td colSpan={9} className="px-4 py-12 text-center" style={{ color: 'var(--text-secondary)' }}>
-                                        No initiatives found. Click "+ Add Initiative" to get started.
+                                        No initiatives found. Click &quot;+ Add Initiative&quot; to get started.
                                     </td>
                                 </tr>
                             ) : (
@@ -365,10 +374,9 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
                                         key={initiative.id} 
                                         className="border-b transition-colors" 
                                         style={{ 
-                                            borderColor: 'var(--border-default)',
-                                            '&:hover': { backgroundColor: 'var(--bg-hover)' }
+                                            borderColor: 'var(--border-default)'
                                         }}
-                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
                                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                     >
                                         <td className="px-4 py-4">
@@ -459,6 +467,16 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
     );
 }
 
+interface InitiativeFormData {
+    name: string;
+    sponsor: string;
+    deliveryOwner: string;
+    strategicAlignmentScore: number;
+    estimatedValue: number;
+    riskScore: number;
+    capacityDemand: Array<{ role: string; units: number }>;
+}
+
 function InitiativeModal({
     onClose,
     editingId,
@@ -468,7 +486,7 @@ function InitiativeModal({
     onClose: () => void;
     editingId: string | null;
     initiatives: Initiative[];
-    onSave: (initiative: any) => void;
+    onSave: (initiative: InitiativeFormData) => void;
 }) {
     const editingInitiative = editingId ? initiatives.find(i => i.id === editingId) : null;
 

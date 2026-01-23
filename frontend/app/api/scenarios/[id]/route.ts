@@ -104,29 +104,15 @@ export async function PATCH(
             );
         }
 
-        // Validate assumptions if provided
-        if (body.assumptions !== undefined) {
-            if (!body.assumptions || !body.assumptions.trim()) {
-                return NextResponse.json(
-                    {
-                        success: false,
-                        data: null,
-                        errors: [{
-                            code: 'VALIDATION_ERROR',
-                            message: 'Scenario assumptions cannot be empty per governance rules'
-                        }]
-                    },
-                    { status: 400 }
-                );
-            }
-        }
+        // Assumptions can be empty while drafting, but are required for finalization
+        // (validation happens in finalize endpoint)
 
         // Update scenario
         const updatedScenario = await prisma.scenario.update({
             where: { id },
             data: {
                 ...(body.name && { name: body.name }),
-                ...(body.assumptions && { assumptions: body.assumptions })
+                ...(body.assumptions !== undefined && { assumptions: body.assumptions })
             },
             include: {
                 decisions: {

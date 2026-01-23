@@ -44,19 +44,19 @@ export async function POST(
             );
         }
 
-        // Delete existing decisions and create new ones
-        await prisma.scenarioDecision.deleteMany({
-            where: { scenarioId }
-        });
-
-        // Create new decisions
-        const decisions = await prisma.scenarioDecision.createMany({
-            data: body.decisions.map((d: any) => ({
-                scenarioId,
-                initiativeId: d.initiativeId,
-                decision: d.decision
-            }))
-        });
+        // Delete existing decisions and create new ones in a transaction
+        await prisma.$transaction([
+            prisma.scenarioDecision.deleteMany({
+                where: { scenarioId }
+            }),
+            prisma.scenarioDecision.createMany({
+                data: body.decisions.map((d: any) => ({
+                    scenarioId,
+                    initiativeId: d.initiativeId,
+                    decision: d.decision
+                }))
+            })
+        ]);
 
         // Fetch updated scenario with decisions
         const updatedScenario = await prisma.scenario.findUnique({

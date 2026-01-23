@@ -49,6 +49,9 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+    
+    // Store the actual scenario ID (might be different from URL param)
+    const [actualScenarioId, setActualScenarioId] = useState<string | null>(null);
 
     useEffect(() => {
         loadData();
@@ -63,19 +66,20 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
 
         saveTimeoutRef.current = setTimeout(async () => {
             try {
+                const scenarioId = actualScenarioId || resolvedParams.scenarioId;
                 const decisionsArray = Object.entries(decisionsToSave).map(([id, dec]) => ({
                     initiativeId: id,
                     decision: dec
                 }));
 
-                await authPost(`/api/scenarios/${resolvedParams.scenarioId}/decisions`, {
+                await authPost(`/api/scenarios/${scenarioId}/decisions`, {
                     decisions: decisionsArray
                 });
             } catch (error) {
                 console.error('Error saving decisions:', error);
             }
         }, 500); // Save after 500ms of inactivity
-    }, [resolvedParams.scenarioId]);
+    }, [actualScenarioId, resolvedParams.scenarioId]);
 
     const loadData = async () => {
         setIsLoading(true);
@@ -99,8 +103,53 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                 setPortfolio(portfolioData.data);
             }
 
-            if (scenarioData.success) {
+            // If scenario doesn't exist by ID, check if one exists by name
+            if (!scenarioData.success && scenarioRes.status === 404) {
+                try {
+                    const scenarioName = resolvedParams.scenarioId === 'baseline' ? 'Baseline' : resolvedParams.scenarioId;
+                    
+                    // Check if a scenario with this name already exists
+                    const allScenariosRes = await authGet(`/api/scenarios?portfolioId=${resolvedParams.id}`);
+                    const allScenariosData = await allScenariosRes.json();
+                    
+                    let existingScenario = null;
+                    if (allScenariosData.success) {
+                        existingScenario = allScenariosData.data.find((s: { name: string }) => 
+                            s.name.toLowerCase() === scenarioName.toLowerCase()
+                        );
+                    }
+                    
+                    if (existingScenario) {
+                        // Use existing scenario
+                        setScenario(existingScenario);
+                        setActualScenarioId(existingScenario.id);
+                        setAssumptions(existingScenario.assumptions || '');
+                        setIsFinalized(existingScenario.isFinalized || false);
+                    } else {
+                        // Create new scenario
+                        const createResponse = await authPost('/api/scenarios', {
+                            portfolioId: resolvedParams.id,
+                            name: scenarioName,
+                            assumptions: ''
+                        });
+                        const createResult = await createResponse.json();
+                        
+                        if (createResult.success) {
+                            setScenario(createResult.data);
+                            setActualScenarioId(createResult.data.id);
+                            setAssumptions('');
+                            setIsFinalized(false);
+                        } else {
+                            alert('Failed to create scenario: ' + (createResult.errors[0]?.message || 'Unknown error'));
+                        }
+                    }
+                } catch (createError) {
+                    console.error('Error creating scenario:', createError);
+                    alert('Failed to create scenario');
+                }
+            } else if (scenarioData.success) {
                 setScenario(scenarioData.data);
+                setActualScenarioId(scenarioData.data.id); // Store the actual ID
                 setAssumptions(scenarioData.data.assumptions || '');
                 setIsFinalized(scenarioData.data.isFinalized);
 
@@ -155,7 +204,8 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
 
             const timeout = setTimeout(async () => {
                 try {
-                    await authPatch(`/api/scenarios/${resolvedParams.scenarioId}`, {
+                    const scenarioId = actualScenarioId || resolvedParams.scenarioId;
+                    await authPatch(`/api/scenarios/${scenarioId}`, {
                         assumptions: value
                     });
                 } catch (error) {
@@ -183,7 +233,8 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
         }
 
         try {
-            const response = await authPost(`/api/scenarios/${resolvedParams.scenarioId}/finalize`, {});
+            const scenarioId = actualScenarioId || resolvedParams.scenarioId;
+            const response = await authPost(`/api/scenarios/${scenarioId}/finalize`, {});
 
             const result = await response.json();
 

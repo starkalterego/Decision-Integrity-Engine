@@ -66,21 +66,20 @@ export default function ExecutiveDashboard() {
                         name: string;
                         isBaseline: boolean;
                         isRecommended?: boolean;
+                        isFinalized?: boolean;
                         assumptions?: string;
                         decisions?: Array<{
                             decision: string;
                             initiative?: {
-                                value: number;
-                                cost: number;
-                                capacityDemands?: Array<{ amount: number }>;
+                                estimatedValue: number;
+                                capacityDemands?: Array<{ units: number }>;
                             };
                         }>;
                     }) => {
-                        const activeDecisions = scenario.decisions?.filter((d) => d.decision !== 'PAUSE') || [];
-                        const totalValue = activeDecisions.reduce((sum, d) => sum + (d.initiative?.value || 0), 0);
-                        const totalCost = activeDecisions.reduce((sum, d) => sum + (d.initiative?.cost || 0), 0);
-                        const totalCapacity = activeDecisions.reduce((sum, d) => {
-                            return sum + (d.initiative?.capacityDemands?.reduce((s, c) => s + c.amount, 0) || 0);
+                        const fundedDecisions = scenario.decisions?.filter((d) => d.decision === 'FUND') || [];
+                        const totalValue = fundedDecisions.reduce((sum, d) => sum + (d.initiative?.estimatedValue || 0), 0);
+                        const totalCapacity = fundedDecisions.reduce((sum, d) => {
+                            return sum + (d.initiative?.capacityDemands?.reduce((s, c) => s + c.units, 0) || 0);
                         }, 0);
                         
                         return {
@@ -88,12 +87,14 @@ export default function ExecutiveDashboard() {
                             name: scenario.name,
                             type: scenario.isBaseline ? 'BASELINE' : 'SCENARIO',
                             totalValue: Math.round(totalValue * 100) / 100,
-                            totalCost: Math.round(totalCost * 100) / 100,
+                            totalCost: Math.round(totalValue * 100) / 100, // Using value as proxy for cost
                             totalCapacity: Math.round(totalCapacity),
                             isRecommended: scenario.isRecommended || false,
+                            isFinalized: scenario.isFinalized || false,
                             assumptions: scenario.assumptions
                         };
                     });
+                    // Show all scenarios (temporarily removed finalized filter for debugging)
                     setScenarios(scenariosWithMetrics);
                 }
             }

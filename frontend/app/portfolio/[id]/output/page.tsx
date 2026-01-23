@@ -256,9 +256,9 @@ export default function ExecutiveOutputPage({
         <div className="min-h-screen font-sans" style={{ backgroundColor: '#f5f5f5', color: '#000000' }}>
             <Header portfolioName={data.portfolio.name} portfolioId={resolvedParams.id} currentPage="output" className="no-print" />
 
-            <main className="max-w-7xl mx-auto px-8 py-8">
+            <main className="max-w-full mx-auto px-6 py-6">
                 {/* Page Header */}
-                <div className="no-print flex justify-between items-start mb-6">
+                <div className="no-print flex justify-between items-start mb-4">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Executive One-Pager</h1>
                         <p className="text-sm text-gray-500 mt-1">Board-Ready Decision Artifact</p>
@@ -267,10 +267,10 @@ export default function ExecutiveOutputPage({
                 </div>
 
                 {/* White Paper Container */}
-                <div className="bg-white shadow-sm border border-gray-200 rounded-sm overflow-hidden">
+                <div className="bg-white shadow-sm border border-gray-200 rounded-sm overflow-hidden max-w-[1200px] mx-auto">
                     
                     {/* Header Section */}
-                    <div className="px-12 py-6 border-b border-gray-200 flex justify-between items-start">
+                    <div className="px-8 py-4 border-b border-gray-200 flex justify-between items-start">
                         <div>
                             <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
                                 Portfolio Decision Artifact
@@ -286,51 +286,51 @@ export default function ExecutiveOutputPage({
                             <div className="text-xs uppercase tracking-wider text-gray-400 mb-0.5">Decision Owner</div>
                             <div className="text-sm font-medium text-gray-600">{data.scenario.decisionOwner}</div>
                             <div className="text-xs text-gray-400 mt-1">
-                                {new Date(data.scenario.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                                {new Date(data.scenario.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </div>
                         </div>
                     </div>
 
-                    <div className="p-12 space-y-12">
+                    <div className="p-8 space-y-5">
                         
                         {/* Top Metric Cards */}
-                        <div className="grid grid-cols-4 gap-6">
-                            <div className="bg-gray-50 rounded-lg p-6 border border-gray-100">
-                                <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Investment</div>
-                                <div className="text-3xl font-bold text-gray-900 mb-2">{formatCurrency(data.metrics.investment)}</div>
+                        <div className="grid grid-cols-4 gap-4">
+                            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Investment</div>
+                                <div className="text-2xl font-bold text-gray-900 mb-2">{formatCurrency(data.metrics.investment)}</div>
                                 <div className="flex items-center gap-2">
                                     <span className={`text-xs font-semibold px-2 py-0.5 rounded ${data.deltas.investment < 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'}`}>
                                         {formatDelta(data.deltas.investment)}
                                     </span>
-                                    <span className="text-xs text-gray-500">vs Baseline</span>
+                                    <span className="text-xs text-gray-500">vs Base</span>
                                 </div>
                             </div>
                             
-                            <div className="bg-gray-50 rounded-lg p-6 border border-gray-100">
-                                <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Expected Value</div>
-                                <div className="text-3xl font-bold text-gray-900 mb-2">{formatCurrency(data.metrics.expectedValue)}</div>
+                            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Expected Value</div>
+                                <div className="text-2xl font-bold text-gray-900 mb-2">{formatCurrency(data.metrics.expectedValue)}</div>
                                 <div className="flex items-center gap-2">
                                     <span className={`text-xs font-semibold px-2 py-0.5 rounded ${data.deltas.value > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                                         {formatDelta(data.deltas.value)}
                                     </span>
-                                    <span className="text-xs text-gray-500">vs Baseline</span>
+                                    <span className="text-xs text-gray-500">vs Base</span>
                                 </div>
                             </div>
                             
-                            <div className="bg-gray-50 rounded-lg p-6 border border-gray-100">
-                                <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Capacity Use</div>
-                                <div className="text-3xl font-bold text-gray-900 mb-2">{data.metrics.capacityUse.toFixed(0)}%</div>
+                            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Capacity Use</div>
+                                <div className="text-2xl font-bold text-gray-900 mb-2">{data.metrics.capacityUse.toFixed(0)}%</div>
                                 <div className="flex items-center gap-2">
                                     <span className={`text-xs font-semibold px-2 py-0.5 rounded ${data.metrics.capacityUse < 95 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                                         {data.metrics.capacityUse < 95 ? 'Optimal' : 'High'}
                                     </span>
-                                    <span className="text-xs text-gray-500">Tolerance &lt;95%</span>
+                                    <span className="text-xs text-gray-500">&lt;95%</span>
                                 </div>
                             </div>
                             
-                            <div className="bg-gray-50 rounded-lg p-6 border border-gray-100">
-                                <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Risk Exposure</div>
-                                <div className="text-3xl font-bold text-gray-900 mb-2">{data.metrics.riskExposure}</div>
+                            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Risk Exposure</div>
+                                <div className="text-2xl font-bold text-gray-900 mb-2">{data.metrics.riskExposure}</div>
                                 <div className="flex items-center gap-2">
                                     <span className={`text-xs font-semibold px-2 py-0.5 rounded ${data.deltas.risk < 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                                         {data.deltas.risk < 0 ? 'Reduced' : 'Managed'}
@@ -341,17 +341,17 @@ export default function ExecutiveOutputPage({
                         </div>
 
                         {/* The Decision Ask */}
-                        <div className="bg-gray-50 border-l-4 border-blue-500 rounded-lg p-8">
-                            <div className="flex items-start gap-8">
+                        <div className="bg-gray-50 border-l-4 border-blue-500 rounded-lg p-5">
+                            <div className="flex items-start gap-6">
                                 <div className="flex-1">
-                                    <h2 className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-4">The Decision Ask</h2>
-                                    <p className="text-2xl font-medium text-gray-900 leading-relaxed">
+                                    <h2 className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3">The Decision Ask</h2>
+                                    <p className="text-lg font-medium text-gray-900 leading-relaxed">
                                         {data.decisionAsk}
                                     </p>
                                 </div>
                                 <div className="flex flex-col gap-2 min-w-fit">
-                                    <button className="flex items-center gap-3 px-5 py-3 bg-white border-2 border-blue-500 rounded-lg shadow-sm hover:shadow transition-shadow">
-                                        <div className="w-4 h-4 rounded-full border-2 border-blue-500 flex items-center justify-center">
+                                    <button className="flex items-center gap-3 px-4 py-2.5 bg-white border-2 border-blue-500 rounded-lg">
+                                        <div className="w-3.5 h-3.5 rounded-full border-2 border-blue-500 flex items-center justify-center">
                                             <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                                         </div>
                                         <div className="text-left">
@@ -363,26 +363,29 @@ export default function ExecutiveOutputPage({
                             </div>
                         </div>
 
-                        {/* Single Column Layout */}
-                        <div className="space-y-14">
+                        {/* Two-Column Layout for Better Space Usage */}
+                        <div className="grid grid-cols-2 gap-5">
+
+                        {/* Left Column */}
+                        <div className="space-y-5">
 
                         {/* Executive Snapshot */}
                         <div>
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-6 pb-3 border-b border-gray-200">
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 pb-2 border-b border-gray-200">
                                 Executive Snapshot
                             </h3>
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                                 {[
                                     { label: "Portfolio Value", value: formatCurrency(data.executiveSnapshot.portfolioValue), delta: formatDelta(data.deltas.value) },
                                     { label: "Total Cost", value: formatCurrency(data.executiveSnapshot.totalCost), delta: formatDelta(data.deltas.investment) },
-                                    { label: "Capacity Utilization", value: `${data.executiveSnapshot.capacityUtilization.toFixed(0)}%`, delta: data.executiveSnapshot.capacityUtilization < 95 ? "Optimal" : "High" },
+                                    { label: "Capacity Util.", value: `${data.executiveSnapshot.capacityUtilization.toFixed(0)}%`, delta: data.executiveSnapshot.capacityUtilization < 95 ? "Optimal" : "High" },
                                     { label: "Risk Level", value: data.executiveSnapshot.riskLevel, delta: data.deltas.risk < 0 ? "Reduced" : "Managed" }
                                 ].map((item, i) => (
-                                    <div key={i} className="flex justify-between items-center py-3 border-b border-gray-100 last:border-0">
+                                    <div key={i} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                                         <span className="text-sm font-medium text-gray-600">{item.label}</span>
-                                        <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-3">
                                             <span className="text-xs text-gray-500">{item.delta}</span>
-                                            <span className="text-xl font-bold text-gray-900 min-w-25 text-right">{item.value}</span>
+                                            <span className="text-base font-bold text-gray-900 min-w-24 text-right">{item.value}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -391,27 +394,27 @@ export default function ExecutiveOutputPage({
 
                         {/* Trade-Off Summary */}
                         <div>
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-6 pb-3 border-b border-gray-200">
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 pb-2 border-b border-gray-200">
                                 Trade-Off Summary
                             </h3>
-                            <div className="grid grid-cols-2 gap-6">
-                                <div className="bg-red-50 p-6 rounded-lg border border-red-100">
-                                    <div className="flex items-center gap-2 mb-4">
+                            <div className="space-y-3">
+                                <div className="bg-red-50 p-4 rounded border border-red-100">
+                                    <div className="flex items-center gap-2 mb-2">
                                         <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                                        <span className="text-xs font-bold text-red-600 uppercase tracking-wide">What Changed</span>
+                                        <span className="text-xs font-bold text-red-600 uppercase tracking-wide">Changed</span>
                                     </div>
-                                    <ul className="space-y-2">
+                                    <ul className="space-y-1.5">
                                         {data.tradeOffSummary.whatChanged.map((item, idx) => (
                                             <li key={idx} className="text-sm text-gray-700">• {item}</li>
                                         ))}
                                     </ul>
                                 </div>
-                                <div className="bg-green-50 p-6 rounded-lg border border-green-100">
-                                    <div className="flex items-center gap-2 mb-4">
+                                <div className="bg-green-50 p-4 rounded border border-green-100">
+                                    <div className="flex items-center gap-2 mb-2">
                                         <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                        <span className="text-xs font-bold text-green-600 uppercase tracking-wide">What Gained</span>
+                                        <span className="text-xs font-bold text-green-600 uppercase tracking-wide">Gained</span>
                                     </div>
-                                    <ul className="space-y-2">
+                                    <ul className="space-y-1.5">
                                         {data.tradeOffSummary.whatGained.map((item, idx) => (
                                             <li key={idx} className="text-sm text-gray-700">• {item}</li>
                                         ))}
@@ -420,12 +423,36 @@ export default function ExecutiveOutputPage({
                             </div>
                         </div>
 
+                        {/* Key Risks */}
+                        <div>
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 pb-2 border-b border-gray-200">
+                                Key Risks
+                            </h3>
+                            <div className="space-y-2">
+                                {data.keyRisks.slice(0, 4).map((risk, idx) => (
+                                    <div key={idx} className="border-l-2 border-gray-300 pl-3 py-1.5">
+                                        <div className="flex justify-between items-start">
+                                            <span className="text-sm font-medium text-gray-700 pr-2">{risk}</span>
+                                            <span className="text-xs font-semibold uppercase px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+                                                {idx === 0 || idx === 1 ? 'MED' : 'LOW'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        </div>
+
+                        {/* Right Column */}
+                        <div className="space-y-5">
+
                         {/* Scenario Comparison */}
                         <div>
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-6 pb-3 border-b border-gray-200">
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 pb-2 border-b border-gray-200">
                                 Scenario Comparison
                             </h3>
-                            <div className="border border-gray-200 rounded-lg overflow-hidden">
+                            <div className="border border-gray-200 rounded overflow-hidden">
                                 <div className="grid grid-cols-3 bg-gray-100 border-b border-gray-200">
                                     <div className="p-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Metric</div>
                                     <div className="p-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">Baseline</div>
@@ -436,7 +463,7 @@ export default function ExecutiveOutputPage({
                                 {[
                                     { label: 'Investment', b: formatCurrency(data.scenarioComparison.baseline.investment), r: formatCurrency(data.scenarioComparison.current.investment) },
                                     { label: 'Value', b: formatCurrency(data.scenarioComparison.baseline.value), r: formatCurrency(data.scenarioComparison.current.value) },
-                                    { label: 'Cap. Used', b: `${data.scenarioComparison.baseline.capacityUsed.toFixed(0)}%`, r: `${data.scenarioComparison.current.capacityUsed.toFixed(0)}%` },
+                                    { label: 'Capacity', b: `${data.scenarioComparison.baseline.capacityUsed.toFixed(0)}%`, r: `${data.scenarioComparison.current.capacityUsed.toFixed(0)}%` },
                                     { label: 'Risk', b: data.scenarioComparison.baseline.risk, r: data.scenarioComparison.current.risk },
                                 ].map((row, i) => (
                                     <div key={i} className="grid grid-cols-3 border-b border-gray-100 last:border-0">
@@ -450,47 +477,28 @@ export default function ExecutiveOutputPage({
                             </div>
                         </div>
 
-                        {/* Key Risks */}
-                        <div>
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-6 pb-3 border-b border-gray-200">
-                                Key Risks
-                            </h3>
-                            <div className="space-y-3">
-                                {data.keyRisks.map((risk, idx) => (
-                                    <div key={idx} className="border-l-2 border-gray-300 pl-4 py-2">
-                                        <div className="flex justify-between items-start">
-                                            <span className="text-sm font-medium text-gray-700">{risk}</span>
-                                            <span className="text-xs font-semibold uppercase px-2 py-1 rounded bg-gray-100 text-gray-600 ml-4">
-                                                {idx === 0 || idx === 1 ? 'MEDIUM' : 'LOW'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
                         {/* What We Are Not Funding */}
                         {data.unfundedInitiatives.length > 0 && (
-                            <div className="bg-gray-50 rounded-lg p-8 border border-gray-200">
-                                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-6 pb-3 border-b border-gray-200">
-                                    What We Are Not Funding
+                            <div className="bg-gray-50 rounded p-4 border border-gray-200">
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 pb-2 border-b border-gray-200">
+                                    Not Funding
                                 </h3>
-                                <div className="flex gap-8 mb-6">
+                                <div className="flex gap-6 mb-3">
                                     <div>
-                                        <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Initiatives Stopped</div>
-                                        <div className="text-xl font-bold text-gray-900">{data.decisions.stop.length}</div>
+                                        <div className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Stopped</div>
+                                        <div className="text-lg font-bold text-gray-900">{data.decisions.stop.length}</div>
                                     </div>
                                     <div>
-                                        <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Capacity Released</div>
-                                        <div className="text-xl font-bold text-gray-900">
+                                        <div className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Cap. Released</div>
+                                        <div className="text-lg font-bold text-gray-900">
                                             {data.unfundedInitiatives.reduce((sum: number, init: UnfundedInitiative) => sum + init.capacityReleased, 0)} <span className="text-xs text-gray-500 font-normal">FTE</span>
                                         </div>
                                     </div>
                                 </div>
-                                <ul className="space-y-2">
-                                    {data.unfundedInitiatives.slice(0, 5).map((init: UnfundedInitiative) => (
+                                <ul className="space-y-1.5">
+                                    {data.unfundedInitiatives.slice(0, 4).map((init: UnfundedInitiative) => (
                                         <li key={init.id} className="text-sm text-gray-600 flex items-center gap-2">
-                                            <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+                                            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
                                             {init.name} <span className="text-xs text-gray-400">({init.decision})</span>
                                         </li>
                                     ))}
@@ -498,18 +506,20 @@ export default function ExecutiveOutputPage({
                             </div>
                         )}
 
+                        </div>
+
+                        </div>
+
                         {/* Footer */}
-                        <div className="pt-8 border-t border-gray-200">
+                        <div className="pt-3 border-t border-gray-200">
                             <div className="flex justify-between items-center text-xs text-gray-400">
                                 <span className="font-semibold uppercase tracking-wide">Audit Record</span>
-                                <div className="flex gap-4">
+                                <div className="flex gap-3">
                                     <span>ID: {data.scenario.id.substring(0, 12)}</span>
-                                    <span>Prepared By: {data.scenario.decisionOwner}</span>
+                                    <span>By: {data.scenario.decisionOwner}</span>
                                     <span>{new Date(data.scenario.createdAt).toLocaleDateString()}</span>
                                 </div>
                             </div>
-                        </div>
-
                         </div>
 
                     </div>
@@ -529,10 +539,12 @@ export default function ExecutiveOutputPage({
             background: white;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+            margin: 0;
+            padding: 0;
           }
           @page {
-            size: A4 landscape;
-            margin: 15mm;
+            size: A4;
+            margin: 8mm;
           }
         }
       `}</style>

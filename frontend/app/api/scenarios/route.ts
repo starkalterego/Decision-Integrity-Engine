@@ -7,21 +7,7 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
 
-        // Validation per decision-logic.md lines 150-156: Assumptions are mandatory
-        if (!body.assumptions || !body.assumptions.trim()) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    data: null,
-                    errors: [{
-                        code: 'VALIDATION_ERROR',
-                        message: 'Scenario assumptions are mandatory per governance rules'
-                    }]
-                },
-                { status: 400 }
-            );
-        }
-
+        // Validation: Name is required
         if (!body.name || !body.name.trim()) {
             return NextResponse.json(
                 {
@@ -36,12 +22,16 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Assumptions can be empty initially, but are mandatory for finalization
+        // (validation happens in finalize endpoint)
+        const assumptions = body.assumptions?.trim() || '';
+
         // Create scenario
         const scenario = await prisma.scenario.create({
             data: {
                 portfolioId: body.portfolioId,
                 name: body.name,
-                assumptions: body.assumptions,
+                assumptions: assumptions,
                 isBaseline: false,
                 isFinalized: false
             }

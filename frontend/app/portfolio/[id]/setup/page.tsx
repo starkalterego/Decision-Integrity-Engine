@@ -6,6 +6,7 @@ import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { authGet, authPost } from '@/lib/api';
 
 export default function PortfolioSetupPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -33,7 +34,7 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
     const loadPortfolio = async (id: string) => {
         setIsLoading(true);
         try {
-            const response = await fetch(`/api/portfolios/${id}`);
+            const response = await authGet(`/api/portfolios/${id}`);
             const result = await response.json();
 
             if (result.success && result.data) {
@@ -88,15 +89,11 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
 
         setIsSaving(true);
         try {
-            const response = await fetch('/api/portfolios', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: formData.name,
-                    fiscalPeriod: formData.fiscalPeriod,
-                    totalBudget: parseFloat(formData.totalBudget),
-                    totalCapacity: parseInt(formData.totalCapacity),
-                }),
+            const response = await authPost('/api/portfolios', {
+                name: formData.name,
+                fiscalPeriod: formData.fiscalPeriod,
+                totalBudget: parseFloat(formData.totalBudget),
+                totalCapacity: parseInt(formData.totalCapacity),
             });
 
             const result = await response.json();

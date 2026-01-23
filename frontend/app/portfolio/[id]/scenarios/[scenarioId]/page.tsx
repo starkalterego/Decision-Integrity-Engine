@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { authGet, authPost, authPatch } from '@/lib/api';
 
 interface Initiative {
     id: string;
@@ -67,10 +68,8 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                     decision: dec
                 }));
 
-                await fetch(`/api/scenarios/${resolvedParams.scenarioId}/decisions`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ decisions: decisionsArray }),
+                await authPost(`/api/scenarios/${resolvedParams.scenarioId}/decisions`, {
+                    decisions: decisionsArray
                 });
             } catch (error) {
                 console.error('Error saving decisions:', error);
@@ -83,9 +82,9 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
         try {
             // Load all data in parallel for faster loading
             const [portfolioRes, scenarioRes, initiativesRes] = await Promise.all([
-                fetch(`/api/portfolios/${resolvedParams.id}`),
-                fetch(`/api/scenarios/${resolvedParams.scenarioId}`),
-                fetch(`/api/initiatives?portfolioId=${resolvedParams.id}`)
+                authGet(`/api/portfolios/${resolvedParams.id}`),
+                authGet(`/api/scenarios/${resolvedParams.scenarioId}`),
+                authGet(`/api/initiatives?portfolioId=${resolvedParams.id}`)
             ]);
 
             const [portfolioData, scenarioData, initiativesData] = await Promise.all([
@@ -156,10 +155,8 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
 
             const timeout = setTimeout(async () => {
                 try {
-                    await fetch(`/api/scenarios/${resolvedParams.scenarioId}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ assumptions: value }),
+                    await authPatch(`/api/scenarios/${resolvedParams.scenarioId}`, {
+                        assumptions: value
                     });
                 } catch (error) {
                     console.error('Error saving assumptions:', error);
@@ -186,10 +183,7 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
         }
 
         try {
-            const response = await fetch(`/api/scenarios/${resolvedParams.scenarioId}/finalize`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            });
+            const response = await authPost(`/api/scenarios/${resolvedParams.scenarioId}/finalize`, {});
 
             const result = await response.json();
 
@@ -209,13 +203,9 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
 
     const handleCreateScenario = async (scenarioData: { name: string; assumptions: string }) => {
         try {
-            const response = await fetch('/api/scenarios', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    portfolioId: resolvedParams.id,
-                    ...scenarioData
-                }),
+            const response = await authPost('/api/scenarios', {
+                portfolioId: resolvedParams.id,
+                ...scenarioData
             });
 
             const result = await response.json();

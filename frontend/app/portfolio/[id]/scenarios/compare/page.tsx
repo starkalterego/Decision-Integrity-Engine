@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
+import { authGet } from '@/lib/api';
 
 interface Portfolio {
     id: string;
@@ -38,8 +39,8 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
         try {
             // Load portfolio and scenarios in parallel
             const [portfolioRes, scenariosRes] = await Promise.all([
-                fetch(`/api/portfolios/${resolvedParams.id}`),
-                fetch(`/api/scenarios?portfolioId=${resolvedParams.id}`)
+                authGet(`/api/portfolios/${resolvedParams.id}`),
+                authGet(`/api/scenarios?portfolioId=${resolvedParams.id}`)
             ]);
 
             const [portfolioData, scenariosData] = await Promise.all([
@@ -109,7 +110,7 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
 
     const calculateBaselineMetrics = async (portfolioId: string): Promise<ScenarioMetrics> => {
         try {
-            const response = await fetch(`/api/portfolios/${portfolioId}/baseline`);
+            const response = await authGet(`/api/portfolios/${portfolioId}/baseline`);
             const result = await response.json();
 
             if (result.success) {

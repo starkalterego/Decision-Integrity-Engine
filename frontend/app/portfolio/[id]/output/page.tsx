@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
+import { authGet } from '@/lib/api';
 
 interface Initiative {
     id: string;
@@ -116,7 +117,7 @@ export default function ExecutiveOutputPage({
         try {
             setIsLoading(true);
             setError(null);
-            const res = await fetch(`/api/scenarios?portfolioId=${resolvedParams.id}`);
+            const res = await authGet(`/api/scenarios?portfolioId=${resolvedParams.id}`);
             const result = await res.json();
 
             console.log('Scenarios loaded:', result);
@@ -147,7 +148,7 @@ export default function ExecutiveOutputPage({
         try {
             setIsLoading(true);
             setError(null);
-            const res = await fetch(`/api/scenarios/${scenarioId}/executive-summary`);
+            const res = await authGet(`/api/scenarios/${scenarioId}/executive-summary`);
             const result = await res.json();
 
             console.log('Executive summary response:', result);

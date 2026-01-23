@@ -6,6 +6,7 @@ import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { authGet, authPost } from '@/lib/api';
 
 interface Initiative {
     id: string;
@@ -48,8 +49,8 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
         try {
             // Load portfolio and initiatives in parallel (faster)
             const [portfolioRes, initiativesRes] = await Promise.all([
-                fetch(`/api/portfolios/${resolvedParams.id}`),
-                fetch(`/api/initiatives?portfolioId=${resolvedParams.id}`)
+                authGet(`/api/portfolios/${resolvedParams.id}`),
+                authGet(`/api/initiatives?portfolioId=${resolvedParams.id}`)
             ]);
 
             const [portfolioData, initiativesData] = await Promise.all([
@@ -84,13 +85,9 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
 
     const handleSaveInitiative = async (initiativeData: InitiativeFormData) => {
         try {
-            const response = await fetch('/api/initiatives', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    portfolioId: resolvedParams.id,
-                    ...initiativeData
-                }),
+            const response = await authPost('/api/initiatives', {
+                portfolioId: resolvedParams.id,
+                ...initiativeData
             });
 
             const result = await response.json();

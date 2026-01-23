@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { authGet, authPatch } from '@/lib/api';
+import { authGet, authPatch, authPost } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import Header from '@/components/layout/Header';
 
@@ -149,14 +149,40 @@ export default function DashboardPage() {
 
     // Non-admin view (Portfolio Lead)
     if (!isAdmin) {
+        const handleCreatePortfolio = async () => {
+            try {
+                // Create portfolio with default values
+                const response = await authPost('/api/portfolios', {
+                    name: 'New Portfolio',
+                    fiscalPeriod: 'FY26',
+                    totalBudget: 10000000,
+                    totalCapacity: 100
+                });
+                if (response.ok) {
+                    const result = await response.json();
+                    router.push(`/portfolio/${result.data.portfolioId}/setup`);
+                }
+            } catch (error) {
+                console.error('Failed to create portfolio:', error);
+            }
+        };
+
         return (
             <>
                 <Header currentPage="dashboard" />
                 <div className="min-h-screen" style={{ backgroundColor: '#0a0f1a' }}>
                     <div className="max-w-7xl mx-auto px-6 py-8">
-                    <div className="mb-8">
-                        <h1 className="text-2xl font-semibold text-gray-100 mb-1">Portfolio Dashboard</h1>
-                        <p className="text-sm text-gray-500">Manage your portfolio decisions and scenarios</p>
+                    <div className="mb-8 flex items-center justify-between">
+                        <div>
+                            <h1 className="text-2xl font-semibold text-gray-100 mb-1">Portfolio Dashboard</h1>
+                            <p className="text-sm text-gray-500">Manage your portfolio decisions and scenarios</p>
+                        </div>
+                        <button
+                            onClick={handleCreatePortfolio}
+                            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors"
+                        >
+                            Create Portfolio
+                        </button>
                     </div>
 
                     <div className="space-y-6">
@@ -201,19 +227,17 @@ export default function DashboardPage() {
                             </div>
                         ) : (
                             <div className="bg-[#0f1419] border border-gray-800 rounded p-12 text-center">
-                                <p className="text-gray-500 mb-4">No portfolios found</p>
-                                <Button 
-                                    onClick={async () => {
-                                        const response = await authGet('/api/portfolios', { method: 'POST' });
-                                        if (response.ok) {
-                                            const result = await response.json();
-                                            router.push(`/portfolio/${result.data.portfolioId}/setup`);
-                                        }
-                                    }}
-                                    variant="primary"
+                                <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <h3 className="text-lg font-medium text-gray-300 mb-2">No Portfolios Yet</h3>
+                                <p className="text-gray-500 mb-6">Get started by creating your first portfolio</p>
+                                <button
+                                    onClick={handleCreatePortfolio}
+                                    className="px-6 py-3 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors"
                                 >
-                                    Create Portfolio
-                                </Button>
+                                    Create Your First Portfolio
+                                </button>
                             </div>
                         )}
                     </div>

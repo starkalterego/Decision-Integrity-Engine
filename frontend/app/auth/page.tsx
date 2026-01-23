@@ -1,15 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 
 export default function AuthPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
 
     // Login form state
     const [loginData, setLoginData] = useState({
@@ -51,164 +49,90 @@ export default function AuthPage() {
     };
 
     return (
-        <div 
-            className="min-h-screen flex items-center justify-center px-4 py-12"
-            style={{ backgroundColor: 'var(--bg-primary)' }}
-        >
-            {/* Background Pattern */}
-            <div className="absolute inset-0 bg-linear-to-br from-neutral-100 via-white to-neutral-100 opacity-50"></div>
-
-            {/* Auth Card */}
-            <div className="relative w-full max-w-md">
-                {/* Logo/Brand */}
+        <div className="min-h-screen flex items-center justify-center bg-gray-950 px-4">
+            <div className="w-full max-w-md">
+                {/* Header */}
                 <div className="text-center mb-8">
-                    <Link href="/" className="inline-block">
-                        <h1 
-                            className="text-3xl font-bold tracking-tight"
-                            style={{ 
-                                color: 'var(--accent-primary)',
-                                textShadow: '0 0 25px rgba(0, 217, 255, 0.4)'
-                            }}
-                        >
-                            Decision Integrity Engine
-                        </h1>
-                        <p 
-                            className="text-sm mt-2 tracking-wide uppercase font-medium"
-                            style={{ color: 'var(--text-tertiary)' }}
-                        >
-                            Portfolio Governance Platform
-                        </p>
-                    </Link>
+                    <h1 className="text-2xl font-semibold text-white mb-1">
+                        Decision Integrity Engine
+                    </h1>
+                    <p className="text-sm text-gray-400 uppercase tracking-wider">
+                        Portfolio Governance Platform
+                    </p>
                 </div>
 
-                {/* Auth Card */}
-                <div 
-                    className="rounded-xl shadow-lg overflow-hidden"
-                    style={{ 
-                        backgroundColor: 'var(--bg-secondary)',
-                        border: '1px solid var(--border-default)',
-                        boxShadow: '0 0 30px rgba(0, 217, 255, 0.1)'
-                    }}
-                >
-                    {/* Header */}
-                    <div 
-                        className="py-6 px-8 text-center"
-                        style={{ borderBottom: '1px solid var(--border-default)' }}
-                    >
-                        <h2 
-                            className="text-xl font-bold"
-                            style={{ color: 'var(--text-primary)' }}
-                        >
-                            Secure Access
-                        </h2>
-                        <p 
-                            className="text-sm mt-1"
-                            style={{ color: 'var(--text-tertiary)' }}
-                        >
-                            Restricted to authorized personnel only
-                        </p>
+                {/* Login Card */}
+                <div className="bg-gray-900 border border-gray-800 rounded-lg">
+                    <div className="px-8 py-6 border-b border-gray-800">
+                        <h2 className="text-lg font-medium text-white">Secure Access</h2>
+                        <p className="text-sm text-gray-400 mt-1">Restricted to authorized personnel only</p>
                     </div>
 
-                    {/* Form Content */}
                     <div className="p-8">
-                        {/* Error Message */}
                         {error && (
-                            <div 
-                                className="mb-6 p-4 rounded-lg"
-                                style={{ 
-                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                    border: '1px solid rgba(239, 68, 68, 0.3)'
-                                }}
-                            >
-                                <p 
-                                    className="text-sm font-medium"
-                                    style={{ color: '#fca5a5' }}
-                                >
-                                    {error}
-                                </p>
+                            <div className="mb-6 p-3 bg-red-900/20 border border-red-900/50 rounded text-sm text-red-400">
+                                {error}
                             </div>
                         )}
 
-                        {/* Login Form */}
                         <form onSubmit={handleLogin} className="space-y-5">
                             <div>
-                                <label 
-                                    className="block text-sm font-semibold mb-2"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
+                                <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
                                     Email Address
                                 </label>
-                                <Input
+                                <input
+                                    id="email"
                                     type="email"
                                     value={loginData.email}
-                                    onChange={(e) =>
-                                        setLoginData({ ...loginData, email: e.target.value })
-                                    }
+                                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                                     placeholder="you@company.com"
                                     required
                                     disabled={isLoading}
+                                    className="w-full px-4 py-2.5 bg-gray-950 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 />
                             </div>
 
                             <div>
-                                <label 
-                                    className="block text-sm font-semibold mb-2"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
+                                <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
                                     Password
                                 </label>
-                                <Input
+                                <input
+                                    id="password"
                                     type="password"
                                     value={loginData.password}
-                                    onChange={(e) =>
-                                        setLoginData({ ...loginData, password: e.target.value })
-                                    }
-                                    placeholder="••••••••"
+                                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                                    placeholder="Enter your password"
                                     required
                                     disabled={isLoading}
+                                    className="w-full px-4 py-2.5 bg-gray-950 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 />
                             </div>
 
-                            <div className="flex items-center justify-between text-sm">
-                                <label 
-                                    className="flex items-center gap-2 cursor-pointer"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        className="w-4 h-4 rounded"
-                                        style={{ 
-                                            accentColor: 'var(--accent-primary)',
-                                            backgroundColor: 'var(--bg-tertiary)',
-                                            borderColor: 'var(--border-default)'
-                                        }}
-                                    />
-                                    <span>Remember me</span>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="remember"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    className="w-4 h-4 rounded border-gray-600 bg-gray-950 text-blue-600 focus:ring-0"
+                                />
+                                <label htmlFor="remember" className="ml-2 text-sm text-gray-400">
+                                    Remember me
                                 </label>
                             </div>
 
-                            <Button
+                            <button
                                 type="submit"
-                                className="w-full"
                                 disabled={isLoading}
+                                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded transition-colors disabled:bg-gray-700 disabled:cursor-not-allowed"
                             >
                                 {isLoading ? 'Signing in...' : 'Sign In'}
-                            </Button>
+                            </button>
                         </form>
 
-                        {/* Access Notice */}
-                        <div 
-                            className="mt-6 p-4 rounded-lg text-center"
-                            style={{ 
-                                backgroundColor: 'var(--bg-tertiary)',
-                                border: '1px solid var(--border-subtle)'
-                            }}
-                        >
-                            <p 
-                                className="text-xs"
-                                style={{ color: 'var(--text-tertiary)' }}
-                            >
-                                <strong>Restricted Access:</strong> Only pre-registered users with assigned roles can access this platform. 
+                        <div className="mt-6 pt-6 border-t border-gray-800">
+                            <p className="text-xs text-gray-500 leading-relaxed">
+                                Only pre-registered users with assigned roles can access this platform. 
                                 Contact your system administrator for access requests.
                             </p>
                         </div>
@@ -216,10 +140,8 @@ export default function AuthPage() {
                 </div>
 
                 {/* Footer */}
-                <div className="text-center mt-6 text-xs" style={{ color: 'var(--text-muted)' }}>
-                    <p>
-                        Authorized Roles: Portfolio Lead • Executive • PMO
-                    </p>
+                <div className="mt-6 text-center text-xs text-gray-600">
+                    <p>Authorized Roles: Portfolio Lead • Executive • PMO</p>
                 </div>
             </div>
         </div>

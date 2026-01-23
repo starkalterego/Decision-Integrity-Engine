@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { authGet } from '@/lib/api';
 
 interface Initiative {
     id: string;
@@ -133,7 +134,7 @@ export default function ExecutiveOnePagerPage({
 
     const loadExecutiveSummary = async () => {
         try {
-            const res = await fetch(`/api/scenarios/${resolvedParams.scenarioId}/executive-summary`);
+            const res = await authGet(`/api/scenarios/${resolvedParams.scenarioId}/executive-summary`);
             const result = await res.json();
 
             if (!result.success) {

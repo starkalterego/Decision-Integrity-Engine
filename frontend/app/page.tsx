@@ -23,6 +23,12 @@ export default function HomePage() {
   const [isCreating, setIsCreating] = useState(false);
 
   const fetchPortfolios = useCallback(async () => {
+    // Redirect to dashboard if authenticated
+    if (user) {
+      router.push('/dashboard');
+      return;
+    }
+    
     try {
       const response = await authGet('/api/portfolios', {
         cache: 'no-store' // Ensure fresh data
@@ -36,7 +42,7 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user, router]);
 
   useEffect(() => {
     fetchPortfolios();

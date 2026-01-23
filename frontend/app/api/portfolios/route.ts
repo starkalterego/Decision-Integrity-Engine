@@ -97,20 +97,41 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Fetch only portfolios owned by the authenticated user
+        // Fetch portfolios based on role
+        // PMO and Executive can see all portfolios, others see only their own
+        const where = (user.role === 'PMO' || user.role === 'EXECUTIVE') 
+            ? {} 
+            : { userId: user.userId };
+
         const portfolios = await prisma.portfolio.findMany({
-            where: {
-                userId: user.userId
-            },
+            where,
             include: {
-                initiatives: true,
-                scenarios: true
+                user: {
+                    select: {
+                        name: true,
+                        email: true
+                    }
+                },
+                _count: {
+                    select: {
+                        initiatives: true,
+                        scenarios: true
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
             }
         });
 
         return NextResponse.json({
             success: true,
-            data: portfolios,
+            data: portfolios.map(p => ({
+                ...p,
+                owner: p.user.name,
+                ownerEmail: p.user.email,
+                user: undefined // Remove user object from response
+            })),
             errors: []
         });
 

@@ -37,6 +37,18 @@ export async function POST(request: NextRequest) {
             }, { status: 401 });
         }
 
+        // Check if user account is active
+        if (!user.isActive) {
+            return NextResponse.json({
+                success: false,
+                data: null,
+                errors: [{
+                    code: 'ACCOUNT_INACTIVE',
+                    message: 'Your account has been deactivated. Please contact your system administrator for assistance.'
+                }]
+            }, { status: 403 });
+        }
+
         // Verify password
         const isValidPassword = await bcrypt.compare(password, user.passwordHash);
 

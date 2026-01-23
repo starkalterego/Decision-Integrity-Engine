@@ -18,6 +18,7 @@ model User {
   email         String    @unique
   passwordHash  String
   role          String    @default("PORTFOLIO_LEAD") // PORTFOLIO_LEAD | EXECUTIVE | PMO
+  isActive      Boolean   @default(true) // For account activation/deactivation control
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   lastLoginAt   DateTime?

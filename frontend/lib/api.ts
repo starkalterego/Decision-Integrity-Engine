@@ -68,3 +68,18 @@ export async function authDelete(url: string, options: RequestInit = {}): Promis
     method: 'DELETE',
   });
 }
+
+/**
+ * Makes an authenticated PATCH request with JSON body
+ */
+export async function authPatch(url: string, data: unknown, options: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(options.headers);
+  headers.set('Content-Type', 'application/json');
+  
+  return authFetch(url, {
+    ...options,
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify(data),
+  });
+}

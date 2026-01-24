@@ -21,12 +21,14 @@ export async function authFetch(url: string, options: RequestInit = {}): Promise
 
   // Handle authentication errors
   if (response.status === 401 || response.status === 403) {
-    // Clear token and redirect to login
+    // Clear all auth data
     localStorage.removeItem('authToken');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userRole');
     
-    // Only redirect if not already on login page
-    if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-      window.location.href = '/login';
+    // Only redirect if not already on auth page
+    if (typeof window !== 'undefined' && !window.location.pathname.includes('/auth')) {
+      window.location.href = '/auth';
     }
   }
 

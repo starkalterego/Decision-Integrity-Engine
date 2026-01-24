@@ -6,7 +6,7 @@ import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { authGet, authPost } from '@/lib/api';
+import { authGet, authPost, authPut } from '@/lib/api';
 import showToast from '@/lib/toast';
 
 interface Initiative {
@@ -86,17 +86,25 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
 
     const handleSaveInitiative = async (initiativeData: InitiativeFormData) => {
         try {
-            const response = await authPost('/api/initiatives', {
-                portfolioId: resolvedParams.id,
-                ...initiativeData
-            });
+            let response;
+            
+            if (editingId) {
+                // Update existing initiative
+                response = await authPut(`/api/initiatives/${editingId}`, initiativeData);
+            } else {
+                // Create new initiative
+                response = await authPost('/api/initiatives', {
+                    portfolioId: resolvedParams.id,
+                    ...initiativeData
+                });
+            }
 
             const result = await response.json();
 
             if (result.success) {
                 await loadData(); // Reload initiatives
                 setShowModal(false);
-                showToast.success('Initiative saved successfully');
+                showToast.success(editingId ? 'Initiative updated successfully' : 'Initiative created successfully');
             } else {
                 showToast.error(result.errors[0]?.message || 'Failed to save initiative');
             }

@@ -1,7 +1,12 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
-const fs = require('fs');
-const path = require('path');
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Load environment variables from .env.local
 const envPath = path.join(__dirname, '..', '.env.local');

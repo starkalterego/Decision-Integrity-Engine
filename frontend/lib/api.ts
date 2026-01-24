@@ -4,6 +4,7 @@
 
 /**
  * Makes an authenticated fetch request with the JWT token from localStorage
+ * Automatically handles 401/403 responses by redirecting to login
  */
 export async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const token = localStorage.getItem('authToken');
@@ -13,10 +14,23 @@ export async function authFetch(url: string, options: RequestInit = {}): Promise
     headers.set('Authorization', `Bearer ${token}`);
   }
   
-  return fetch(url, {
+  const response = await fetch(url, {
     ...options,
     headers,
   });
+
+  // Handle authentication errors
+  if (response.status === 401 || response.status === 403) {
+    // Clear token and redirect to login
+    localStorage.removeItem('authToken');
+    
+    // Only redirect if not already on login page
+    if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+      window.location.href = '/login';
+    }
+  }
+
+  return response;
 }
 
 /**

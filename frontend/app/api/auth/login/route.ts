@@ -2,11 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+import env from '@/lib/env';
+import { checkRateLimit, getClientIdentifier, rateLimitConfigs } from '@/lib/rateLimit';
 
 export async function POST(request: NextRequest) {
     try {
+        // Rate limiting check
+        const clientId = getClientIdentifier(request);
+        const rateLimit = checkRateLimit(clientId, rateLimitConfigs.login);
+        
+        if (!rateLimit.allowed) {
+            const retryAfter = Math.ceil((rateLimit.resetTime - Date.now()) / 1000);
+            return NextResponse.json({
+                success: false,
+                data: null,
+                errors: [{
+                    code: 'RATE_LIMIT_EXCEEDED',
+                    message: `Too many login attempts. Please try again in ${retryAfter} seconds.`
+                }]
+            }, { 
+                status: 429,
+                headers: {
+                    'Retry-After': retryAfter.toString(),
+                    'X-RateLimit-Limit': rateLimitConfigs.login.maxRequests.toString(),
+                    'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+                    'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString()
+                }
+            });
+        }
+
         const { email, password } = await request.json();
 
         // Validation
@@ -70,7 +94,7 @@ export async function POST(request: NextRequest) {
                 email: user.email,
                 role: user.role,
             },
-            JWT_SECRET,
+            env.JWT_SECRET,
             { expiresIn: '7d' }
         );
 

@@ -42,6 +42,10 @@ model Portfolio {
   initiatives   Initiative[]
   scenarios     Scenario[]
   governanceRecords GovernanceDecisionRecord[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 // Initiative - Atomic unit of decision-making (BACKEND.md lines 54-58)
@@ -63,6 +67,10 @@ model Initiative {
   portfolio               Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
   capacityDemands         CapacityDemand[]
   scenarioDecisions       ScenarioDecision[]
+
+  @@index([portfolioId])
+  @@index([priorityScore])
+  @@index([isComplete])
 }
 
 // Capacity Demand - Role-based capacity requirements
@@ -73,6 +81,8 @@ model CapacityDemand {
   units        Int
   
   initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+
+  @@index([initiativeId])
 }
 
 // Scenario - Clone of baseline portfolio state (BACKEND.md lines 60-64)
@@ -89,6 +99,10 @@ model Scenario {
   
   portfolio     Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
   decisions     ScenarioDecision[]
+
+  @@index([portfolioId])
+  @@index([isFinalized])
+  @@index([isRecommended])
 }
 
 // Scenario Decision - Fund/Pause/Stop per initiative
@@ -117,4 +131,8 @@ model GovernanceDecisionRecord {
   createdAt   DateTime @default(now())
   
   portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@index([portfolioId])
+  @@index([actionType])
+  @@index([createdAt])
 }

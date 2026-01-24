@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { authGet, authPost } from '@/lib/api';
+import showToast from '@/lib/toast';
 
 interface Portfolio {
   id: string;
@@ -70,12 +71,12 @@ export default function HomePage() {
       } else {
         console.error('Failed to create portfolio:', result.errors);
         const errorMessage = result.errors?.[0]?.message || 'Failed to create portfolio';
-        alert(`Error: ${errorMessage}`);
+        showToast.error(errorMessage);
         setIsCreating(false);
       }
     } catch (error) {
       console.error('Failed to create portfolio:', error);
-      alert('Failed to create portfolio. Please try again.');
+      showToast.error('Failed to create portfolio. Please try again.');
       setIsCreating(false);
     }
   }, [isCreating, router]);

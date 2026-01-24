@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+import env from '@/lib/env';
 
 export async function GET(request: NextRequest) {
     try {
@@ -23,7 +22,7 @@ export async function GET(request: NextRequest) {
         const token = authHeader.substring(7);
 
         // Verify token
-        const decoded = jwt.verify(token, JWT_SECRET) as {
+        const decoded = jwt.verify(token, env.JWT_SECRET) as {
             userId: string;
             email: string;
             role: string;

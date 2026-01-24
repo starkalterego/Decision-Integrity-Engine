@@ -1,7 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { NextRequest } from 'next/server';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+import env from './env';
 
 export interface AuthUser {
     userId: string;
@@ -14,7 +13,7 @@ export interface AuthUser {
  */
 export function verifyToken(token: string): AuthUser | null {
     try {
-        const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
+        const decoded = jwt.verify(token, env.JWT_SECRET) as AuthUser;
         return decoded;
     } catch (error) {
         console.error('Token verification failed:', error);

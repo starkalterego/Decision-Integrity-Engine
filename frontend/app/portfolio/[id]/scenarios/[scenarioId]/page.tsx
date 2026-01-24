@@ -560,6 +560,7 @@ function DecisionToggle({
                 if (isSelected) {
                     if (option === 'FUND') { bg = 'var(--accent-success)'; color = '#000000'; }
                     else if (option === 'STOP') { bg = 'var(--accent-error)'; color = '#ffffff'; }
+                    else if (option === 'PAUSE') { bg = '#fbbf24'; color = '#000000'; } // Yellow for PAUSE
                     else { bg = 'var(--bg-elevated)'; color = 'var(--text-primary)'; }
                 }
 

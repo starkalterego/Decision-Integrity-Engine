@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { authGet } from '@/lib/api';
+import { authGet, authPost } from '@/lib/api';
 import Header from '@/components/layout/Header';
+import showToast from '@/lib/toast';
 
 interface Portfolio {
     id: string;
@@ -105,12 +106,49 @@ export default function ExecutiveDashboard() {
         }
     };
 
-    const handleApprove = () => {
-        alert('Decision approved and locked');
+    const handleApprove = async () => {
+        if (!portfolio) return;
+
+        try {
+            const response = await authPost(`/api/portfolios/${portfolio.id}/approve`, {});
+            const result = await response.json();
+
+            if (result.success) {
+                showToast.success('Portfolio approved and locked successfully');
+                // Reload data to show locked status
+                await loadData();
+            } else {
+                showToast.error(result.errors[0]?.message || 'Failed to approve portfolio');
+            }
+        } catch (error) {
+            console.error('Error approving portfolio:', error);
+            showToast.error('Failed to approve portfolio');
+        }
     };
 
-    const handleRequestRevision = () => {
-        alert('Revision requested');
+    const handleRequestRevision = async () => {
+        if (!portfolio) return;
+
+        // In production, this would open a dialog to collect revision comments
+        const comments = prompt('Please provide revision comments:');
+        if (!comments) return;
+
+        try {
+            const response = await authPost(`/api/portfolios/${portfolio.id}/revision`, {
+                comments
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                showToast.success('Revision request submitted successfully');
+                // In production, this would notify the portfolio owner
+            } else {
+                showToast.error(result.errors[0]?.message || 'Failed to request revision');
+            }
+        } catch (error) {
+            console.error('Error requesting revision:', error);
+            showToast.error('Failed to request revision');
+        }
     };
 
     if (loading) {

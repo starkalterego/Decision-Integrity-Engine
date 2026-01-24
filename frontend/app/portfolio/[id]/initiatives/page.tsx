@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { authGet, authPost } from '@/lib/api';
+import showToast from '@/lib/toast';
 
 interface Initiative {
     id: string;
@@ -67,7 +68,7 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
             }
         } catch (error) {
             console.error('Error loading data:', error);
-            alert('Failed to load data');
+            showToast.error('Failed to load portfolio data');
         } finally {
             setIsLoading(false);
         }
@@ -95,13 +96,13 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
             if (result.success) {
                 await loadData(); // Reload initiatives
                 setShowModal(false);
-                alert('Initiative saved successfully');
+                showToast.success('Initiative saved successfully');
             } else {
-                alert('Failed to save initiative: ' + (result.errors[0]?.message || 'Unknown error'));
+                showToast.error(result.errors[0]?.message || 'Failed to save initiative');
             }
         } catch (error) {
             console.error('Error saving initiative:', error);
-            alert('Failed to save initiative');
+            showToast.error('Failed to save initiative');
         }
     };
 
@@ -561,7 +562,7 @@ function InitiativeModal({
 
     const handleSave = async () => {
         if (!isFormValid()) {
-            alert('Please fill in all required fields correctly');
+            showToast.warning('Please fill in all required fields correctly');
             return;
         }
 

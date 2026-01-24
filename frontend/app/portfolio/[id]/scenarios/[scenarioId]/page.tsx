@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import showToast from '@/lib/toast';
 import { authGet, authPost, authPatch } from '@/lib/api';
 
 interface Initiative {
@@ -140,12 +141,12 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                             setAssumptions('');
                             setIsFinalized(false);
                         } else {
-                            alert('Failed to create scenario: ' + (createResult.errors[0]?.message || 'Unknown error'));
+                            showToast.error(createResult.errors[0]?.message || 'Failed to create scenario');
                         }
                     }
                 } catch (createError) {
                     console.error('Error creating scenario:', createError);
-                    alert('Failed to create scenario');
+                    showToast.error('Failed to create scenario');
                 }
             } else if (scenarioData.success) {
                 setScenario(scenarioData.data);
@@ -176,7 +177,7 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
             }
         } catch (error) {
             console.error('Error loading data:', error);
-            alert('Failed to load scenario data');
+            showToast.error('Failed to load scenario data');
         } finally {
             setIsLoading(false);
         }
@@ -222,13 +223,13 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
     const handleFinalize = async () => {
         // Validation per decision-logic.md lines 150-156
         if (!assumptions || assumptions.trim() === '') {
-            alert('Cannot finalize: Scenario assumptions are mandatory per governance rules. Please document the premise of this scenario.');
+            showToast.error('Cannot finalize: Scenario assumptions are mandatory per governance rules. Please document the premise of this scenario.');
             return;
         }
 
         // Validation per BACKEND.md lines 134-137: Capacity enforcement
         if (isOverCapacity) {
-            alert(`Cannot finalize: Capacity constraint breached. Total capacity demand (${totalCapacity}) exceeds limit (${portfolio?.totalCapacity}). Please adjust initiative decisions.`);
+            showToast.error(`Cannot finalize: Capacity constraint breached. Total capacity demand (${totalCapacity}) exceeds limit (${portfolio?.totalCapacity}). Please adjust initiative decisions.`);
             return;
         }
 
@@ -240,13 +241,13 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
 
             if (result.success) {
                 setIsFinalized(true);
-                alert('Scenario finalized successfully. It is now immutable and ready for comparison.');
+                showToast.success('Scenario finalized successfully. It is now immutable and ready for comparison.');
             } else {
-                alert('Failed to finalize: ' + (result.errors[0]?.message || 'Unknown error'));
+                showToast.error(result.errors[0]?.message || 'Failed to finalize scenario');
             }
         } catch (error) {
             console.error('Error finalizing scenario:', error);
-            alert('Failed to finalize scenario');
+            showToast.error('Failed to finalize scenario');
         } finally {
             setIsSaving(false);
         }
@@ -262,14 +263,14 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
             const result = await response.json();
 
             if (result.success) {
-                alert(`Scenario "${scenarioData.name}" created successfully!`);
+                showToast.success(`Scenario "${scenarioData.name}" created successfully!`);
                 router.push(`/portfolio/${resolvedParams.id}/scenarios/${result.data.id}`);
             } else {
-                alert('Failed to create scenario: ' + (result.errors[0]?.message || 'Unknown error'));
+                showToast.error(result.errors[0]?.message || 'Failed to create scenario');
             }
         } catch (error) {
             console.error('Error creating scenario:', error);
-            alert('Failed to create scenario');
+            showToast.error('Failed to create scenario');
         }
     };
 

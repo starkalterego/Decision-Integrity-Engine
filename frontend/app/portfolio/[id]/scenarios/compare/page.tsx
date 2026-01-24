@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { authGet } from '@/lib/api';
+import showToast from '@/lib/toast';
 
 interface Portfolio {
     id: string;
@@ -102,7 +103,7 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
             }
         } catch (error) {
             console.error('Error loading data:', error);
-            alert('Failed to load comparison data');
+            showToast.error('Failed to load comparison data');
         } finally {
             setIsLoading(false);
         }

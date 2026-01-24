@@ -94,14 +94,31 @@ export async function GET(
             ? fundedInitiatives.reduce((sum: number, init: any) => sum + init.riskScore, 0) / fundedInitiatives.length
             : 0;
 
-        // Get baseline metrics
-        const baselineRes = await fetch(`${request.nextUrl.origin}/api/portfolios/${scenario.portfolioId}/baseline`);
-        const baselineData = await baselineRes.json();
-        const baseline = baselineData.success ? baselineData.data : {
-            totalValue: 0,
-            initiativeCount: 0,
-            capacityUtilization: 0,
-            riskExposure: 0
+        // Get baseline metrics by querying all initiatives directly
+        const allInitiativesForBaseline = await prisma.initiative.findMany({
+            where: {
+                portfolioId: scenario.portfolioId,
+                isComplete: true
+            },
+            include: {
+                capacityDemands: true
+            }
+        });
+
+        const baselineTotalValue = allInitiativesForBaseline.reduce((sum: number, init: any) => sum + init.estimatedValue, 0);
+        const baselineTotalCapacity = allInitiativesForBaseline.reduce((sum: number, init: any) => {
+            return sum + init.capacityDemands.reduce((s: number, cd: any) => s + cd.units, 0);
+        }, 0);
+        const baselineCapacityUtilization = baselineTotalCapacity / scenario.portfolio.totalCapacity;
+        const baselineRiskExposure = allInitiativesForBaseline.length > 0
+            ? allInitiativesForBaseline.reduce((sum: number, init: any) => sum + init.riskScore, 0) / allInitiativesForBaseline.length
+            : 0;
+
+        const baseline = {
+            totalValue: baselineTotalValue,
+            initiativeCount: allInitiativesForBaseline.length,
+            capacityUtilization: baselineCapacityUtilization,
+            riskExposure: baselineRiskExposure
         };
 
         // Calculate deltas

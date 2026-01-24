@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { authGet, authPost } from '@/lib/api';
+import showToast from '@/lib/toast';
 
 export default function PortfolioSetupPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -50,7 +51,7 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
             }
         } catch (error) {
             console.error('Error loading portfolio:', error);
-            alert('Failed to load portfolio');
+            showToast.error('Failed to load portfolio');
         } finally {
             setIsLoading(false);
         }
@@ -100,15 +101,15 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
 
             if (result.success) {
                 setPortfolioId(result.data.portfolioId);
-                alert('Portfolio draft saved successfully');
+                showToast.success('Portfolio draft saved successfully');
                 // Navigate to the portfolio page
                 router.push(`/portfolio/${result.data.portfolioId}/setup`);
             } else {
-                alert('Failed to save portfolio: ' + (result.errors[0]?.message || 'Unknown error'));
+                showToast.error(result.errors[0]?.message || 'Failed to save portfolio');
             }
         } catch (error) {
             console.error('Error saving portfolio:', error);
-            alert('Failed to save portfolio');
+            showToast.error('Failed to save portfolio');
         } finally {
             setIsSaving(false);
         }
@@ -128,13 +129,13 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
             // In MVP, we just set the status to LOCKED
             // In production, this would be a separate API endpoint
             setIsLocked(true);
-            alert('Portfolio locked successfully. Cannot be edited once scenarios exist.');
+            showToast.success('Portfolio locked successfully. Cannot be edited once scenarios exist.');
 
             // Navigate to initiatives page
             router.push(`/portfolio/${portfolioId}/initiatives`);
         } catch (error) {
             console.error('Error locking portfolio:', error);
-            alert('Failed to lock portfolio');
+            showToast.error('Failed to lock portfolio');
         } finally {
             setIsSaving(false);
         }

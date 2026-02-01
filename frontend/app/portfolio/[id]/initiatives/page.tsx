@@ -135,13 +135,13 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
             >
                 <div className="text-center">
                     <div 
-                        className="animate-spin rounded-full h-12 w-12 border-4 mx-auto mb-4"
+                        className="animate-spin rounded-full h-14 w-14 border-4 mx-auto mb-5"
                         style={{ 
-                            borderColor: '#1e293b',
-                            borderTopColor: '#00d9ff'
+                            borderColor: 'var(--border-subtle)',
+                            borderTopColor: 'var(--accent-primary)'
                         }}
                     />
-                    <p style={{ color: 'var(--text-secondary)' }}>Loading initiatives...</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Loading initiatives...</p>
                 </div>
             </div>
         );
@@ -184,10 +184,11 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
                 {/* Enhanced Summary Cards */}
                 <div className="grid grid-cols-3 gap-6 mb-10">
                     <div 
-                        className="card p-6"
+                        className="rounded-xl p-6"
                         style={{ 
                             backgroundColor: 'var(--bg-secondary)',
-                            border: '1px solid var(--border-default)'
+                            border: '1px solid var(--border-default)',
+                            boxShadow: 'var(--shadow-md)'
                         }}
                     >
                         <p 
@@ -204,11 +205,12 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
                         </p>
                     </div>
                     <div 
-                        className="card p-6"
+                        className="rounded-xl p-6"
                         style={{ 
                             backgroundColor: 'var(--bg-secondary)',
                             border: '1px solid var(--border-default)',
-                            borderLeft: '4px solid var(--accent-success)'
+                            borderLeft: '4px solid var(--accent-success)',
+                            boxShadow: 'var(--shadow-md)'
                         }}
                     >
                         <p 
@@ -231,11 +233,12 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
                         </p>
                     </div>
                     <div 
-                        className="card p-6"
+                        className="rounded-xl p-6"
                         style={{ 
                             backgroundColor: 'var(--bg-secondary)',
                             border: '1px solid var(--border-default)',
-                            borderLeft: '4px solid var(--accent-error)'
+                            borderLeft: '4px solid var(--accent-error)',
+                            boxShadow: 'var(--shadow-md)'
                         }}
                     >
                         <p 
@@ -260,35 +263,50 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
                 </div>
 
                 {/* Enhanced Filter Bar */}
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex gap-2">
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex gap-3">
                         <button
                             onClick={() => setFilterStatus('all')}
-                            className={`px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'all'
-                                ? 'bg-neutral-900 text-white'
-                                : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+                            className={`px-5 py-2.5 text-sm font-semibold transition-all duration-200 rounded-lg ${filterStatus === 'all'
+                                ? ''
+                                : ''
                                 }`}
-                            style={{ borderRadius: '2px' }}
+                            style={{ 
+                                backgroundColor: filterStatus === 'all' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                                color: filterStatus === 'all' ? 'var(--accent-primary-text)' : 'var(--text-secondary)',
+                                border: filterStatus === 'all' ? 'none' : '1px solid var(--border-default)',
+                                boxShadow: filterStatus === 'all' ? 'var(--shadow-sm)' : 'none'
+                            }}
                         >
                             All ({initiatives.length})
                         </button>
                         <button
                             onClick={() => setFilterStatus('complete')}
-                            className={`px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'complete'
-                                ? 'bg-neutral-900 text-white'
-                                : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+                            className={`px-5 py-2.5 text-sm font-semibold transition-all duration-200 rounded-lg ${filterStatus === 'complete'
+                                ? ''
+                                : ''
                                 }`}
-                            style={{ borderRadius: '2px' }}
+                            style={{ 
+                                backgroundColor: filterStatus === 'complete' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                                color: filterStatus === 'complete' ? 'var(--accent-primary-text)' : 'var(--text-secondary)',
+                                border: filterStatus === 'complete' ? 'none' : '1px solid var(--border-default)',
+                                boxShadow: filterStatus === 'complete' ? 'var(--shadow-sm)' : 'none'
+                            }}
                         >
                             Complete ({completeCount})
                         </button>
                         <button
                             onClick={() => setFilterStatus('incomplete')}
-                            className={`px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'incomplete'
-                                ? 'bg-neutral-900 text-white'
-                                : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+                            className={`px-5 py-2.5 text-sm font-semibold transition-all duration-200 rounded-lg ${filterStatus === 'incomplete'
+                                ? ''
+                                : ''
                                 }`}
-                            style={{ borderRadius: '2px' }}
+                            style={{ 
+                                backgroundColor: filterStatus === 'incomplete' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                                color: filterStatus === 'incomplete' ? 'var(--accent-primary-text)' : 'var(--text-secondary)',
+                                border: filterStatus === 'incomplete' ? 'none' : '1px solid var(--border-default)',
+                                boxShadow: filterStatus === 'incomplete' ? 'var(--shadow-sm)' : 'none'
+                            }}
                         >
                             Incomplete ({incompleteCount})
                         </button>
@@ -297,10 +315,11 @@ export default function InitiativesPage({ params }: { params: Promise<{ id: stri
 
                 {/* Enhanced Initiatives Table */}
                 <div 
-                    className="card overflow-hidden"
+                    className="rounded-xl overflow-hidden"
                     style={{ 
                         backgroundColor: 'var(--bg-secondary)',
-                        border: '1px solid var(--border-default)'
+                        border: '1px solid var(--border-default)',
+                        boxShadow: 'var(--shadow-lg)'
                     }}
                 >
                     <table className="w-full">

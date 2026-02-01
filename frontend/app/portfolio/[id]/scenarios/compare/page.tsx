@@ -168,8 +168,14 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
         return (
             <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-900 mx-auto mb-4"></div>
-                    <p style={{ color: 'var(--text-secondary)' }}>Loading comparison...</p>
+                    <div 
+                        className="animate-spin rounded-full h-14 w-14 border-4 mx-auto mb-5"
+                        style={{ 
+                            borderColor: 'var(--border-subtle)',
+                            borderTopColor: 'var(--accent-primary)'
+                        }}
+                    />
+                    <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Loading comparison...</p>
                 </div>
             </div>
         );
@@ -195,11 +201,11 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
 
             <main className="max-w-7xl mx-auto px-6 py-8">
                 {/* Enhanced Page Header & Context */}
-                <div className="mb-8">
+                <div className="mb-10">
                     <div className="flex items-start justify-between gap-6">
                         <div>
-                            <h1 className="text-2xl font-bold tracking-tight mb-1" style={{ color: 'var(--text-primary)' }}>Scenario Comparison</h1>
-                            <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Enable explicit selection of the best scenario</p>
+                            <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>Scenario Comparison</h1>
+                            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Enable explicit selection of the best scenario</p>
                         </div>
                         {recommendedScenario && (
                             <div className="px-3 py-1.5 rounded-md font-semibold text-sm" style={{ backgroundColor: 'rgba(16, 185, 129, 0.2)', color: 'var(--accent-success)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
@@ -210,18 +216,19 @@ export default function ScenarioComparePage({ params }: { params: Promise<{ id: 
                 </div>
 
                 {/* Enhanced Scenario Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
                     {scenarios.map(scenario => (
                         <div
                             key={scenario.id}
-                            className="rounded-lg p-5 transition-all"
+                            className="rounded-xl p-6 transition-all"
                             style={{
                                 backgroundColor: scenario.id === 'baseline'
                                     ? 'var(--bg-tertiary)'
                                     : 'var(--bg-secondary)',
                                 border: scenario.isRecommended
                                     ? '2px solid var(--accent-success)'
-                                    : '1px solid var(--border-default)'
+                                    : '1px solid var(--border-default)',
+                                boxShadow: scenario.isRecommended ? 'var(--shadow-lg)' : 'var(--shadow-md)'
                             }}
                         >
                             <div className="flex items-start justify-between mb-3">

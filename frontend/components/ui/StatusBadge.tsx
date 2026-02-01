@@ -28,11 +28,11 @@ export function StatusBadge({ status, text, className = '' }: StatusBadgeProps) 
 
     return (
         <span 
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${className}`}
-            style={styles}
+            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${className}`}
+            style={{...styles, letterSpacing: '0.05em'}}
         >
             <span 
-                className="w-2 h-2 rounded-full"
+                className="w-2 h-2 rounded-full animate-pulse"
                 style={{ backgroundColor: status === 'green' ? 'var(--accent-success)' : 'var(--accent-error)' }} 
             />
             <span>{text}</span>

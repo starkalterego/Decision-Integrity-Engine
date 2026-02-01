@@ -188,8 +188,14 @@ export default function ExecutiveOutputPage({
                     <div className="text-center py-20">
                         {isLoading ? (
                             <>
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: 'var(--accent-primary)' }}></div>
-                                <p style={{ color: 'var(--text-secondary)' }}>Loading executive summary...</p>
+                                <div 
+                                    className="animate-spin rounded-full h-14 w-14 border-4 mx-auto mb-5"
+                                    style={{ 
+                                        borderColor: 'var(--border-subtle)',
+                                        borderTopColor: 'var(--accent-primary)'
+                                    }}
+                                />
+                                <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Loading executive summary...</p>
                             </>
                         ) : error ? (
                             <div>

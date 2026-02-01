@@ -25,11 +25,12 @@ export function Input({
                 </label>
             )}
             <input
-                className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${className}`}
+                className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:border-transparent ${className}`}
                 style={{
-                    backgroundColor: 'var(--bg-tertiary)',
+                    backgroundColor: 'var(--bg-elevated)',
                     color: 'var(--text-primary)',
                     borderColor: error ? 'var(--accent-error)' : 'var(--border-default)',
+                    boxShadow: 'var(--shadow-sm)'
                 }}
                 onFocus={(e) => {
                     if (!error) {
@@ -88,11 +89,12 @@ export function Textarea({
                 </label>
             )}
             <textarea
-                className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent resize-vertical ${className}`}
+                className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:border-transparent resize-none ${className}`}
                 style={{
-                    backgroundColor: 'var(--bg-tertiary)',
+                    backgroundColor: 'var(--bg-elevated)',
                     color: 'var(--text-primary)',
                     borderColor: error ? 'var(--accent-error)' : 'var(--border-default)',
+                    boxShadow: 'var(--shadow-sm)'
                 }}
                 onFocus={(e) => {
                     if (!error) {

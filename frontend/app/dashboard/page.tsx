@@ -172,51 +172,73 @@ export default function DashboardPage() {
                 <Header currentPage="dashboard" />
                 <div className="min-h-screen" style={{ backgroundColor: '#0a0f1a' }}>
                     <div className="max-w-7xl mx-auto px-6 py-8">
-                    <div className="mb-8 flex items-center justify-between">
+                    <div className="mb-10 flex items-center justify-between">
                         <div>
-                            <h1 className="text-2xl font-semibold text-gray-100 mb-1">Portfolio Dashboard</h1>
-                            <p className="text-sm text-gray-500">Manage your portfolio decisions and scenarios</p>
+                            <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>Portfolio Dashboard</h1>
+                            <p className="text-base" style={{ color: 'var(--text-secondary)' }}>Manage your portfolio decisions and scenarios</p>
                         </div>
                         <button
                             onClick={handleCreatePortfolio}
-                            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors"
+                            className="px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
+                            style={{ 
+                                backgroundColor: 'var(--accent-primary)',
+                                color: 'var(--accent-primary-text)',
+                                boxShadow: 'var(--shadow-md)'
+                            }}
                         >
-                            Create Portfolio
+                            + Create Portfolio
                         </button>
                     </div>
 
                     <div className="space-y-6">
                         {portfolios.length > 0 ? (
-                            <div className="bg-[#0f1419] border border-gray-800 rounded">
+                            <div className="rounded-xl overflow-hidden" style={{ 
+                                backgroundColor: 'var(--bg-secondary)',
+                                border: '1px solid var(--border-default)',
+                                boxShadow: 'var(--shadow-lg)'
+                            }}>
                                 <table className="w-full">
                                     <thead>
-                                        <tr className="border-b border-gray-800">
-                                            <th className="text-left px-6 py-3 text-xs font-medium text-gray-400 uppercase">Portfolio</th>
-                                            <th className="text-left px-6 py-3 text-xs font-medium text-gray-400 uppercase">Period</th>
-                                            <th className="text-left px-6 py-3 text-xs font-medium text-gray-400 uppercase">Status</th>
-                                            <th className="text-right px-6 py-3 text-xs font-medium text-gray-400 uppercase">Initiatives</th>
-                                            <th className="text-right px-6 py-3 text-xs font-medium text-gray-400 uppercase">Scenarios</th>
-                                            <th className="text-right px-6 py-3 text-xs font-medium text-gray-400 uppercase"></th>
+                                        <tr style={{ borderBottom: '1px solid var(--border-default)', backgroundColor: 'var(--bg-tertiary)' }}>
+                                            <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Portfolio</th>
+                                            <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Period</th>
+                                            <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Status</th>
+                                            <th className="text-right px-6 py-4 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Initiatives</th>
+                                            <th className="text-right px-6 py-4 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Scenarios</th>
+                                            <th className="text-right px-6 py-4 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {portfolios.map((portfolio) => (
-                                            <tr key={portfolio.id} className="border-b border-gray-800 hover:bg-[#14191f]">
-                                                <td className="px-6 py-4 text-sm font-medium text-gray-200">{portfolio.name}</td>
-                                                <td className="px-6 py-4 text-sm text-gray-400">{portfolio.fiscalPeriod}</td>
+                                            <tr 
+                                                key={portfolio.id} 
+                                                className="transition-colors duration-150 cursor-pointer group"
+                                                style={{ borderBottom: '1px solid var(--border-subtle)' }}
+                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--state-hover)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                            >
+                                                <td className="px-6 py-4 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{portfolio.name}</td>
+                                                <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-secondary)' }}>{portfolio.fiscalPeriod}</td>
                                                 <td className="px-6 py-4">
-                                                    <span className={`text-xs font-medium px-2 py-1 rounded ${
-                                                        portfolio.status === 'ACTIVE' ? 'bg-green-950 text-green-400' :
-                                                        portfolio.status === 'LOCKED' ? 'bg-yellow-950 text-yellow-400' :
-                                                        'bg-gray-800 text-gray-400'
-                                                    }`}>
+                                                    <span className={`text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wide ${
+                                                        portfolio.status === 'ACTIVE' ? 'bg-green-950/30 text-green-400 border border-green-900/50' :
+                                                        portfolio.status === 'LOCKED' ? 'bg-yellow-950/30 text-yellow-400 border border-yellow-900/50' :
+                                                        'border border-gray-700/50'
+                                                    }`} style={{ 
+                                                        backgroundColor: portfolio.status === 'DRAFT' ? 'var(--bg-tertiary)' : undefined,
+                                                        color: portfolio.status === 'DRAFT' ? 'var(--text-tertiary)' : undefined
+                                                    }}>
                                                         {portfolio.status}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 text-sm text-gray-400 text-right">{portfolio._count?.initiatives || 0}</td>
-                                                <td className="px-6 py-4 text-sm text-gray-400 text-right">{portfolio._count?.scenarios || 0}</td>
+                                                <td className="px-6 py-4 text-sm font-semibold text-right" style={{ color: 'var(--text-secondary)' }}>{portfolio._count?.initiatives || 0}</td>
+                                                <td className="px-6 py-4 text-sm font-semibold text-right" style={{ color: 'var(--text-secondary)' }}>{portfolio._count?.scenarios || 0}</td>
                                                 <td className="px-6 py-4 text-right">
-                                                    <Link href={`/portfolio/${portfolio.id}/setup`} className="text-sm text-blue-400 hover:text-blue-300">
+                                                    <Link 
+                                                        href={`/portfolio/${portfolio.id}/setup`} 
+                                                        className="text-sm font-semibold transition-colors opacity-70 group-hover:opacity-100"
+                                                        style={{ color: 'var(--accent-primary)' }}
+                                                    >
                                                         Open →
                                                     </Link>
                                                 </td>
@@ -226,15 +248,27 @@ export default function DashboardPage() {
                                 </table>
                             </div>
                         ) : (
-                            <div className="bg-[#0f1419] border border-gray-800 rounded p-12 text-center">
-                                <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div 
+                                className="rounded-xl p-16 text-center" 
+                                style={{ 
+                                    backgroundColor: 'var(--bg-secondary)', 
+                                    border: '1px solid var(--border-subtle)',
+                                    boxShadow: 'var(--shadow-lg)'
+                                }}
+                            >
+                                <svg className="w-20 h-20 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--text-tertiary)', opacity: 0.5 }}>
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
-                                <h3 className="text-lg font-medium text-gray-300 mb-2">No Portfolios Yet</h3>
-                                <p className="text-gray-500 mb-6">Get started by creating your first portfolio</p>
+                                <h3 className="text-2xl font-bold mb-3" style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>No Portfolios Yet</h3>
+                                <p className="text-sm mb-8" style={{ color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto 2rem' }}>Get started by creating your first portfolio to manage decisions and initiatives</p>
                                 <button
                                     onClick={handleCreatePortfolio}
-                                    className="px-6 py-3 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors"
+                                    className="px-8 py-3.5 text-sm font-semibold rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 focus:ring-2 focus:ring-offset-2"
+                                    style={{ 
+                                        backgroundColor: 'var(--accent-primary)', 
+                                        color: 'var(--accent-primary-text)',
+                                        boxShadow: 'var(--shadow-md)'
+                                    }}
                                 >
                                     Create Your First Portfolio
                                 </button>

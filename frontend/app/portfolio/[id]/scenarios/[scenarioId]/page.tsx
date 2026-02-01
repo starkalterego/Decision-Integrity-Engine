@@ -294,8 +294,14 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
         return (
             <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-900 mx-auto mb-4"></div>
-                    <p style={{ color: 'var(--text-secondary)' }}>Loading scenario...</p>
+                    <div 
+                        className="animate-spin rounded-full h-14 w-14 border-4 mx-auto mb-5"
+                        style={{ 
+                            borderColor: 'var(--border-subtle)',
+                            borderTopColor: 'var(--accent-primary)'
+                        }}
+                    />
+                    <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Loading scenario...</p>
                 </div>
             </div>
         );
@@ -307,17 +313,17 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
 
             <main className="max-w-7xl mx-auto px-6 py-8">
                 {/* Enhanced Page Header */}
-                <div className="mb-8">
+                <div className="mb-10">
                     <div className="flex items-start justify-between gap-6">
                         <div className="flex-1">
                             <input
                                 type="text"
                                 value={scenario?.name || ''}
                                 disabled={true}
-                                className="text-2xl font-bold tracking-tight bg-transparent border-none focus:outline-none w-full mb-1"
-                                style={{ maxWidth: '700px', color: 'var(--text-primary)' }}
+                                className="text-3xl font-bold bg-transparent border-none focus:outline-none w-full mb-2"
+                                style={{ maxWidth: '700px', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}
                             />
-                            <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Explore trade-offs under constraints</p>
+                            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Explore trade-offs under constraints</p>
                         </div>
                         <div className="flex items-center gap-3">
                             <Button
@@ -338,11 +344,12 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
 
                 {/* Enhanced Scenario Assumptions - MANDATORY */}
                 <div 
-                    className="mb-6 rounded-lg p-5"
+                    className="mb-8 rounded-xl p-6"
                     style={{
                         backgroundColor: 'var(--bg-secondary)',
                         border: '1px solid var(--border-default)',
-                        borderLeft: '3px solid var(--accent-warning)'
+                        borderLeft: '3px solid var(--accent-warning)',
+                        boxShadow: 'var(--shadow-md)'
                     }}
                 >
                     <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
@@ -361,7 +368,7 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                 </div>
 
                 {/* Enhanced Real-Time Metrics */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
                     <MetricCard
                         label="Total Value"
                         value={formatCurrency(totalValue)}
@@ -384,11 +391,12 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                 {/* Capacity Breach Warning */}
                 {isOverCapacity && (
                     <div 
-                        className="mb-6 p-4 rounded-lg"
+                        className="mb-8 p-5 rounded-xl"
                         style={{
                             backgroundColor: 'rgba(239, 68, 68, 0.1)',
                             border: '1px solid rgba(239, 68, 68, 0.3)',
-                            borderLeft: '3px solid var(--accent-error)'
+                            borderLeft: '3px solid var(--accent-error)',
+                            boxShadow: 'var(--shadow-md)'
                         }}
                     >
                         <h3 
@@ -406,10 +414,11 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
 
                 {/* Enhanced Initiatives Table */}
                 <div 
-                    className="rounded-lg overflow-hidden mb-6"
+                    className="rounded-xl overflow-hidden mb-8"
                     style={{ 
                         backgroundColor: 'var(--bg-secondary)',
-                        border: '1px solid var(--border-default)'
+                        border: '1px solid var(--border-default)',
+                        boxShadow: 'var(--shadow-lg)'
                     }}
                 >
                     <div 
@@ -653,16 +662,18 @@ ${formData.strategicFocus ? `Strategic Focus: ${formData.strategicFocus}` : ''}`
                 bottom: 0,
                 position: 'fixed',
                 zIndex: 9999,
-                backgroundColor: 'rgba(0, 0, 0, 0.7)'
+                backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                backdropFilter: 'blur(4px)'
             }}
         >
             <div 
-                className="w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl rounded-lg" 
+                className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl" 
                 style={{ 
                     position: 'relative', 
                     zIndex: 10000, 
                     backgroundColor: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-default)'
+                    border: '1px solid var(--border-default)',
+                    boxShadow: 'var(--shadow-xl)'
                 }}
             >
                 <div 

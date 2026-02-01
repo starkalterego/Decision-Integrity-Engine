@@ -42,42 +42,93 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
 
     return (
         <header 
-            className={`sticky top-0 z-50 w-full backdrop-blur-md ${className}`}
+            className={`sticky top-0 z-50 w-full backdrop-blur-xl ${className}`}
             style={{ 
-                backgroundColor: 'rgba(15, 22, 32, 0.90)',
-                borderBottom: '1px solid var(--border-subtle)'
+                backgroundColor: 'rgba(11, 15, 20, 0.95)',
+                borderBottom: '1px solid var(--border-default)',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.4), 0 8px 16px -8px rgba(0, 0, 0, 0.5)'
             }}
         >
             <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                {/* Brand Section */}
-                <div className="flex items-center gap-8">
-                    <Link
-                        href="/dashboard"
-                        className="flex items-center gap-3 transition-opacity hover:opacity-90"
-                    >
-                        <div className="flex flex-col justify-center">
-                            <h1 
-                                className="text-lg font-bold tracking-tight leading-none"
-                                style={{ color: 'var(--text-primary)' }}
+                {/* Enhanced Brand Section */}
+                <div className="flex items-center gap-6">
+                    {/* Logo - clickable only when inside a portfolio */}
+                    {portfolioId ? (
+                        <Link
+                            href="/dashboard"
+                            className="flex items-center gap-3 group"
+                        >
+                            {/* Logo/Icon */}
+                            <div 
+                                className="h-10 w-10 rounded-lg flex items-center justify-center transition-transform group-hover:scale-105"
+                                style={{ 
+                                    backgroundColor: 'var(--accent-primary)',
+                                    boxShadow: '0 2px 8px rgba(0, 217, 255, 0.3)'
+                                }}
                             >
-                                Decision Integrity<span style={{ color: 'var(--secondary-text)' }}>Engine</span>
-                            </h1>
-                            {portfolioName && (
-                                <span 
-                                    className="text-xs font-medium mt-1 truncate max-w-50"
-                                    style={{ color: 'var(--text-tertiary)' }}
+                                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" 
+                                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                                        style={{ color: 'var(--accent-primary-text)' }}
+                                    />
+                                </svg>
+                            </div>
+                            <div className="flex flex-col justify-center">
+                                <h1 
+                                    className="text-lg font-bold leading-none transition-opacity group-hover:opacity-80"
+                                    style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}
                                 >
-                                    {portfolioName}
-                                </span>
-                            )}
+                                    Decision Integrity <span style={{ color: 'var(--accent-primary)' }}>Engine</span>
+                                </h1>
+                                {portfolioName && (
+                                    <div className="flex items-center gap-1.5 mt-1.5">
+                                        <div 
+                                            className="w-1 h-1 rounded-full"
+                                            style={{ backgroundColor: 'var(--accent-primary)' }}
+                                        />
+                                        <span 
+                                            className="text-xs font-medium truncate max-w-64"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            {portfolioName}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </Link>
+                    ) : (
+                        <div className="flex items-center gap-3">
+                            {/* Logo/Icon - non-clickable on dashboard */}
+                            <div 
+                                className="h-10 w-10 rounded-lg flex items-center justify-center"
+                                style={{ 
+                                    backgroundColor: 'var(--accent-primary)',
+                                    boxShadow: '0 2px 8px rgba(0, 217, 255, 0.3)'
+                                }}
+                            >
+                                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" 
+                                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                                        style={{ color: 'var(--accent-primary-text)' }}
+                                    />
+                                </svg>
+                            </div>
+                            <div className="flex flex-col justify-center">
+                                <h1 
+                                    className="text-lg font-bold leading-none"
+                                    style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}
+                                >
+                                    Decision Integrity <span style={{ color: 'var(--accent-primary)' }}>Engine</span>
+                                </h1>
+                            </div>
                         </div>
-                    </Link>
+                    )}
 
-                    {/* Global Navigation */}
+                    {/* Enhanced Global Navigation */}
                     {isAuthenticated && !portfolioId && (
                         <nav 
-                            className="hidden md:flex items-center gap-1 ml-4 pl-6" 
-                            style={{ borderLeft: '1px solid var(--border-subtle)' }}
+                            className="hidden md:flex items-center gap-1 ml-6 pl-6" 
+                            style={{ borderLeft: '1px solid var(--border-default)' }}
                         >
                             <NavLink
                                 href="/dashboard"
@@ -96,20 +147,23 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
                         </nav>
                     )}
 
-                    {/* Portfolio Navigation */}
+                    {/* Enhanced Portfolio Navigation */}
                     {portfolioId && (
                         <nav 
-                            className="hidden md:flex items-center gap-1 ml-4 pl-6" 
-                            style={{ borderLeft: '1px solid var(--border-subtle)' }}
+                            className="hidden md:flex items-center gap-1 ml-6 pl-6" 
+                            style={{ borderLeft: '1px solid var(--border-default)' }}
                         >
                             <NavLink
                                 href="/dashboard"
                                 active={false}
                             >
-                                ← Dashboard
+                                <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                </svg>
+                                Dashboard
                             </NavLink>
                             <div 
-                                className="h-4 w-px mx-1"
+                                className="h-4 w-px mx-1.5"
                                 style={{ backgroundColor: 'var(--border-subtle)' }}
                             />
                             <NavLink
@@ -146,22 +200,23 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
                     )}
                 </div>
 
-                {/* User Menu */}
+                {/* Enhanced User Menu */}
                 <div className="flex items-center gap-3">
                     {isAuthenticated && user ? (
                         <div className="relative" ref={profileRef}>
                             {/* Profile Button */}
                             <button
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                                className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all"
+                                className="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200"
                                 style={{ 
                                     border: '1px solid',
                                     borderColor: isProfileOpen ? 'var(--border-default)' : 'transparent',
-                                    backgroundColor: isProfileOpen ? 'var(--bg-elevated)' : 'transparent'
+                                    backgroundColor: isProfileOpen ? 'var(--bg-elevated)' : 'transparent',
+                                    boxShadow: isProfileOpen ? 'var(--shadow-sm)' : 'none'
                                 }}
                                 onMouseEnter={(e) => {
                                     if (!isProfileOpen) {
-                                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                                        e.currentTarget.style.backgroundColor = 'var(--bg-elevated)';
                                         e.currentTarget.style.borderColor = 'var(--border-subtle)';
                                     }
                                 }}
@@ -173,10 +228,11 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
                                 }}
                             >
                                 <div 
-                                    className="h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold"
+                                    className="h-8 w-8 rounded-lg flex items-center justify-center text-sm font-bold"
                                     style={{ 
                                         backgroundColor: 'var(--accent-primary)',
                                         color: 'var(--accent-primary-text)',
+                                        boxShadow: '0 2px 4px rgba(0, 217, 255, 0.2)'
                                     }}
                                 >
                                     {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
@@ -186,10 +242,10 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
                                         className="text-sm font-semibold leading-none"
                                         style={{ color: 'var(--text-primary)' }}
                                     >
-                                        {user.name}
+                                        {user.name.split(' ')[0]}
                                     </p>
                                     <p 
-                                        className="text-xs mt-1.5 capitalize"
+                                        className="text-xs mt-1 capitalize"
                                         style={{ color: 'var(--text-tertiary)' }}
                                     >
                                         {user.role.replace('_', ' ').toLowerCase()}
@@ -202,67 +258,70 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
                                     viewBox="0 0 24 24"
                                     style={{ color: 'var(--text-tertiary)' }}
                                 >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
 
-                            {/* Dropdown Menu */}
+                            {/* Enhanced Dropdown Menu */}
                             {isProfileOpen && (
                                 <div 
-                                    className="absolute right-0 mt-3 w-80 rounded-xl shadow-2xl overflow-hidden animate-fadeIn"
+                                    className="absolute right-0 mt-2 w-72 rounded-xl overflow-hidden animate-fadeIn"
                                     style={{ 
-                                        backgroundColor: '#0f1419',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        backgroundColor: 'var(--bg-secondary)',
+                                        border: '1px solid var(--border-default)',
                                         zIndex: 100,
-                                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                                        boxShadow: '0 20px 30px -8px rgba(0, 0, 0, 0.6), var(--shadow-xl)'
                                     }}
                                 >
-                                    {/* Profile Header */}
+                                    {/* Enhanced Profile Header */}
                                     <div 
-                                        className="px-5 py-5"
+                                        className="px-5 py-4"
                                         style={{ 
-                                            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 51, 234, 0.05) 100%)',
-                                            borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+                                            background: 'linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%)',
+                                            borderBottom: '1px solid var(--border-default)'
                                         }}
                                     >
-                                        <div className="flex items-center gap-3.5 mb-4">
+                                        <div className="flex items-center gap-3 mb-3">
                                             <div 
-                                                className="h-14 w-14 rounded-full flex items-center justify-center text-lg font-bold ring-2 ring-blue-500/20"
+                                                className="h-12 w-12 rounded-lg flex items-center justify-center text-base font-bold"
                                                 style={{ 
                                                     backgroundColor: 'var(--accent-primary)',
                                                     color: 'var(--accent-primary-text)',
+                                                    boxShadow: '0 4px 8px rgba(0, 217, 255, 0.25)'
                                                 }}
                                             >
                                                 {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p 
-                                                    className="text-base font-bold leading-tight text-gray-100"
+                                                    className="text-sm font-bold leading-tight mb-1"
+                                                    style={{ color: 'var(--text-primary)' }}
                                                 >
                                                     {user.name}
                                                 </p>
                                                 <p 
-                                                    className="text-xs mt-1.5 truncate text-gray-400"
+                                                    className="text-xs truncate"
+                                                    style={{ color: 'var(--text-tertiary)' }}
                                                 >
                                                     {user.email}
                                                 </p>
                                             </div>
                                         </div>
                                         <div 
-                                            className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold capitalize"
+                                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold capitalize"
                                             style={{ 
-                                                backgroundColor: 'rgba(59, 130, 246, 0.15)',
-                                                color: 'rgb(96, 165, 250)',
-                                                border: '1px solid rgba(59, 130, 246, 0.3)'
+                                                backgroundColor: 'rgba(0, 217, 255, 0.1)',
+                                                color: 'var(--accent-primary)',
+                                                border: '1px solid rgba(0, 217, 255, 0.2)'
                                             }}
                                         >
-                                            <div className="h-1.5 w-1.5 rounded-full bg-blue-400 mr-2"></div>
+                                            <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--accent-primary)' }}></div>
                                             {user.role.replace('_', ' ').toLowerCase()}
                                         </div>
                                     </div>
 
-                                    {/* Menu Items */}
-                                    <div className="py-1.5">
+                                    {/* Enhanced Menu Items */}
+                                    <div className="py-2">
                                         <DropdownItem
                                             icon={
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,14 +383,14 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
                                         />
                                     </div>
 
-                                    {/* Divider */}
+                                    {/* Enhanced Divider */}
                                     <div 
-                                        className="h-px mx-4 my-1.5"
-                                        style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+                                        className="h-px mx-3 my-2"
+                                        style={{ backgroundColor: 'var(--border-subtle)' }}
                                     />
 
-                                    {/* Logout */}
-                                    <div className="py-1.5">
+                                    {/* Enhanced Logout */}
+                                    <div className="py-2">
                                         <DropdownItem
                                             icon={
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

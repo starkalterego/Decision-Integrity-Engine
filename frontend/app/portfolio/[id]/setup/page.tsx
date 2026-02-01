@@ -151,13 +151,13 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
             >
                 <div className="text-center">
                     <div 
-                        className="animate-spin rounded-full h-12 w-12 border-4 mx-auto mb-4"
+                        className="animate-spin rounded-full h-14 w-14 border-4 mx-auto mb-5"
                         style={{ 
-                            borderColor: '#1e293b',
-                            borderTopColor: '#00d9ff'
+                            borderColor: 'var(--border-subtle)',
+                            borderTopColor: 'var(--accent-primary)'
                         }}
                     />
-                    <p style={{ color: 'var(--text-secondary)' }}>Loading portfolio...</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Loading portfolio...</p>
                 </div>
             </div>
         );
@@ -172,18 +172,18 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
 
             <main className="max-w-7xl mx-auto px-6 py-8">
                 {/* Enhanced Page Title & Intent */}
-                <div className="mb-8">
+                <div className="mb-10">
                     <div className="flex items-start justify-between gap-6">
                         <div>
                             <h1 
-                                className="text-2xl font-bold tracking-tight mb-1"
-                                style={{ color: 'var(--text-primary)' }}
+                                className="text-3xl font-bold mb-2"
+                                style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}
                             >
                                 Portfolio Setup
                             </h1>
                             <p 
-                                className="text-sm"
-                                style={{ color: 'var(--text-tertiary)' }}
+                                className="text-base"
+                                style={{ color: 'var(--text-secondary)' }}
                             >
                                 Define the decision boundary for this portfolio
                             </p>
@@ -199,10 +199,11 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                     {/* Main Form - 2 columns */}
                     <div className="lg:col-span-2">
                         <div 
-                            className="rounded-lg p-6"
+                            className="rounded-xl p-8"
                             style={{ 
                                 backgroundColor: 'var(--bg-secondary)',
-                                border: '1px solid var(--border-default)'
+                                border: '1px solid var(--border-default)',
+                                boxShadow: 'var(--shadow-lg)'
                             }}
                         >
                             <h2 
@@ -359,10 +360,11 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                     <div className="space-y-5">
                         {/* Enhanced Setup Progress Panel */}
                         <div 
-                            className="rounded-lg p-5"
+                            className="rounded-xl p-6"
                             style={{ 
                                 backgroundColor: 'var(--bg-secondary)',
-                                border: '1px solid var(--border-default)'
+                                border: '1px solid var(--border-default)',
+                                boxShadow: 'var(--shadow-md)'
                             }}
                         >
                             <h3 
@@ -445,10 +447,11 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
 
                         {/* Enhanced Governance Rules */}
                         <div 
-                            className="rounded-lg p-5"
+                            className="rounded-xl p-6"
                             style={{ 
                                 backgroundColor: 'var(--bg-secondary)',
-                                border: '1px solid var(--border-default)'
+                                border: '1px solid var(--border-default)',
+                                boxShadow: 'var(--shadow-md)'
                             }}
                         >
                             <h3 

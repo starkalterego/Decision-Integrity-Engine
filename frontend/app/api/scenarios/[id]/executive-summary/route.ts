@@ -1,6 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+type Decision = {
+    decision: string;
+    initiative: {
+        id: string;
+        name: string;
+        sponsor: string;
+        estimatedValue: number;
+        riskScore: number;
+        strategicAlignmentScore: number;
+        capacityDemands: { units: number }[];
+    };
+};
+
+type Initiative = {
+    id: string;
+    name: string;
+    sponsor: string;
+    estimatedValue: number;
+    riskScore: number;
+    strategicAlignmentScore: number;
+    capacityDemands: { units: number }[];
+};
+
 // GET /api/scenarios/[id]/executive-summary - Get executive summary for finalized scenario
 export async function GET(
     request: NextRequest,
@@ -55,43 +78,32 @@ export async function GET(
             );
         }
 
-        // Get all initiatives for the portfolio
-        const allInitiatives = await prisma.initiative.findMany({
-            where: {
-                portfolioId: scenario.portfolioId,
-                isComplete: true
-            },
-            include: {
-                capacityDemands: true
-            }
-        });
-
         // Separate decisions by type
         const fundedInitiatives = scenario.decisions
-            .filter((d: any) => d.decision === 'FUND')
-            .map((d: any) => d.initiative);
+            .filter((d: Decision) => d.decision === 'FUND')
+            .map((d: Decision) => d.initiative);
 
         const pausedInitiatives = scenario.decisions
-            .filter((d: any) => d.decision === 'PAUSE')
-            .map((d: any) => d.initiative);
+            .filter((d: Decision) => d.decision === 'PAUSE')
+            .map((d: Decision) => d.initiative);
 
         const stoppedInitiatives = scenario.decisions
-            .filter((d: any) => d.decision === 'STOP')
-            .map((d: any) => d.initiative);
+            .filter((d: Decision) => d.decision === 'STOP')
+            .map((d: Decision) => d.initiative);
 
         // Calculate scenario metrics
         const totalInvestment = scenario.portfolio.totalBudget; // Total budget allocated
-        const totalValue = fundedInitiatives.reduce((sum: number, init: any) => sum + init.estimatedValue, 0);
+        const totalValue = fundedInitiatives.reduce((sum: number, init: Initiative) => sum + init.estimatedValue, 0);
         const fundedCount = fundedInitiatives.length;
 
-        const totalCapacity = fundedInitiatives.reduce((sum: number, init: any) => {
-            return sum + init.capacityDemands.reduce((s: number, cd: any) => s + cd.units, 0);
+        const totalCapacity = fundedInitiatives.reduce((sum: number, init: Initiative) => {
+            return sum + init.capacityDemands.reduce((s: number, cd: { units: number }) => s + cd.units, 0);
         }, 0);
 
         const capacityUtilization = (totalCapacity / scenario.portfolio.totalCapacity) * 100;
 
         const avgRisk = fundedInitiatives.length > 0
-            ? fundedInitiatives.reduce((sum: number, init: any) => sum + init.riskScore, 0) / fundedInitiatives.length
+            ? fundedInitiatives.reduce((sum: number, init: Initiative) => sum + init.riskScore, 0) / fundedInitiatives.length
             : 0;
 
         // Get baseline metrics by querying all initiatives directly
@@ -105,13 +117,13 @@ export async function GET(
             }
         });
 
-        const baselineTotalValue = allInitiativesForBaseline.reduce((sum: number, init: any) => sum + init.estimatedValue, 0);
-        const baselineTotalCapacity = allInitiativesForBaseline.reduce((sum: number, init: any) => {
-            return sum + init.capacityDemands.reduce((s: number, cd: any) => s + cd.units, 0);
+        const baselineTotalValue = allInitiativesForBaseline.reduce((sum: number, init: Initiative) => sum + init.estimatedValue, 0);
+        const baselineTotalCapacity = allInitiativesForBaseline.reduce((sum: number, init: Initiative) => {
+            return sum + init.capacityDemands.reduce((s: number, cd: { units: number }) => s + cd.units, 0);
         }, 0);
         const baselineCapacityUtilization = baselineTotalCapacity / scenario.portfolio.totalCapacity;
         const baselineRiskExposure = allInitiativesForBaseline.length > 0
-            ? allInitiativesForBaseline.reduce((sum: number, init: any) => sum + init.riskScore, 0) / allInitiativesForBaseline.length
+            ? allInitiativesForBaseline.reduce((sum: number, init: Initiative) => sum + init.riskScore, 0) / allInitiativesForBaseline.length
             : 0;
 
         const baseline = {
@@ -131,10 +143,7 @@ export async function GET(
             : 0;
 
         // Calculate trade-offs
-        const stoppedValue = stoppedInitiatives.reduce((sum: number, init: any) => sum + init.estimatedValue, 0);
-        const stoppedCapacity = stoppedInitiatives.reduce((sum: number, init: any) => {
-            return sum + init.capacityDemands.reduce((s: number, cd: any) => s + cd.units, 0);
-        }, 0);
+        const stoppedValue = stoppedInitiatives.reduce((sum: number, init: Initiative) => sum + init.estimatedValue, 0);
 
         const tradeOffSummary = {
             whatChanged: [
@@ -168,10 +177,10 @@ export async function GET(
         ];
 
         // Unfunded initiatives (PAUSE + STOP)
-        const unfundedInitiatives = [...pausedInitiatives, ...stoppedInitiatives].map((init: any) => ({
+        const unfundedInitiatives = [...pausedInitiatives, ...stoppedInitiatives].map((init: Initiative) => ({
             ...init,
             decision: pausedInitiatives.includes(init) ? 'PAUSE' : 'STOP',
-            capacityReleased: init.capacityDemands.reduce((s: number, cd: any) => s + cd.units, 0)
+            capacityReleased: init.capacityDemands.reduce((s: number, cd: { units: number }) => s + cd.units, 0)
         }));
 
         // Generate decision ask statement

@@ -14,7 +14,7 @@ export function Button({
     disabled,
     ...props
 }: ButtonProps) {
-    const baseClasses = 'font-semibold rounded-lg transition-all duration-200 inline-flex items-center justify-center focus:outline-none';
+    const baseClasses = 'font-semibold rounded-lg transition-all duration-200 inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-primary)]';
     
     const sizeClasses = {
         sm: 'px-4 py-2 text-xs',
@@ -37,7 +37,8 @@ export function Button({
                 return {
                     backgroundColor: 'var(--accent-primary)',
                     color: 'var(--accent-primary-text)',
-                    border: 'none'
+                    border: 'none',
+                    boxShadow: 'var(--shadow-md)'
                 };
             case 'secondary':
                 return {
@@ -55,9 +56,11 @@ export function Button({
         }
     };
 
+    const hoverClass = !disabled && variant === 'primary' ? 'hover:scale-105 active:scale-95' : '';
+
     return (
         <button
-            className={`${baseClasses} ${sizeClasses[size]} ${className}`}
+            className={`${baseClasses} ${sizeClasses[size]} ${hoverClass} ${className}`}
             style={getVariantStyles()}
             disabled={disabled}
             onMouseEnter={(e) => {

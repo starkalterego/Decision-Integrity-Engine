@@ -162,7 +162,14 @@ export default function ExecutiveOnePagerPage({
         return (
             <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
                 <div className="text-center">
-                    <div className="text-lg" style={{ color: 'var(--text-secondary)' }}>Loading executive summary...</div>
+                    <div 
+                        className="animate-spin rounded-full h-14 w-14 border-4 mx-auto mb-5"
+                        style={{ 
+                            borderColor: 'var(--border-subtle)',
+                            borderTopColor: 'var(--accent-primary)'
+                        }}
+                    />
+                    <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Loading executive summary...</p>
                 </div>
             </div>
         );
@@ -172,11 +179,23 @@ export default function ExecutiveOnePagerPage({
         return (
             <div className="min-h-screen p-8" style={{ backgroundColor: 'var(--bg-primary)' }}>
                 <div className="max-w-6xl mx-auto">
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-                        <p className="text-red-800 font-medium">{error || 'Failed to load data'}</p>
+                    <div 
+                        className="rounded-xl p-8 text-center"
+                        style={{
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            boxShadow: 'var(--shadow-lg)'
+                        }}
+                    >
+                        <p className="text-base font-semibold mb-4" style={{ color: 'var(--accent-error)' }}>{error || 'Failed to load data'}</p>
                         <button
                             onClick={() => router.back()}
-                            className="mt-4 px-4 py-2 bg-neutral-800 text-white rounded hover:bg-neutral-700"
+                            className="px-6 py-3 rounded-lg text-sm font-semibold transition-all hover:scale-105"
+                            style={{ 
+                                backgroundColor: 'var(--bg-elevated)', 
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--border-default)'
+                            }}
                         >
                             Go Back
                         </button>
@@ -190,10 +209,10 @@ export default function ExecutiveOnePagerPage({
         <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
             <div className="max-w-6xl mx-auto p-8">
                 {/* Header */}
-                <div className="flex items-start justify-between mb-8 pb-4" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                <div className="flex items-start justify-between mb-10 pb-5" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                     <div>
-                        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Executive One-Pager</h1>
-                        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Board-Ready Decision Artifact</p>
+                        <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>Executive One-Pager</h1>
+                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Board-Ready Decision Artifact</p>
                     </div>
                     <button className="px-4 py-2 border text-sm font-medium rounded transition-colors hover:bg-white/5"
                         style={{ borderColor: 'var(--accent-primary)', color: 'var(--accent-primary)' }}>

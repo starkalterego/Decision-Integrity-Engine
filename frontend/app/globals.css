@@ -94,10 +94,23 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Enhanced Focus States */
+*:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Selection Styles */
+::selection {
+  background-color: var(--accent-primary);
+  color: var(--accent-primary-text);
+}
+
 /* Typography Enhancements */
 h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.25;
   letter-spacing: -0.025em;
 }

@@ -21,19 +21,22 @@ export function MetricCard({
                 return {
                     borderLeftColor: 'var(--accent-success)',
                     backgroundColor: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-default)'
+                    border: '1px solid var(--border-default)',
+                    boxShadow: 'var(--shadow-md)'
                 };
             case 'red':
                 return {
                     borderLeftColor: 'var(--accent-error)',
                     backgroundColor: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-default)'
+                    border: '1px solid var(--border-default)',
+                    boxShadow: 'var(--shadow-md)'
                 };
             default:
                 return {
                     borderLeftColor: 'var(--accent-primary)',
                     backgroundColor: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-default)'
+                    border: '1px solid var(--border-default)',
+                    boxShadow: 'var(--shadow-md)'
                 };
         }
     };

@@ -485,18 +485,24 @@ export default function ExecutiveOutputPage({
                                 <div>
                                     <h3 className="text-xs font-bold uppercase tracking-wide text-gray-700 mb-2.5 pb-1.5 border-b border-gray-300">KEY RISKS</h3>
                                     <div className="space-y-2 text-sm">
-                                        {data.keyRisks.slice(0, 4).map((risk, idx) => (
-                                            <div key={idx} className="flex justify-between items-start gap-3 pb-2 border-b border-gray-100 last:border-0">
-                                                <span className="text-gray-700 flex-1">{risk}</span>
-                                                <span className={`text-xs font-semibold uppercase px-2 py-0.5 rounded whitespace-nowrap ${
-                                                    idx === 0 ? 'bg-orange-100 text-orange-700' : 
-                                                    idx === 1 ? 'bg-yellow-100 text-yellow-700' : 
-                                                    'bg-green-100 text-green-700'
-                                                }`}>
-                                                    {idx === 0 ? 'MEDIUM' : idx === 1 ? 'LOW' : 'LOW'}
-                                                </span>
-                                            </div>
-                                        ))}
+                                        {data.keyRisks.slice(0, 4).map((risk, idx) => {
+                                            const exposureMatch = risk.match(/exposure\s+(\d+)%/i);
+                                            const exposure = exposureMatch ? parseInt(exposureMatch[1]) : 0;
+                                            const severity = exposure >= 60 ? 'HIGH' : exposure >= 30 ? 'MEDIUM' : 'LOW';
+                                            const severityCls = severity === 'HIGH'
+                                                ? 'bg-red-100 text-red-700'
+                                                : severity === 'MEDIUM'
+                                                    ? 'bg-orange-100 text-orange-700'
+                                                    : 'bg-yellow-100 text-yellow-700';
+                                            return (
+                                                <div key={idx} className="flex justify-between items-start gap-3 pb-2 border-b border-gray-100 last:border-0">
+                                                    <span className="text-gray-700 flex-1">{risk}</span>
+                                                    <span className={`text-xs font-semibold uppercase px-2 py-0.5 rounded whitespace-nowrap ${severityCls}`}>
+                                                        {severity}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
@@ -517,9 +523,16 @@ export default function ExecutiveOutputPage({
                                                 <div key={init.id} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
                                                     <span className="text-gray-700">{init.name}</span>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-xs text-gray-500">{formatCurrency(init.capacityReleased * 1000000)}</span>
-                                                        <span className="text-xs text-gray-400">{init.capacityReleased} Cr</span>
-                                                        <span className="text-xs text-gray-400">{init.capacityReleased} Mo FTE</span>
+                                                        <span className="text-xs text-gray-500">{init.capacityReleased} units released</span>
+                                                        <span
+                                                            className="text-xs font-semibold px-1.5 py-0.5 rounded"
+                                                            style={{
+                                                                backgroundColor: init.decision === 'STOP' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)',
+                                                                color: init.decision === 'STOP' ? '#dc2626' : '#d97706'
+                                                            }}
+                                                        >
+                                                            {init.decision}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             ))}
@@ -537,12 +550,22 @@ export default function ExecutiveOutputPage({
                                             <div className="px-3 py-2 text-center font-semibold text-gray-600 uppercase border-l border-gray-200">Kickoffs</div>
                                             <div className="px-3 py-2 text-center font-semibold text-gray-600 uppercase border-l border-gray-200">Checkpoint</div>
                                         </div>
-                                        <div className="grid grid-cols-4 text-xs">
-                                            <div className="px-3 py-2 text-gray-700">Jan 8</div>
-                                            <div className="px-3 py-2 text-center text-gray-600 border-l border-gray-100">Jan 15</div>
-                                            <div className="px-3 py-2 text-center text-gray-600 border-l border-gray-100">Jan 20</div>
-                                            <div className="px-3 py-2 text-center text-gray-600 border-l border-gray-100">Apr 20</div>
-                                        </div>
+                                        {(() => {
+                                            const base = new Date(data.scenario.createdAt);
+                                            const addDays = (n: number) => {
+                                                const d = new Date(base);
+                                                d.setDate(d.getDate() + n);
+                                                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                            };
+                                            return (
+                                                <div className="grid grid-cols-4 text-xs">
+                                                    <div className="px-3 py-2 text-gray-700">{addDays(7)}</div>
+                                                    <div className="px-3 py-2 text-center text-gray-600 border-l border-gray-100">{addDays(14)}</div>
+                                                    <div className="px-3 py-2 text-center text-gray-600 border-l border-gray-100">{addDays(21)}</div>
+                                                    <div className="px-3 py-2 text-center text-gray-600 border-l border-gray-100">{addDays(90)}</div>
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
 

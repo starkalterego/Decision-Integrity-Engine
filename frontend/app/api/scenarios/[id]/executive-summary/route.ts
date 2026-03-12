@@ -8,6 +8,8 @@ type Decision = {
         name: string;
         sponsor: string;
         estimatedValue: number;
+        capexCost: number;
+        opexCost: number;
         riskScore: number;
         strategicAlignmentScore: number;
         capacityDemands: { units: number }[];
@@ -19,6 +21,8 @@ type Initiative = {
     name: string;
     sponsor: string;
     estimatedValue: number;
+    capexCost: number;
+    opexCost: number;
     riskScore: number;
     strategicAlignmentScore: number;
     capacityDemands: { units: number }[];
@@ -37,11 +41,17 @@ export async function GET(
             where: { id: scenarioId },
             include: {
                 portfolio: true,
+                metrics: true,
                 decisions: {
                     include: {
                         initiative: {
                             include: {
-                                capacityDemands: true
+                                capacityDemands: true,
+                                risks: {
+                                    where: { status: 'OPEN' },
+                                    orderBy: { exposure: 'desc' },
+                                    take: 3,
+                                }
                             }
                         }
                     }
@@ -91,8 +101,17 @@ export async function GET(
             .filter((d: Decision) => d.decision === 'STOP')
             .map((d: Decision) => d.initiative);
 
-        // Calculate scenario metrics
-        const totalInvestment = scenario.portfolio.totalBudget; // Total budget allocated
+        // Use ScenarioMetrics if available (pre-computed), else compute inline
+        const metrics = scenario.metrics;
+        const totalCost = metrics
+            ? metrics.totalCost
+            : fundedInitiatives.reduce((sum: number, init: Initiative) => sum + (init.capexCost || 0) + (init.opexCost || 0), 0);
+
+        const totalCapex = fundedInitiatives.reduce((sum: number, init: Initiative) => sum + (init.capexCost || 0), 0);
+        const totalOpex  = fundedInitiatives.reduce((sum: number, init: Initiative) => sum + (init.opexCost || 0), 0);
+
+        // Investment = total committed cost (not portfolio budget)
+        const totalInvestment = totalCost;
         const totalValue = fundedInitiatives.reduce((sum: number, init: Initiative) => sum + init.estimatedValue, 0);
         const fundedCount = fundedInitiatives.length;
 
@@ -118,6 +137,7 @@ export async function GET(
         });
 
         const baselineTotalValue = allInitiativesForBaseline.reduce((sum: number, init: Initiative) => sum + init.estimatedValue, 0);
+        const baselineTotalCost  = allInitiativesForBaseline.reduce((sum: number, init: Initiative) => sum + (init.capexCost || 0) + (init.opexCost || 0), 0);
         const baselineTotalCapacity = allInitiativesForBaseline.reduce((sum: number, init: Initiative) => {
             return sum + init.capacityDemands.reduce((s: number, cd: { units: number }) => s + cd.units, 0);
         }, 0);
@@ -128,6 +148,7 @@ export async function GET(
 
         const baseline = {
             totalValue: baselineTotalValue,
+            totalCost: baselineTotalCost,
             initiativeCount: allInitiativesForBaseline.length,
             capacityUtilization: baselineCapacityUtilization,
             riskExposure: baselineRiskExposure
@@ -136,6 +157,10 @@ export async function GET(
         // Calculate deltas
         const valueDelta = baseline.totalValue > 0
             ? ((totalValue - baseline.totalValue) / baseline.totalValue) * 100
+            : 0;
+
+        const investmentDelta = baseline.totalCost > 0
+            ? ((totalCost - baseline.totalCost) / baseline.totalCost) * 100
             : 0;
 
         const capacityDelta = baseline.capacityUtilization > 0
@@ -168,13 +193,28 @@ export async function GET(
         const riskLevel = getRiskLevel(avgRisk);
         const baselineRiskLevel = getRiskLevel(baseline.riskExposure);
 
-        // Key risks (sample - in real implementation, these would come from initiative data)
-        const keyRisks = [
-            'Resource reallocation planned',
-            'Vendor dependencies identified',
-            'Capacity constraints monitored',
-            'Timeline dependencies tracked'
-        ];
+        // Real key risks from InitiativeRisk records on funded initiatives
+        type InitRisk = { description: string; exposure: number; initiative?: { name: string } };
+        const riskRecords: InitRisk[] = scenario.decisions
+            .filter((d: { decision: string; initiative: { risks?: InitRisk[] } }) => d.decision === 'FUND' && d.initiative.risks?.length)
+            .flatMap((d: { decision: string; initiative: { name: string; risks?: InitRisk[] } }) =>
+                (d.initiative.risks || []).map((r: InitRisk) => ({ ...r, initiative: { name: d.initiative.name } }))
+            )
+            .sort((a: InitRisk, b: InitRisk) => b.exposure - a.exposure);
+
+        const keyRisks = riskRecords.length > 0
+            ? riskRecords.slice(0, 4).map((r: InitRisk) => `${r.initiative?.name ?? ''}: ${r.description} (exposure ${(r.exposure * 100).toFixed(0)}%)`)
+            : [
+                'Resource reallocation planned',
+                'Vendor dependencies identified',
+                'Capacity constraints monitored',
+                'Timeline dependencies tracked'
+            ];
+
+        // Risk concentration: flag if top-2 initiatives hold >50% of total risk exposure
+        const totalExposure = riskRecords.reduce((s: number, r: InitRisk) => s + r.exposure, 0);
+        const top2Exposure  = riskRecords.slice(0, 2).reduce((s: number, r: InitRisk) => s + r.exposure, 0);
+        const riskConcentrated = totalExposure > 0 && (top2Exposure / totalExposure) > 0.5;
 
         // Unfunded initiatives (PAUSE + STOP)
         const unfundedInitiatives = [...pausedInitiatives, ...stoppedInitiatives].map((init: Initiative) => ({
@@ -199,25 +239,29 @@ export async function GET(
                 assumptions: scenario.assumptions,
                 isFinalized: scenario.isFinalized,
                 createdAt: scenario.createdAt,
-                decisionOwner: 'Portfolio Lead', // Default for MVP
+                decisionOwner: 'Portfolio Lead',
                 status: 'Recommended'
             },
             decisionAsk,
             metrics: {
                 investment: totalInvestment,
+                capex: totalCapex,
+                opex: totalOpex,
                 expectedValue: totalValue,
                 capacityUse: capacityUtilization,
                 riskExposure: riskLevel,
-                fundedCount
+                fundedCount,
+                pausedCount: pausedInitiatives.length,
+                stoppedCount: stoppedInitiatives.length,
             },
             deltas: {
-                investment: 0, // Same as budget
+                investment: investmentDelta,
                 value: valueDelta,
                 capacity: capacityDelta,
                 risk: avgRisk - baseline.riskExposure
             },
             baseline: {
-                investment: baseline.totalValue,
+                investment: baseline.totalCost,
                 value: baseline.totalValue,
                 capacityUse: baseline.capacityUtilization * 100,
                 risk: baselineRiskLevel
@@ -225,8 +269,11 @@ export async function GET(
             executiveSnapshot: {
                 portfolioValue: totalValue,
                 totalCost: totalInvestment,
+                totalCapex,
+                totalOpex,
                 capacityUtilization,
-                riskLevel
+                riskLevel,
+                riskConcentrated,
             },
             tradeOffSummary,
             decisions: {
@@ -236,9 +283,10 @@ export async function GET(
             },
             unfundedInitiatives,
             keyRisks,
+            riskConcentrated,
             scenarioComparison: {
                 baseline: {
-                    investment: baseline.totalValue,
+                    investment: baseline.totalCost,
                     value: baseline.totalValue,
                     capacityUsed: baseline.capacityUtilization * 100,
                     risk: baselineRiskLevel

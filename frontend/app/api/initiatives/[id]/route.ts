@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { calculatePriorityScore } from '@/lib/priority';
+import { validateInitiativeCompleteness } from '@/lib/governance';
 
 // GET /api/initiatives/[id] - Get initiative by ID
 export async function GET(
@@ -82,10 +83,34 @@ export async function PUT(
             );
         }
 
-        // Calculate priority score per BACKEND.md lines 100-117
+        // Validate completeness using governance engine
+        const validation = validateInitiativeCompleteness({
+            name: body.name,
+            sponsor: body.sponsor,
+            deliveryOwner: body.deliveryOwner,
+            strategicAlignmentScore: parseInt(body.strategicAlignmentScore),
+            estimatedValue: parseFloat(body.estimatedValue),
+            riskScore: parseInt(body.riskScore),
+            costOfDelay: parseFloat(body.costOfDelay ?? 0),
+            capacityDemands: body.capacityDemand,
+        });
+        if (!validation.isComplete) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    data: null,
+                    errors: [{ code: 'INITIATIVE_INCOMPLETE', message: validation.errors.join(', ') }]
+                },
+                { status: 400 }
+            );
+        }
+
+        // Calculate priority score
         const priorityScore = calculatePriorityScore({
             estimatedValue: parseFloat(body.estimatedValue),
             strategicAlignmentScore: parseInt(body.strategicAlignmentScore),
+            strategyScore: parseFloat(body.strategyScore ?? 0),
+            costOfDelay: parseFloat(body.costOfDelay ?? 0),
             riskScore: parseInt(body.riskScore),
             capacityDemands: body.capacityDemand
         });
@@ -95,11 +120,18 @@ export async function PUT(
             where: { id: initiativeId },
             data: {
                 name: body.name,
+                description: body.description ?? null,
                 sponsor: body.sponsor,
                 deliveryOwner: body.deliveryOwner,
                 strategicAlignmentScore: parseInt(body.strategicAlignmentScore),
+                strategyScore: parseFloat(body.strategyScore ?? 0),
                 estimatedValue: parseFloat(body.estimatedValue),
+                capexCost: parseFloat(body.capexCost ?? 0),
+                opexCost: parseFloat(body.opexCost ?? 0),
+                costOfDelay: parseFloat(body.costOfDelay ?? 0),
                 riskScore: parseInt(body.riskScore),
+                lifecycleState: body.lifecycleState ?? existing.lifecycleState,
+                isComplete: true,
                 priorityScore: priorityScore,
                 capacityDemands: {
                     deleteMany: {},

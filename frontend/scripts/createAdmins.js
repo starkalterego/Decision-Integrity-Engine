@@ -43,31 +43,40 @@ async function createAdminUsers() {
       role: 'PMO'
     },
     {
-      name: 'Sarthak Satyam',
-      email: 'sarthak.satyam13@gmail.com',
-      password: 'Honey@admin',
+      name: 'Admin User',
+      email: 'admin@company.com',
+      password: 'Admin123!',
       role: 'PMO'
+    },
+    {
+      name: 'Executive User',
+      email: 'executive@company.com',
+      password: 'Exec123!',
+      role: 'EXECUTIVE'
+    },
+    {
+      name: 'Portfolio Lead',
+      email: 'portfolio@company.com',
+      password: 'Portfolio123!',
+      role: 'PORTFOLIO_LEAD'
     }
   ];
 
   for (const admin of admins) {
     try {
-      // Check if user already exists
-      const existingUser = await prisma.user.findUnique({
-        where: { email: admin.email }
-      });
-
-      if (existingUser) {
-        console.log(`⚠️  User already exists: ${admin.email}`);
-        continue;
-      }
-
       // Hash password
       const passwordHash = await bcrypt.hash(admin.password, 10);
 
-      // Create user
-      await prisma.user.create({
-        data: {
+      // Upsert user (create or update password/role)
+      await prisma.user.upsert({
+        where: { email: admin.email },
+        update: {
+          name: admin.name,
+          passwordHash: passwordHash,
+          role: admin.role,
+          isActive: true
+        },
+        create: {
           name: admin.name,
           email: admin.email,
           passwordHash: passwordHash,
@@ -76,7 +85,7 @@ async function createAdminUsers() {
         }
       });
 
-      console.log(`✅ Created admin: ${admin.email} (${admin.role})`);
+      console.log(`✅ Upserted: ${admin.email} (${admin.role})`);
     } catch (error) {
       console.error(`❌ Error creating ${admin.email}:`, error.message);
     }

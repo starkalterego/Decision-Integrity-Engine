@@ -1,63 +1,66 @@
 // Priority Score Calculation Engine
-// Per BACKEND.md lines 100-117 and decision-logic.md lines 92-118
+// Per Architecture_code_snippet.md Phase 1 formula
 
-// Weights per governance formula
+// Weights per governance formula (Architecture Phase 1)
 const WEIGHTS = {
-    VALUE: 0.30,              // W1: Value contribution
-    ALIGNMENT: 0.25,          // W2: Strategic alignment
-    COST_OF_DELAY: 0.15,      // W3: Urgency/timing
+    VALUE: 0.40,              // W1: Value contribution (increased — value is primary driver)
+    STRATEGY: 0.30,           // W2: Strategic alignment (continuous 0-100 strategyScore)
+    COST_OF_DELAY: 0.30,      // W3: Urgency/timing (actual weekly cost-of-delay in £)
     RISK_PENALTY: 0.20,       // W4: Risk reduction factor
     CAPACITY_PENALTY: 0.10    // W5: Capacity consumption penalty
 };
 
-interface InitiativeData {
-    estimatedValue: number;
-    strategicAlignmentScore: number;  // 1-5
-    riskScore: number;                // 1-5
+// Max cost-of-delay reference value for normalisation (£2M/week = 100 normalised)
+const COD_REFERENCE = 2_000_000;
+
+export interface InitiativeData {
+    estimatedValue: number;         // Raw £ value
+    strategicAlignmentScore: number; // 1-5 integer (for completeness gate)
+    strategyScore: number;           // 0-100 continuous (used in priority formula)
+    costOfDelay: number;             // Weekly business cost of not starting (£)
+    riskScore: number;               // 1-5
     capacityDemands: Array<{ units: number }>;
 }
 
 /**
- * Calculate priority score using deterministic weighted formula
- * Higher score = Higher priority
- * 
- * Priority = (Value × W1) + (Alignment × W2) + (CostOfDelay × W3) 
- *           - (Risk × W4) - (Capacity × W5)
+ * Calculate priority score using deterministic weighted formula.
+ * Higher score = Higher priority.
+ *
+ * Priority = (NormValue × W1) + (strategyScore × W2) + (NormCoD × W3)
+ *           - (NormRisk × W4) - (NormCapacity × W5)
+ *
+ * All inputs are normalised to 0–100 before weighting.
  */
 export function calculatePriorityScore(initiative: InitiativeData): number {
-    // Normalize value (scale to 0-100 based on typical portfolio range)
-    // MVP: Simple normalization - in production, this would be portfolio-relative
-    const normalizedValue = Math.min(initiative.estimatedValue / 1000000, 100); // Scale to millions
+    // Normalise value: £1M → 1, £100M → 100 (cap at 100)
+    const normalizedValue = Math.min(initiative.estimatedValue / 1_000_000, 100);
 
-    // Strategic alignment is already 1-5, scale to 0-100
-    const normalizedAlignment = (initiative.strategicAlignmentScore / 5) * 100;
+    // strategyScore is already 0-100
+    const normalizedStrategy = Math.max(0, Math.min(initiative.strategyScore, 100));
 
-    // Cost of delay (MVP: derived from value and alignment)
-    // High value + high alignment = high cost of delay
-    const costOfDelay = (normalizedValue * 0.6 + normalizedAlignment * 0.4);
+    // Normalise cost-of-delay against reference max (£2M/week = 100)
+    const normalizedCoD = Math.min((initiative.costOfDelay / COD_REFERENCE) * 100, 100);
 
-    // Risk penalty (1-5, higher = worse, scale to 0-100 for penalty)
-    const riskPenalty = (initiative.riskScore / 5) * 100;
+    // Risk penalty: 1-5 scale → 0-100 (higher score = more penalty)
+    const riskPenalty = ((initiative.riskScore - 1) / 4) * 100;
 
-    // Capacity penalty (total capacity demand)
+    // Capacity penalty: total units, cap at 100
     const totalCapacity = initiative.capacityDemands.reduce((sum, cd) => sum + cd.units, 0);
-    const normalizedCapacity = Math.min(totalCapacity / 10, 100); // Scale capacity units
+    const normalizedCapacity = Math.min(totalCapacity, 100);
 
-    // Calculate weighted priority score
-    const priorityScore = 
+    // Weighted priority score
+    const priorityScore =
         (normalizedValue * WEIGHTS.VALUE) +
-        (normalizedAlignment * WEIGHTS.ALIGNMENT) +
-        (costOfDelay * WEIGHTS.COST_OF_DELAY) -
+        (normalizedStrategy * WEIGHTS.STRATEGY) +
+        (normalizedCoD * WEIGHTS.COST_OF_DELAY) -
         (riskPenalty * WEIGHTS.RISK_PENALTY) -
         (normalizedCapacity * WEIGHTS.CAPACITY_PENALTY);
 
-    // Return score rounded to 2 decimal places
     return Math.round(priorityScore * 100) / 100;
 }
 
 /**
  * Validate if priority score needs recalculation
- * Call this when initiative attributes change
  */
 export function shouldRecalculatePriority(
     oldData: InitiativeData,
@@ -65,6 +68,8 @@ export function shouldRecalculatePriority(
 ): boolean {
     return (
         oldData.estimatedValue !== newData.estimatedValue ||
+        oldData.strategyScore !== newData.strategyScore ||
+        oldData.costOfDelay !== newData.costOfDelay ||
         oldData.strategicAlignmentScore !== newData.strategicAlignmentScore ||
         oldData.riskScore !== newData.riskScore ||
         JSON.stringify(oldData.capacityDemands) !== JSON.stringify(newData.capacityDemands)

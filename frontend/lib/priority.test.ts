@@ -9,6 +9,8 @@ console.log('=== Priority Calculation Engine Test ===\n');
 const highPriorityInitiative = {
     estimatedValue: 50000000,  // ₹50 Cr
     strategicAlignmentScore: 5,
+    strategyScore: 90,          // High strategic fit
+    costOfDelay: 500000,        // £500k/week
     riskScore: 2,
     capacityDemands: [
         { units: 30 },
@@ -32,6 +34,8 @@ console.log('  ✅ Expected: HIGH priority\n');
 const mediumPriorityInitiative = {
     estimatedValue: 20000000,  // ₹20 Cr
     strategicAlignmentScore: 3,
+    strategyScore: 50,
+    costOfDelay: 100000,        // £100k/week
     riskScore: 3,
     capacityDemands: [
         { units: 25 }
@@ -54,6 +58,8 @@ console.log('  ✅ Expected: MEDIUM priority\n');
 const lowPriorityInitiative = {
     estimatedValue: 5000000,  // ₹5 Cr
     strategicAlignmentScore: 2,
+    strategyScore: 20,
+    costOfDelay: 20000,         // £20k/week
     riskScore: 5,
     capacityDemands: [
         { units: 50 }
@@ -76,6 +82,8 @@ console.log('  ✅ Expected: LOW priority\n');
 const mixedPriorityInitiative = {
     estimatedValue: 100000000,  // ₹100 Cr
     strategicAlignmentScore: 2,
+    strategyScore: 30,
+    costOfDelay: 800000,        // £800k/week
     riskScore: 4,
     capacityDemands: [
         { units: 60 }

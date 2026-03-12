@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma, withRetry } from '@/lib/prisma';
+import { recalculateScenarioMetrics } from '@/lib/governance';
 
 // POST /api/scenarios/[id]/decisions - Update scenario decisions
 // Per API_CONTRACTS.md lines 208-224
@@ -12,9 +13,9 @@ export async function POST(
         const body = await request.json();
 
         // Check if scenario exists and is not finalized
-        const scenario = await prisma.scenario.findUnique({
+        const scenario = await withRetry(() => prisma.scenario.findUnique({
             where: { id: scenarioId }
-        });
+        }));
 
         if (!scenario) {
             return NextResponse.json(
@@ -44,35 +45,38 @@ export async function POST(
             );
         }
 
-        // Delete existing decisions and create new ones in a transaction
-        await prisma.$transaction([
-            prisma.scenarioDecision.deleteMany({
+        // Delete existing decisions, create new ones, and fetch result — all in one connection
+        const updatedScenario = await withRetry(() => prisma.$transaction(async (tx) => {
+            await tx.scenarioDecision.deleteMany({
                 where: { scenarioId }
-            }),
-            prisma.scenarioDecision.createMany({
+            });
+
+            await tx.scenarioDecision.createMany({
                 data: body.decisions.map((d: any) => ({
                     scenarioId,
                     initiativeId: d.initiativeId,
                     decision: d.decision
                 }))
-            })
-        ]);
+            });
 
-        // Fetch updated scenario with decisions
-        const updatedScenario = await prisma.scenario.findUnique({
-            where: { id: scenarioId },
-            include: {
-                decisions: {
-                    include: {
-                        initiative: {
-                            include: {
-                                capacityDemands: true
+            return tx.scenario.findUnique({
+                where: { id: scenarioId },
+                include: {
+                    decisions: {
+                        include: {
+                            initiative: {
+                                include: {
+                                    capacityDemands: true
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+        }));
+
+        // Keep ScenarioMetrics table in sync after every decision change
+        await recalculateScenarioMetrics(scenarioId, prisma);
 
         return NextResponse.json({
             success: true,

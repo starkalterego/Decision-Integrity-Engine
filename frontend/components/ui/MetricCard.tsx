@@ -19,24 +19,18 @@ export function MetricCard({
         switch (status) {
             case 'green':
                 return {
-                    borderLeftColor: 'var(--accent-success)',
                     backgroundColor: 'var(--bg-secondary)',
                     border: '1px solid var(--border-default)',
-                    boxShadow: 'var(--shadow-md)'
                 };
             case 'red':
                 return {
-                    borderLeftColor: 'var(--accent-error)',
                     backgroundColor: 'var(--bg-secondary)',
                     border: '1px solid var(--border-default)',
-                    boxShadow: 'var(--shadow-md)'
                 };
             default:
                 return {
-                    borderLeftColor: 'var(--accent-primary)',
                     backgroundColor: 'var(--bg-secondary)',
                     border: '1px solid var(--border-default)',
-                    boxShadow: 'var(--shadow-md)'
                 };
         }
     };
@@ -54,24 +48,36 @@ export function MetricCard({
 
     return (
         <div 
-            className={`p-6 border-l-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ${className}`}
+            className={`p-5 rounded-xl ${className}`}
             style={getStatusStyles()}
         >
-            <div 
-                className="text-sm font-semibold uppercase tracking-wide mb-2"
-                style={{ color: 'var(--text-tertiary)' }}
-            >
-                {label}
+            <div className="flex items-start justify-between mb-3">
+                <div 
+                    className="text-xs font-semibold uppercase"
+                    style={{ color: 'var(--text-tertiary)', letterSpacing: '0.08em' }}
+                >
+                    {label}
+                </div>
+                {status !== 'neutral' && (
+                    <span
+                        className="inline-block w-2 h-2 rounded-full flex-shrink-0 mt-0.5"
+                        style={{
+                            backgroundColor: status === 'green' ? 'var(--accent-success)'
+                                : status === 'red' ? 'var(--accent-error)'
+                                : 'var(--text-tertiary)'
+                        }}
+                    />
+                )}
             </div>
             <div 
-                className="text-3xl font-bold mb-1"
+                className="text-2xl font-bold tracking-tight"
                 style={{ color: 'var(--text-primary)' }}
             >
                 {value}
             </div>
             {statusText && (
                 <div 
-                    className="text-sm font-medium mt-2"
+                    className="text-xs font-medium mt-2"
                     style={{ color: getStatusTextColor() }}
                 >
                     {statusText}

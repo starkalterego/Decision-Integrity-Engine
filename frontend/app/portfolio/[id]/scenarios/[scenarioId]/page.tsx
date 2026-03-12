@@ -16,6 +16,8 @@ interface Initiative {
     name: string;
     priorityScore: number;
     estimatedValue: number;
+    capexCost: number;
+    opexCost: number;
     riskScore: number;
     capacityDemands: Array<{ role: string; units: number }>;
 }
@@ -35,6 +37,7 @@ interface Portfolio {
     id: string;
     name: string;
     totalCapacity: number;
+    totalBudget: number;
 }
 
 export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id: string; scenarioId: string }> }) {
@@ -277,6 +280,7 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
     // Calculate metrics
     const fundedInitiatives = initiatives.filter(i => decisions[i.id] === 'FUND');
     const totalValue = fundedInitiatives.reduce((sum, i) => sum + i.estimatedValue, 0);
+    const totalCost = fundedInitiatives.reduce((sum, i) => sum + (i.capexCost || 0) + (i.opexCost || 0), 0);
     const totalCapacity = fundedInitiatives.reduce((sum, i) => {
         return sum + i.capacityDemands.reduce((s, cd) => s + cd.units, 0);
     }, 0);
@@ -285,8 +289,11 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
         : 0;
 
     const capacityLimit = portfolio?.totalCapacity || 450;
+    const budgetLimit = portfolio?.totalBudget || 0;
     const capacityUtilization = (totalCapacity / capacityLimit) * 100;
+    const budgetUtilization = budgetLimit > 0 ? (totalCost / budgetLimit) * 100 : 0;
     const isOverCapacity = totalCapacity > capacityLimit;
+    const isOverBudget = budgetLimit > 0 && totalCost > budgetLimit;
 
     const formatCurrency = (value: number) => `₹${(value / 10000000).toFixed(1)}Cr`;
 
@@ -312,24 +319,29 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
             <Header portfolioName={portfolio?.name || 'Portfolio'} portfolioId={resolvedParams.id} currentPage="scenarios" />
 
             <main className="max-w-7xl mx-auto px-6 py-8">
-                {/* Enhanced Page Header */}
-                <div className="mb-10">
+                {/* Page Header */}
+                <div className="mb-8">
                     <div className="flex items-start justify-between gap-6">
                         <div className="flex-1">
-                            <input
-                                type="text"
-                                value={scenario?.name || ''}
-                                disabled={true}
-                                className="text-3xl font-bold bg-transparent border-none focus:outline-none w-full mb-2"
-                                style={{ maxWidth: '700px', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}
-                            />
-                            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Explore trade-offs under constraints</p>
+                            <p className="text-xs font-semibold uppercase mb-1"
+                                style={{ color: 'var(--accent-primary)', letterSpacing: '0.14em' }}>
+                                Scenario Workspace
+                            </p>
+                            <h1
+                                className="text-2xl font-bold tracking-tight"
+                                style={{ color: 'var(--text-primary)' }}
+                            >
+                                {scenario?.name || 'Scenario'}
+                            </h1>
+                            <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                Explore trade-offs under constraints
+                            </p>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 flex-shrink-0">
                             <Button
                                 variant="primary"
                                 onClick={() => setShowCreateModal(true)}
-                                style={{ backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
+                                style={{ backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
                             >
                                 + New Scenario
                             </Button>
@@ -342,19 +354,24 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                     </div>
                 </div>
 
-                {/* Enhanced Scenario Assumptions - MANDATORY */}
-                <div 
-                    className="mb-8 rounded-xl p-6"
-                    style={{
-                        backgroundColor: 'var(--bg-secondary)',
-                        border: '1px solid var(--border-default)',
-                        borderLeft: '3px solid var(--accent-warning)',
-                        boxShadow: 'var(--shadow-md)'
-                    }}
+                {/* Scenario Assumptions */}
+                <div
+                    className="mb-8 rounded-xl p-5"
+                    style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}
                 >
-                    <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                        Scenario Assumptions <span style={{ color: 'var(--accent-error)' }}>*</span>
-                    </label>
+                    <div className="flex items-center gap-2.5 mb-3">
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                            style={{ backgroundColor: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)' }}>
+                            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                <path d="M6.5 1.5L11.5 11H1.5L6.5 1.5Z" stroke="var(--accent-warning)" strokeWidth="1.3" strokeLinejoin="round" />
+                                <path d="M6.5 5v3" stroke="var(--accent-warning)" strokeWidth="1.3" strokeLinecap="round" />
+                                <circle cx="6.5" cy="9.5" r="0.6" fill="var(--accent-warning)" />
+                            </svg>
+                        </div>
+                        <label className="text-xs font-semibold uppercase" style={{ color: 'var(--accent-warning)', letterSpacing: '0.1em' }}>
+                            Scenario Assumptions <span style={{ color: 'var(--accent-error)' }}>*</span>
+                        </label>
+                    </div>
                     <Textarea
                         value={assumptions}
                         onChange={(e) => handleAssumptionsChange(e.target.value)}
@@ -367,15 +384,16 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                     </p>
                 </div>
 
-                {/* Enhanced Real-Time Metrics */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                {/* Real-Time Metrics */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     <MetricCard
                         label="Total Value"
                         value={formatCurrency(totalValue)}
                     />
                     <MetricCard
-                        label="Funded Initiatives"
-                        value={fundedInitiatives.length.toString()}
+                        label="Total Cost (CapEx+OpEx)"
+                        value={formatCurrency(totalCost)}
+                        status={isOverBudget ? 'red' : budgetUtilization > 90 ? 'neutral' : 'green'}
                     />
                     <MetricCard
                         label="Capacity Utilization"
@@ -388,69 +406,139 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                     />
                 </div>
 
-                {/* Capacity Breach Warning */}
-                {isOverCapacity && (
-                    <div 
-                        className="mb-8 p-5 rounded-xl"
-                        style={{
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                            border: '1px solid rgba(239, 68, 68, 0.3)',
-                            borderLeft: '3px solid var(--accent-error)',
-                            boxShadow: 'var(--shadow-md)'
-                        }}
-                    >
-                        <h3 
-                            className="text-sm font-semibold uppercase tracking-wide mb-1.5"
-                            style={{ color: 'var(--accent-error)' }}
-                        >
-                            Capacity Constraint Breached
-                        </h3>
-                        <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                            Total capacity demand ({totalCapacity} units) exceeds portfolio limit ({capacityLimit} units).
-                            Scenario cannot be finalized until capacity is within limits.
-                        </p>
+                {/* Budget Breach Warning */}
+                {isOverBudget && (
+                    <div className="mb-4 p-4 rounded-xl"
+                        style={{ backgroundColor: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.18)' }}>
+                        <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center"
+                                style={{ backgroundColor: 'rgba(239,68,68,0.12)' }}>
+                                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                    <path d="M6.5 1.5L11.5 11H1.5L6.5 1.5Z" stroke="var(--accent-error)" strokeWidth="1.3" strokeLinejoin="round" />
+                                    <path d="M6.5 5v3" stroke="var(--accent-error)" strokeWidth="1.3" strokeLinecap="round" />
+                                    <circle cx="6.5" cy="9.5" r="0.6" fill="var(--accent-error)" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold uppercase mb-1"
+                                    style={{ color: 'var(--accent-error)', letterSpacing: '0.1em' }}>Budget Constraint Breached</p>
+                                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                    Total cost ({formatCurrency(totalCost)}) exceeds portfolio budget ({formatCurrency(budgetLimit)}).
+                                    Scenario cannot be finalized until cost is within budget.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 )}
 
-                {/* Enhanced Initiatives Table */}
-                <div 
-                    className="rounded-xl overflow-hidden mb-8"
-                    style={{ 
-                        backgroundColor: 'var(--bg-secondary)',
-                        border: '1px solid var(--border-default)',
-                        boxShadow: 'var(--shadow-lg)'
-                    }}
+                {/* Capacity Breach Warning */}
+                {isOverCapacity && (
+                    <div className="mb-6 p-4 rounded-xl"
+                        style={{ backgroundColor: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.18)' }}>
+                        <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center"
+                                style={{ backgroundColor: 'rgba(239,68,68,0.12)' }}>
+                                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                    <path d="M6.5 1.5L11.5 11H1.5L6.5 1.5Z" stroke="var(--accent-error)" strokeWidth="1.3" strokeLinejoin="round" />
+                                    <path d="M6.5 5v3" stroke="var(--accent-error)" strokeWidth="1.3" strokeLinecap="round" />
+                                    <circle cx="6.5" cy="9.5" r="0.6" fill="var(--accent-error)" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold uppercase mb-1"
+                                    style={{ color: 'var(--accent-error)', letterSpacing: '0.1em' }}>Capacity Constraint Breached</p>
+                                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                                    Total capacity demand ({totalCapacity} units) exceeds portfolio limit ({capacityLimit} units).
+                                    Scenario cannot be finalized until capacity is within limits.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Per-Role Capacity Breakdown */}
+                {(() => {
+                    const roleMap: Record<string, number> = {};
+                    fundedInitiatives.forEach(i => {
+                        i.capacityDemands.forEach(cd => {
+                            roleMap[cd.role] = (roleMap[cd.role] || 0) + cd.units;
+                        });
+                    });
+                    const roleEntries = Object.entries(roleMap);
+                    if (roleEntries.length === 0) return null;
+                    return (
+                        <div className="mb-6 rounded-xl overflow-hidden"
+                            style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
+                            <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--border-default)', backgroundColor: 'rgba(255,255,255,0.02)' }}>
+                                <p className="text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.1em' }}>Capacity by Role</p>
+                                <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>Aggregate demand from funded initiatives</p>
+                            </div>
+                            <table className="w-full">
+                                <thead>
+                                    <tr style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-subtle)' }}>
+                                        {['Role', 'Demanded (units)', 'Portfolio Limit', 'Utilization'].map(h => (
+                                            <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase"
+                                                style={{ color: 'var(--text-tertiary)', letterSpacing: '0.08em' }}>{h}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {roleEntries.map(([role, demanded]) => {
+                                        const pct = (demanded / capacityLimit) * 100;
+                                        const over = demanded > capacityLimit;
+                                        return (
+                                            <tr key={role} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                                                <td className="px-5 py-3 font-medium" style={{ color: 'var(--text-primary)' }}>{role}</td>
+                                                <td className="px-5 py-3 font-mono" style={{ color: 'var(--text-primary)' }}>{demanded}</td>
+                                                <td className="px-5 py-3 font-mono" style={{ color: 'var(--text-secondary)' }}>{capacityLimit}</td>
+                                                <td className="px-5 py-3">
+                                                    <span className="inline-block px-2 py-0.5 rounded text-xs font-semibold"
+                                                        style={{
+                                                            backgroundColor: over ? 'rgba(239,68,68,0.15)' : pct > 80 ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.12)',
+                                                            color: over ? 'var(--accent-error)' : pct > 80 ? 'var(--accent-warning)' : 'var(--accent-success)',
+                                                        }}>
+                                                        {pct.toFixed(0)}% {over ? '⚠ Over' : ''}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    );
+                })()}
+
+                {/* Initiative Decisions Table */}
+                <div
+                    className="rounded-xl overflow-hidden mb-6"
+                    style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}
                 >
-                    <div 
-                        className="px-5 py-4"
-                        style={{ 
-                            borderBottom: '1px solid var(--border-default)',
-                            backgroundColor: 'var(--bg-tertiary)'
-                        }}
-                    >
-                        <h2 
-                            className="text-base font-semibold"
-                            style={{ color: 'var(--text-primary)' }}
-                        >
-                            Initiative Decisions
-                        </h2>
-                        <p 
-                            className="text-xs mt-1"
-                            style={{ color: 'var(--text-tertiary)' }}
-                        >
-                            Fund, pause, or stop each initiative
-                        </p>
+                    <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--border-default)', backgroundColor: 'rgba(255,255,255,0.02)' }}>
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0"
+                                style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-subtle)' }}>
+                                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                    <rect x="1.5" y="2" width="10" height="9" rx="1.5" stroke="var(--accent-primary)" strokeWidth="1.2" />
+                                    <path d="M4 5.5h5M4 8h3" stroke="var(--accent-primary)" strokeWidth="1.2" strokeLinecap="round" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.1em' }}>Initiative Decisions</p>
+                                <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>Fund, pause, or stop each initiative</p>
+                            </div>
+                        </div>
                     </div>
 
                     <table className="w-full">
                         <thead>
-                            <tr style={{ backgroundColor: 'var(--bg-tertiary)', borderBottom: '1px solid var(--border-default)' }}>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)' }}>Initiative</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)' }}>Priority</th>
-                                <th className="px-4 py-3 text-right text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)' }}>Value</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)' }}>Capacity</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)' }}>Risk</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)' }}>Decision</th>
+                            <tr style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-default)' }}>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.08em' }}>Initiative</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.08em' }}>Priority</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.08em' }}>Value</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.08em' }}>Capacity</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.08em' }}>Risk</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.08em' }}>Decision</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -500,18 +588,19 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                     </table>
                 </div>
 
-                {/* Enhanced Action Buttons */}
+                {/* Action Bar */}
                 <div className="flex flex-col gap-3">
                     {!assumptions.trim() && !isFinalized && (
-                        <div 
-                            className="p-3 text-sm rounded-lg"
-                            style={{ 
-                                backgroundColor: 'rgba(245, 158, 11, 0.1)', 
-                                color: 'var(--accent-warning)',
-                                border: '1px solid rgba(245, 158, 11, 0.2)'
-                            }}
-                        >
-                            Assumptions required before finalization
+                        <div className="flex items-center gap-2.5 p-3 rounded-lg"
+                            style={{ backgroundColor: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" className="flex-shrink-0">
+                                <path d="M6.5 1.5L11.5 11H1.5L6.5 1.5Z" stroke="var(--accent-warning)" strokeWidth="1.3" strokeLinejoin="round" />
+                                <path d="M6.5 5v3" stroke="var(--accent-warning)" strokeWidth="1.3" strokeLinecap="round" />
+                                <circle cx="6.5" cy="9.5" r="0.6" fill="var(--accent-warning)" />
+                            </svg>
+                            <p className="text-xs font-medium" style={{ color: 'var(--accent-warning)' }}>
+                                Assumptions required before finalization
+                            </p>
                         </div>
                     )}
                     <div className="flex justify-between items-center">
@@ -524,11 +613,11 @@ export default function ScenarioWorkspacePage({ params }: { params: Promise<{ id
                         <Button
                             variant="primary"
                             onClick={handleFinalize}
-                            disabled={isFinalized || !assumptions.trim() || isOverCapacity || isSaving}
-                            style={{ 
-                                backgroundColor: isFinalized || !assumptions.trim() || isOverCapacity ? 'var(--bg-elevated)' : 'var(--accent-warning)', 
-                                color: isFinalized || !assumptions.trim() || isOverCapacity ? 'var(--text-tertiary)' : '#000000',
-                                cursor: isFinalized || !assumptions.trim() || isOverCapacity ? 'not-allowed' : 'pointer'
+                            disabled={isFinalized || !assumptions.trim() || isOverCapacity || isOverBudget || isSaving}
+                            style={{
+                                backgroundColor: isFinalized || !assumptions.trim() || isOverCapacity || isOverBudget ? 'var(--bg-elevated)' : 'var(--accent-warning)',
+                                color: isFinalized || !assumptions.trim() || isOverCapacity || isOverBudget ? 'var(--text-tertiary)' : '#000000',
+                                cursor: isFinalized || !assumptions.trim() || isOverCapacity || isOverBudget ? 'not-allowed' : 'pointer'
                             }}
                         >
                             {isSaving ? 'Finalizing...' : 'Finalize Scenario'}
@@ -676,23 +765,26 @@ ${formData.strategicFocus ? `Strategic Focus: ${formData.strategicFocus}` : ''}`
                     boxShadow: 'var(--shadow-xl)'
                 }}
             >
-                <div 
-                    className="px-8 py-6"
-                    style={{ 
-                        borderBottom: '1px solid var(--border-default)',
-                        background: 'linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%)'
-                    }}
-                >
-                    <h2 
-                        className="text-2xl font-bold tracking-tight"
-                        style={{ color: 'var(--text-primary)' }}
-                    >
+                <div className="px-8 py-6"
+                    style={{ borderBottom: '1px solid var(--border-default)', backgroundColor: 'rgba(255,255,255,0.02)' }}>
+                    <div className="flex items-center gap-3 mb-1">
+                        <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0"
+                            style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-subtle)' }}>
+                            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                <rect x="1.5" y="1.5" width="10" height="10" rx="1.5" stroke="var(--accent-primary)" strokeWidth="1.3" />
+                                <path d="M6.5 4v5M4 6.5h5" stroke="var(--accent-primary)" strokeWidth="1.3" strokeLinecap="round" />
+                            </svg>
+                        </div>
+                        <p className="text-xs font-semibold uppercase"
+                            style={{ color: 'var(--accent-primary)', letterSpacing: '0.12em' }}>
+                            New Scenario
+                        </p>
+                    </div>
+                    <h2 className="text-xl font-bold tracking-tight pl-10"
+                        style={{ color: 'var(--text-primary)' }}>
                         Create New Scenario
                     </h2>
-                    <p 
-                        className="text-sm mt-2"
-                        style={{ color: 'var(--text-secondary)' }}
-                    >
+                    <p className="text-sm mt-1 pl-10" style={{ color: 'var(--text-secondary)' }}>
                         Define assumptions to explore alternative portfolio decisions
                     </p>
                 </div>
@@ -783,23 +875,16 @@ ${formData.strategicFocus ? `Strategic Focus: ${formData.strategicFocus}` : ''}`
                     </div>
                 </div>
 
-                <div 
-                    className="px-8 py-6 flex justify-between items-center"
-                    style={{ 
-                        borderTop: '1px solid var(--border-default)',
-                        backgroundColor: 'var(--bg-tertiary)'
-                    }}
+                <div
+                    className="px-8 py-5 flex justify-between items-center"
+                    style={{ borderTop: '1px solid var(--border-default)', backgroundColor: 'rgba(255,255,255,0.01)' }}
                 >
-                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                    <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                         <span style={{ color: 'var(--accent-error)' }}>*</span> Required fields must be filled
                     </p>
                     <div className="flex gap-3">
                         <Button variant="text" onClick={onClose}>Cancel</Button>
-                        <Button
-                            variant="primary"
-                            onClick={handleSave}
-                            disabled={!isValid}
-                        >
+                        <Button variant="primary" onClick={handleSave} disabled={!isValid}>
                             Create Scenario
                         </Button>
                     </div>

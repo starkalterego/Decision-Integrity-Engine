@@ -31,7 +31,7 @@ export const rateLimitConfigs = {
     // Strict limit for login attempts
     login: {
         windowMs: 15 * 60 * 1000, // 15 minutes
-        maxRequests: 5
+        maxRequests: process.env.NODE_ENV === 'production' ? 5 : 50
     },
     // General API limit
     api: {
@@ -41,7 +41,7 @@ export const rateLimitConfigs = {
     // Stricter limit for create operations
     create: {
         windowMs: 1 * 60 * 1000, // 1 minute
-        maxRequests: 20
+        maxRequests: process.env.NODE_ENV === 'production' ? 20 : 200
     }
 };
 

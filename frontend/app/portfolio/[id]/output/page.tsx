@@ -20,6 +20,8 @@ interface UnfundedInitiative {
 
 interface ScenarioMetrics {
     investment: number;
+    capex?: number;
+    opex?: number;
     value: number;
     capacityUsed: number;
     risk: string;
@@ -50,10 +52,14 @@ interface ExecutiveSummaryData {
     decisionAsk: string;
     metrics: {
         investment: number;
+        capex?: number;
+        opex?: number;
         expectedValue: number;
         capacityUse: number;
         riskExposure: string;
         fundedCount: number;
+        pausedCount?: number;
+        stoppedCount?: number;
     };
     deltas: {
         investment: number;
@@ -70,8 +76,11 @@ interface ExecutiveSummaryData {
     executiveSnapshot: {
         portfolioValue: number;
         totalCost: number;
+        totalCapex?: number;
+        totalOpex?: number;
         capacityUtilization: number;
         riskLevel: string;
+        riskConcentrated?: boolean;
     };
     tradeOffSummary: {
         whatChanged: string[];
@@ -84,6 +93,7 @@ interface ExecutiveSummaryData {
     };
     unfundedInitiatives: UnfundedInitiative[];
     keyRisks: string[];
+    riskConcentrated?: boolean;
     scenarioComparison: {
         baseline: ScenarioMetrics;
         current: ScenarioMetrics;
@@ -269,7 +279,31 @@ export default function ExecutiveOutputPage({
                         <h1 className="text-2xl font-semibold text-gray-900">Executive One-Pager</h1>
                         <p className="text-sm text-gray-500 mt-0.5">Board-Ready Decision Artifact</p>
                     </div>
-                    <Button onClick={handleDownloadPDF} variant="secondary">Download PDF</Button>
+                    <Button
+                        variant="primary"
+                        onClick={() => {
+                            const isFinalized = selectedScenarioId && scenarios.find((s: Scenario) => s.id === selectedScenarioId)?.isFinalized;
+                            if (isFinalized) {
+                                const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+                                const link = document.createElement('a');
+                                fetch(`/api/scenarios/${selectedScenarioId}/export-pdf`, {
+                                    headers: { Authorization: `Bearer ${token}` },
+                                })
+                                    .then(res => res.blob())
+                                    .then(blob => {
+                                        link.href = URL.createObjectURL(blob);
+                                        link.download = `portfolio_decision_${selectedScenarioId!.substring(0, 8)}.pdf`;
+                                        link.click();
+                                        URL.revokeObjectURL(link.href);
+                                    })
+                                    .catch(() => alert('Failed to generate PDF. Please try again.'));
+                            } else {
+                                handleDownloadPDF();
+                            }
+                        }}
+                    >
+                        Export PDF
+                    </Button>
                 </div>
 
                 {/* White Paper Container */}
@@ -303,14 +337,14 @@ export default function ExecutiveOutputPage({
                         </div>
 
                         {/* Compact Top Metrics */}
-                        <div className="grid grid-cols-4 gap-4 pt-3 border-t border-gray-100">
+                        <div className="grid grid-cols-5 gap-4 pt-3 border-t border-gray-100">
                             <div>
                                 <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">INVESTMENT</div>
                                 <div className="text-xl font-semibold text-gray-900">{formatCurrency(data.metrics.investment)}</div>
-                                <div className="text-xs text-red-600 mt-0.5">
-                                    <span className={data.deltas.investment < 0 ? 'text-red-600' : 'text-gray-500'}>
-                                        {formatDelta(data.deltas.investment)} Baseline
-                                    </span>
+                                <div className="text-xs text-gray-500 mt-0.5">
+                                    {data.metrics.capex != null ? `CapEx ${formatCurrency(data.metrics.capex)}` : ''}
+                                    {data.metrics.opex != null && data.metrics.capex != null ? ' / ' : ''}
+                                    {data.metrics.opex != null ? `OpEx ${formatCurrency(data.metrics.opex)}/yr` : ''}
                                 </div>
                             </div>
                             <div>
@@ -318,25 +352,34 @@ export default function ExecutiveOutputPage({
                                 <div className="text-xl font-semibold text-gray-900">{formatCurrency(data.metrics.expectedValue)}</div>
                                 <div className="text-xs mt-0.5">
                                     <span className={data.deltas.value > 0 ? 'text-green-600' : 'text-gray-500'}>
-                                        +{formatDelta(data.deltas.value)} Baseline
+                                        {data.deltas.value > 0 ? '+' : ''}{formatDelta(data.deltas.value)} vs Baseline
                                     </span>
                                 </div>
+                            </div>
+                            <div>
+                                <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">DECISIONS</div>
+                                <div className="text-sm font-semibold text-gray-900">
+                                    <span className="text-green-700">{data.metrics.fundedCount}F</span>
+                                    <span className="text-gray-400 mx-1">/</span>
+                                    <span className="text-amber-600">{data.metrics.pausedCount ?? 0}P</span>
+                                    <span className="text-gray-400 mx-1">/</span>
+                                    <span className="text-red-600">{data.metrics.stoppedCount ?? 0}S</span>
+                                </div>
+                                <div className="text-xs text-gray-400 mt-0.5">Fund / Pause / Stop</div>
                             </div>
                             <div>
                                 <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">CAPACITY USE</div>
                                 <div className="text-xl font-semibold text-gray-900">{data.metrics.capacityUse.toFixed(0)}%</div>
                                 <div className="text-xs text-green-600 mt-0.5">
-                                    Optimal/Tolerance +{(100 - data.metrics.capacityUse).toFixed(0)}%
+                                    Headroom {(100 - data.metrics.capacityUse).toFixed(0)}%
                                 </div>
                             </div>
                             <div>
                                 <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">RISK EXPOSURE</div>
                                 <div className="text-xl font-semibold text-gray-900">{data.metrics.riskExposure}</div>
-                                <div className="text-xs text-red-600 mt-0.5">
-                                    <span className={data.deltas.risk < 0 ? 'text-red-600' : 'text-gray-500'}>
-                                        Reduced/High Risk Removed
-                                    </span>
-                                </div>
+                                {data.riskConcentrated && (
+                                    <div className="text-xs text-orange-600 mt-0.5">⚠ Concentrated in top 2</div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -373,14 +416,21 @@ export default function ExecutiveOutputPage({
                                         {[
                                             { label: "Portfolio Value", value: formatCurrency(data.executiveSnapshot.portfolioValue) },
                                             { label: "Total Cost", value: formatCurrency(data.executiveSnapshot.totalCost) },
+                                            { label: "  CapEx", value: data.executiveSnapshot.totalCapex != null ? formatCurrency(data.executiveSnapshot.totalCapex) : '—' },
+                                            { label: "  OpEx/yr", value: data.executiveSnapshot.totalOpex != null ? formatCurrency(data.executiveSnapshot.totalOpex) : '—' },
                                             { label: "Capacity Utilization", value: `${data.executiveSnapshot.capacityUtilization.toFixed(0)}%` },
                                             { label: "Risk Level", value: data.executiveSnapshot.riskLevel }
                                         ].map((item, i) => (
                                             <div key={i} className="flex justify-between py-1.5 border-b border-gray-100 last:border-0">
-                                                <span className="text-gray-600">{item.label}</span>
-                                                <span className="font-semibold text-gray-900">{item.value}</span>
+                                                <span className={`text-gray-600 ${item.label.startsWith('  ') ? 'pl-3 text-xs italic' : ''}`}>{item.label.trim()}</span>
+                                                <span className={`font-semibold text-gray-900 ${item.label.startsWith('  ') ? 'text-xs' : ''}`}>{item.value}</span>
                                             </div>
                                         ))}
+                                        {data.executiveSnapshot.riskConcentrated && (
+                                            <div className="mt-2 px-2 py-1.5 bg-orange-50 border border-orange-200 rounded text-xs text-orange-700">
+                                                ⚠ Risk Concentration Alert: &gt;50% of risk exposure in top 2 initiatives
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 

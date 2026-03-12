@@ -26,11 +26,12 @@ model User {
   portfolios    Portfolio[]
 }
 
-// Portfolio - Defines the decision boundary (BACKEND.md lines 48-52)
+// Portfolio - Defines the decision boundary
 model Portfolio {
   id            String   @id @default(uuid())
   userId        String   // Owner of the portfolio
   name          String
+  description   String?
   fiscalPeriod  String
   totalBudget   Float
   totalCapacity Int
@@ -38,71 +39,165 @@ model Portfolio {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  initiatives   Initiative[]
-  scenarios     Scenario[]
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  initiatives       Initiative[]
+  scenarios         Scenario[]
   governanceRecords GovernanceDecisionRecord[]
+  objectives        StrategicObjective[]
+  roleCapacities    RoleCapacity[]
 
   @@index([userId])
   @@index([status])
   @@index([createdAt])
 }
 
-// Initiative - Atomic unit of decision-making (BACKEND.md lines 54-58)
+// StrategicObjective - Links initiatives to portfolio strategy
+model StrategicObjective {
+  id          String   @id @default(uuid())
+  portfolioId String
+  name        String
+  description String?
+  priority    Int      @default(1)
+  createdAt   DateTime @default(now())
+
+  portfolio   Portfolio   @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  initiatives Initiative[]
+
+  @@index([portfolioId])
+}
+
+// Initiative - Atomic unit of decision-making
 model Initiative {
   id                      String   @id @default(uuid())
   portfolioId             String
+  objectiveId             String?  // Optional FK to StrategicObjective
   name                    String
+  description             String?
   sponsor                 String
   deliveryOwner           String
-  strategicAlignmentScore Int      // 1-5
+  strategicAlignmentScore Int      // 1-5 integer (completeness gate)
+  strategyScore           Float    @default(0) // 0-100 continuous (priority formula)
   estimatedValue          Float
+  capexCost               Float    @default(0)
+  opexCost                Float    @default(0)
+  costOfDelay             Float    @default(0) // Weekly business cost of delay
   riskScore               Int      // 1-5
+  lifecycleState          String   @default("IDEA") // IDEA | CONCEPT_APPROVED | PLANNED | EXECUTION | CLOSED | TERMINATED
   status                  String   @default("Proposed")
   isComplete              Boolean  @default(false)
   priorityScore           Float?   // Calculated by system
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   
-  portfolio               Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
-  capacityDemands         CapacityDemand[]
-  scenarioDecisions       ScenarioDecision[]
+  portfolio         Portfolio           @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  objective         StrategicObjective? @relation(fields: [objectiveId], references: [id])
+  capacityDemands   CapacityDemand[]
+  scenarioDecisions ScenarioDecision[]
+  risks             InitiativeRisk[]
 
   @@index([portfolioId])
   @@index([priorityScore])
   @@index([isComplete])
+  @@index([lifecycleState])
+  @@index([objectiveId])
 }
 
-// Capacity Demand - Role-based capacity requirements
+// Role - Named role types for capacity tracking
+model Role {
+  id          String @id @default(uuid())
+  name        String @unique // e.g. "Backend Developer", "Data Engineer"
+  description String?
+
+  capacityBuckets RoleCapacity[]
+  capacityDemands CapacityDemand[]
+}
+
+// RoleCapacity - Available capacity per role per portfolio per period
+model RoleCapacity {
+  id             String   @id @default(uuid())
+  portfolioId    String
+  roleId         String
+  availableUnits Int
+  periodLabel    String   // e.g. "Q1 2026", "FY2026"
+  createdAt      DateTime @default(now())
+
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  role      Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@index([portfolioId])
+  @@index([roleId])
+}
+
+// CapacityDemand - Role-based capacity requirements per initiative
 model CapacityDemand {
-  id           String @id @default(uuid())
+  id           String  @id @default(uuid())
   initiativeId String
-  role         String
+  role         String  // Free-text role name (always set for display)
+  roleId       String? // Optional FK to Role model for structured validation
   units        Int
   
-  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  initiative Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  roleRef    Role?      @relation(fields: [roleId], references: [id])
 
   @@index([initiativeId])
+  @@index([roleId])
 }
 
-// Scenario - Clone of baseline portfolio state (BACKEND.md lines 60-64)
+// InitiativeRisk - Risk register per initiative
+model InitiativeRisk {
+  id           String   @id @default(uuid())
+  initiativeId String
+  description  String
+  probability  Float    // 0.0–1.0
+  impact       Float    // 0.0–1.0
+  exposure     Float    // Computed: probability × impact
+  status       String   @default("OPEN") // OPEN | MITIGATED | CLOSED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  initiative Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+
+  @@index([initiativeId])
+  @@index([status])
+}
+
+// Scenario - Clone of baseline portfolio state
 model Scenario {
   id            String   @id @default(uuid())
   portfolioId   String
   name          String
-  assumptions   String   // Mandatory per decision-logic.md lines 150-156
+  assumptions   String   // Mandatory per governance rules
   isBaseline    Boolean  @default(false)
   isFinalized   Boolean  @default(false)
   isRecommended Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
-  portfolio     Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
-  decisions     ScenarioDecision[]
+  portfolio Portfolio          @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  decisions ScenarioDecision[]
+  metrics   ScenarioMetrics?
 
   @@index([portfolioId])
   @@index([isFinalized])
   @@index([isRecommended])
+}
+
+// ScenarioMetrics - Stored scenario aggregates (never computed on-the-fly)
+model ScenarioMetrics {
+  id            String   @id @default(uuid())
+  scenarioId    String   @unique
+  totalValue    Float    @default(0)
+  totalCapex    Float    @default(0)
+  totalOpex     Float    @default(0)
+  totalCost     Float    @default(0) // totalCapex + totalOpex
+  totalCapacity Int      @default(0)
+  avgRiskScore  Float    @default(0)
+  fundedCount   Int      @default(0)
+  pausedCount   Int      @default(0)
+  stoppedCount  Int      @default(0)
+  updatedAt     DateTime @updatedAt
+
+  scenario Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
 }
 
 // Scenario Decision - Fund/Pause/Stop per initiative
@@ -122,7 +217,7 @@ model ScenarioDecision {
 model GovernanceDecisionRecord {
   id          String   @id @default(uuid())
   portfolioId String
-  actionType  String   // OVERRIDE | TERMINATION | FINALIZATION | SCENARIO_CREATION
+  actionType  String   // OVERRIDE | TERMINATION | FINALIZATION | SCENARIO_CREATION | LIFECYCLE_TRANSITION
   entityId    String
   entityType  String   // INITIATIVE | SCENARIO | PORTFOLIO
   rationale   String?

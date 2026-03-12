@@ -49,85 +49,95 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.4), 0 8px 16px -8px rgba(0, 0, 0, 0.5)'
             }}
         >
-            <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                {/* Enhanced Brand Section */}
-                <div className="flex items-center gap-6">
-                    {/* Logo - clickable only when inside a portfolio */}
+            <div className="max-w-screen-xl mx-auto px-5 h-14 flex items-center justify-between">
+                {/* Brand Section */}
+                <div className="flex items-center gap-4">
+                    {/* Brand — clickable inside a portfolio, static on dashboard */}
                     {portfolioId ? (
                         <Link
                             href="/dashboard"
                             className="flex items-center gap-3 group"
+                            aria-label="Decision Integrity Engine — go to Dashboard"
                         >
-                            {/* Logo/Icon */}
-                            <div 
-                                className="h-10 w-10 rounded-lg flex items-center justify-center transition-transform group-hover:scale-105"
-                                style={{ 
-                                    backgroundColor: 'var(--accent-primary)',
-                                    boxShadow: '0 2px 8px rgba(0, 217, 255, 0.3)'
-                                }}
-                            >
-                                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" 
-                                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
-                                        style={{ color: 'var(--accent-primary-text)' }}
-                                    />
-                                </svg>
-                            </div>
-                            <div className="flex flex-col justify-center">
-                                <h1 
-                                    className="text-lg font-bold leading-none transition-opacity group-hover:opacity-80"
-                                    style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}
+                            <BrandMark />
+                            <div className="flex flex-col justify-center leading-none min-w-0">
+                                <span
+                                    style={{
+                                        fontSize: '9px',
+                                        fontWeight: 500,
+                                        letterSpacing: '0.14em',
+                                        textTransform: 'uppercase',
+                                        color: 'var(--text-tertiary)',
+                                    }}
                                 >
-                                    Decision Integrity <span style={{ color: 'var(--accent-primary)' }}>Engine</span>
-                                </h1>
-                                {portfolioName && (
-                                    <div className="flex items-center gap-1.5 mt-1.5">
-                                        <div 
-                                            className="w-1 h-1 rounded-full"
-                                            style={{ backgroundColor: 'var(--accent-primary)' }}
-                                        />
-                                        <span 
-                                            className="text-xs font-medium truncate max-w-64"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
-                                            {portfolioName}
-                                        </span>
-                                    </div>
-                                )}
+                                    Decision Integrity
+                                </span>
+                                <span
+                                    className="transition-opacity group-hover:opacity-80"
+                                    style={{
+                                        fontSize: '14px',
+                                        fontWeight: 700,
+                                        letterSpacing: '-0.025em',
+                                        color: 'var(--text-primary)',
+                                        marginTop: '2px',
+                                    }}
+                                >
+                                    ENGINE
+                                </span>
                             </div>
+                            {portfolioName && (
+                                <>
+                                    <div
+                                        className="shrink-0 self-stretch"
+                                        style={{
+                                            width: '1px',
+                                            background: 'var(--border-default)',
+                                            margin: '4px 0',
+                                        }}
+                                    />
+                                    <span
+                                        className="text-xs font-medium truncate max-w-[9rem]"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        {portfolioName}
+                                    </span>
+                                </>
+                            )}
                         </Link>
                     ) : (
                         <div className="flex items-center gap-3">
-                            {/* Logo/Icon - non-clickable on dashboard */}
-                            <div 
-                                className="h-10 w-10 rounded-lg flex items-center justify-center"
-                                style={{ 
-                                    backgroundColor: 'var(--accent-primary)',
-                                    boxShadow: '0 2px 8px rgba(0, 217, 255, 0.3)'
-                                }}
-                            >
-                                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" 
-                                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
-                                        style={{ color: 'var(--accent-primary-text)' }}
-                                    />
-                                </svg>
-                            </div>
-                            <div className="flex flex-col justify-center">
-                                <h1 
-                                    className="text-lg font-bold leading-none"
-                                    style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}
+                            <BrandMark />
+                            <div className="flex flex-col justify-center leading-none">
+                                <span
+                                    style={{
+                                        fontSize: '9px',
+                                        fontWeight: 500,
+                                        letterSpacing: '0.14em',
+                                        textTransform: 'uppercase',
+                                        color: 'var(--text-tertiary)',
+                                    }}
                                 >
-                                    Decision Integrity <span style={{ color: 'var(--accent-primary)' }}>Engine</span>
-                                </h1>
+                                    Decision Integrity
+                                </span>
+                                <span
+                                    style={{
+                                        fontSize: '14px',
+                                        fontWeight: 700,
+                                        letterSpacing: '-0.025em',
+                                        color: 'var(--text-primary)',
+                                        marginTop: '2px',
+                                    }}
+                                >
+                                    ENGINE
+                                </span>
                             </div>
                         </div>
                     )}
 
-                    {/* Enhanced Global Navigation */}
+                    {/* Global Navigation */}
                     {isAuthenticated && !portfolioId && (
                         <nav 
-                            className="hidden md:flex items-center gap-1 ml-6 pl-6" 
+                            className="hidden md:flex items-center gap-0.5 ml-3 pl-3" 
                             style={{ borderLeft: '1px solid var(--border-default)' }}
                         >
                             <NavLink
@@ -147,25 +157,12 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
                         </nav>
                     )}
 
-                    {/* Enhanced Portfolio Navigation */}
+                    {/* Portfolio Navigation */}
                     {portfolioId && (
                         <nav 
-                            className="hidden md:flex items-center gap-1 ml-6 pl-6" 
+                            className="hidden md:flex items-center gap-0.5 ml-3 pl-3" 
                             style={{ borderLeft: '1px solid var(--border-default)' }}
                         >
-                            <NavLink
-                                href="/dashboard"
-                                active={false}
-                            >
-                                <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                                </svg>
-                                Dashboard
-                            </NavLink>
-                            <div 
-                                className="h-4 w-px mx-1.5"
-                                style={{ backgroundColor: 'var(--border-subtle)' }}
-                            />
                             <NavLink
                                 href={`/portfolio/${portfolioId}/setup`}
                                 active={currentPage === 'setup'}
@@ -200,128 +197,121 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
                     )}
                 </div>
 
-                {/* Enhanced User Menu */}
+                {/* User Menu */}
                 <div className="flex items-center gap-3">
                     {isAuthenticated && user ? (
                         <div className="relative" ref={profileRef}>
                             {/* Profile Button */}
                             <button
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                                className="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200"
-                                style={{ 
+                                className="flex items-center gap-2.5 rounded-lg transition-all duration-150"
+                                style={{
+                                    padding: '4px 8px 4px 4px',
                                     border: '1px solid',
-                                    borderColor: isProfileOpen ? 'var(--border-default)' : 'transparent',
-                                    backgroundColor: isProfileOpen ? 'var(--bg-elevated)' : 'transparent',
-                                    boxShadow: isProfileOpen ? 'var(--shadow-sm)' : 'none'
+                                    borderColor: isProfileOpen ? 'rgba(255,255,255,0.1)' : 'transparent',
+                                    backgroundColor: isProfileOpen ? 'rgba(255,255,255,0.05)' : 'transparent',
                                 }}
-                                onMouseEnter={(e) => {
+                                onMouseEnter={e => {
                                     if (!isProfileOpen) {
-                                        e.currentTarget.style.backgroundColor = 'var(--bg-elevated)';
-                                        e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                                        e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
                                     }
                                 }}
-                                onMouseLeave={(e) => {
+                                onMouseLeave={e => {
                                     if (!isProfileOpen) {
                                         e.currentTarget.style.backgroundColor = 'transparent';
                                         e.currentTarget.style.borderColor = 'transparent';
                                     }
                                 }}
                             >
-                                <div 
-                                    className="h-8 w-8 rounded-lg flex items-center justify-center text-sm font-bold"
-                                    style={{ 
-                                        backgroundColor: 'var(--accent-primary)',
-                                        color: 'var(--accent-primary-text)',
-                                        boxShadow: '0 2px 4px rgba(0, 217, 255, 0.2)'
+                                {/* Monogram avatar */}
+                                <div
+                                    style={{
+                                        width: 28,
+                                        height: 28,
+                                        borderRadius: '50%',
+                                        background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                                        border: '1.5px solid rgba(0,217,255,0.35)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '10px',
+                                        fontWeight: 700,
+                                        letterSpacing: '0.04em',
+                                        color: '#e2e8f0',
+                                        flexShrink: 0,
+                                        boxShadow: '0 0 0 2px rgba(0,217,255,0.08)',
                                     }}
                                 >
-                                    {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                                    {user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
                                 </div>
-                                <div className="text-left hidden sm:block">
-                                    <p 
-                                        className="text-sm font-semibold leading-none"
-                                        style={{ color: 'var(--text-primary)' }}
-                                    >
+                                {/* Name + role */}
+                                <div className="hidden sm:flex flex-col items-start leading-none">
+                                    <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>
                                         {user.name.split(' ')[0]}
-                                    </p>
-                                    <p 
-                                        className="text-xs mt-1 capitalize"
-                                        style={{ color: 'var(--text-tertiary)' }}
-                                    >
-                                        {user.role.replace('_', ' ').toLowerCase()}
-                                    </p>
+                                    </span>
+                                    <RolePill role={user.role} small />
                                 </div>
-                                <svg 
-                                    className={`w-4 h-4 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`}
-                                    fill="none" 
-                                    stroke="currentColor" 
-                                    viewBox="0 0 24 24"
-                                    style={{ color: 'var(--text-tertiary)' }}
+                                {/* Chevron */}
+                                <svg
+                                    width="12" height="12" viewBox="0 0 12 12" fill="none"
+                                    className={`transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`}
+                                    style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
                                 >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                                    <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                             </button>
 
-                            {/* Enhanced Dropdown Menu */}
+                            {/* Dropdown Menu */}
                             {isProfileOpen && (
-                                <div 
-                                    className="absolute right-0 mt-2 w-72 rounded-xl overflow-hidden animate-fadeIn"
-                                    style={{ 
+                                <div
+                                    className="absolute right-0 mt-2 w-68 rounded-xl overflow-hidden"
+                                    style={{
+                                        width: 264,
                                         backgroundColor: 'var(--bg-secondary)',
-                                        border: '1px solid var(--border-default)',
+                                        border: '1px solid rgba(255,255,255,0.08)',
                                         zIndex: 100,
-                                        boxShadow: '0 20px 30px -8px rgba(0, 0, 0, 0.6), var(--shadow-xl)'
+                                        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.4), 0 24px 40px -8px rgba(0,0,0,0.6)',
                                     }}
                                 >
-                                    {/* Enhanced Profile Header */}
-                                    <div 
-                                        className="px-5 py-4"
-                                        style={{ 
-                                            background: 'linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%)',
-                                            borderBottom: '1px solid var(--border-default)'
-                                        }}
-                                    >
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <div 
-                                                className="h-12 w-12 rounded-lg flex items-center justify-center text-base font-bold"
-                                                style={{ 
-                                                    backgroundColor: 'var(--accent-primary)',
-                                                    color: 'var(--accent-primary-text)',
-                                                    boxShadow: '0 4px 8px rgba(0, 217, 255, 0.25)'
-                                                }}
-                                            >
-                                                {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                                    {/* Profile header */}
+                                    <div style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                            {/* Large monogram */}
+                                            <div style={{
+                                                width: 44,
+                                                height: 44,
+                                                borderRadius: '50%',
+                                                background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                                                border: '2px solid rgba(0,217,255,0.3)',
+                                                boxShadow: '0 0 0 3px rgba(0,217,255,0.07)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '15px',
+                                                fontWeight: 700,
+                                                letterSpacing: '0.04em',
+                                                color: '#e2e8f0',
+                                                flexShrink: 0,
+                                            }}>
+                                                {user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p 
-                                                    className="text-sm font-bold leading-tight mb-1"
-                                                    style={{ color: 'var(--text-primary)' }}
-                                                >
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                     {user.name}
                                                 </p>
-                                                <p 
-                                                    className="text-xs truncate"
-                                                    style={{ color: 'var(--text-tertiary)' }}
-                                                >
+                                                <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                     {user.email}
                                                 </p>
+                                                <div style={{ marginTop: 6 }}>
+                                                    <RolePill role={user.role} />
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div 
-                                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold capitalize"
-                                            style={{ 
-                                                backgroundColor: 'rgba(0, 217, 255, 0.1)',
-                                                color: 'var(--accent-primary)',
-                                                border: '1px solid rgba(0, 217, 255, 0.2)'
-                                            }}
-                                        >
-                                            <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--accent-primary)' }}></div>
-                                            {user.role.replace('_', ' ').toLowerCase()}
                                         </div>
                                     </div>
 
-                                    {/* Enhanced Menu Items */}
-                                    <div className="py-2">
+                                    {/* Menu items */}
+                                    <div style={{ padding: '6px 0' }}>
                                         <DropdownItem
                                             icon={
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -383,14 +373,11 @@ export default function Header({ portfolioName, portfolioId, currentPage, classN
                                         />
                                     </div>
 
-                                    {/* Enhanced Divider */}
-                                    <div 
-                                        className="h-px mx-3 my-2"
-                                        style={{ backgroundColor: 'var(--border-subtle)' }}
-                                    />
+                                    {/* Divider */}
+                                    <div style={{ height: 1, margin: '0 12px', backgroundColor: 'rgba(255,255,255,0.06)' }} />
 
-                                    {/* Enhanced Logout */}
-                                    <div className="py-2">
+                                    {/* Sign out */}
+                                    <div style={{ padding: '6px 0' }}>
                                         <DropdownItem
                                             icon={
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -500,6 +487,76 @@ function DropdownItem({
     );
 }
 
+/**
+ * Role-coloured pill — each role gets a distinct colour so users can
+ * visually distinguish their access level at a glance (enterprise pattern).
+ * PMO = indigo, EXECUTIVE = amber, PORTFOLIO_LEAD = teal.
+ */
+function RolePill({ role, small = false }: { role: string; small?: boolean }) {
+    const map: Record<string, { bg: string; text: string; dot: string; label: string }> = {
+        PMO:            { bg: 'rgba(99,102,241,0.12)',  text: '#a5b4fc', dot: '#818cf8', label: 'PMO' },
+        EXECUTIVE:      { bg: 'rgba(245,158,11,0.12)', text: '#fcd34d', dot: '#f59e0b', label: 'Executive' },
+        PORTFOLIO_LEAD: { bg: 'rgba(20,184,166,0.12)', text: '#5eead4', dot: '#14b8a6', label: 'Portfolio Lead' },
+    };
+    const style = map[role] ?? { bg: 'rgba(107,114,128,0.12)', text: '#9ca3af', dot: '#6b7280', label: role };
+    return (
+        <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            padding: small ? '1px 6px' : '2px 8px',
+            borderRadius: 99,
+            background: style.bg,
+            fontSize: small ? 9 : 10,
+            fontWeight: 600,
+            letterSpacing: '0.04em',
+            color: style.text,
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+        }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: style.dot, flexShrink: 0, display: 'inline-block' }} />
+            {style.label}
+        </span>
+    );
+}
+
+/**
+ * Enterprise-grade icon mark — a priority-cascade "D" shape
+ * representing portfolio prioritisation / ranked decisions.
+ */
+function BrandMark() {
+    return (
+        <div
+            className="shrink-0 flex items-center justify-center"
+            style={{
+                width: 32,
+                height: 32,
+                borderRadius: 7,
+                background: 'linear-gradient(135deg, rgba(0,217,255,0.12) 0%, rgba(0,217,255,0.04) 100%)',
+                border: '1px solid rgba(0,217,255,0.18)',
+                boxShadow: '0 0 12px rgba(0,217,255,0.08)',
+            }}
+        >
+            <svg
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
+                fill="none"
+                aria-hidden="true"
+            >
+                {/* Vertical stem — the backbone of the "D" */}
+                <rect x="1.5" y="1.5" width="2.4" height="15" rx="1.2" fill="var(--accent-primary)" />
+                {/* Top bar — full priority level */}
+                <rect x="5.5" y="2.6" width="11" height="2" rx="1" fill="var(--accent-primary)" />
+                {/* Mid bar — second priority level (70%) */}
+                <rect x="5.5" y="8" width="7.7" height="2" rx="1" fill="var(--accent-primary)" opacity="0.65" />
+                {/* Bottom bar — third priority level (45%) */}
+                <rect x="5.5" y="13.4" width="4.5" height="2" rx="1" fill="var(--accent-primary)" opacity="0.38" />
+            </svg>
+        </div>
+    );
+}
+
 function NavLink({
     href,
     active,
@@ -512,7 +569,7 @@ function NavLink({
     return (
         <Link
             href={href}
-            className="px-3 py-2 text-sm font-medium rounded-md transition-all duration-200"
+            className="px-2.5 py-1.5 text-xs font-medium rounded-md transition-all duration-200 flex items-center"
             style={{
                 color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
                 backgroundColor: active ? 'var(--bg-elevated)' : 'transparent',

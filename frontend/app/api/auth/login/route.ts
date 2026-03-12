@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma, withRetry } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import env from '@/lib/env';
@@ -46,9 +46,9 @@ export async function POST(request: NextRequest) {
         }
 
         // Find user by email
-        const user = await prisma.user.findUnique({
+        const user = await withRetry(() => prisma.user.findUnique({
             where: { email },
-        });
+        }));
 
         if (!user) {
             return NextResponse.json({
@@ -99,10 +99,10 @@ export async function POST(request: NextRequest) {
         );
 
         // Update last login
-        await prisma.user.update({
+        await withRetry(() => prisma.user.update({
             where: { id: user.id },
             data: { lastLoginAt: new Date() },
-        });
+        }));
 
         return NextResponse.json({
             success: true,

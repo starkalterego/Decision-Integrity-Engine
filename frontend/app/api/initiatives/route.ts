@@ -1,32 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { calculatePriorityScore } from '@/lib/priority';
-
-// Validation helper per BACKEND.md lines 73-84
-function validateInitiativeCompleteness(data: any): { isValid: boolean; errors: string[] } {
-    const errors: string[] = [];
-
-    if (!data.name?.trim()) errors.push('Initiative name is required');
-    if (!data.sponsor?.trim()) errors.push('Sponsor is required');
-    if (!data.deliveryOwner?.trim()) errors.push('Delivery owner is required');
-    if (!data.strategicAlignmentScore || data.strategicAlignmentScore < 1 || data.strategicAlignmentScore > 5) {
-        errors.push('Strategic alignment score must be between 1 and 5');
-    }
-    if (!data.estimatedValue || data.estimatedValue <= 0) {
-        errors.push('Estimated value must be greater than 0');
-    }
-    if (!data.riskScore || data.riskScore < 1 || data.riskScore > 5) {
-        errors.push('Risk score must be between 1 and 5');
-    }
-    if (!data.capacityDemand || data.capacityDemand.length === 0) {
-        errors.push('At least one capacity demand is required');
-    }
-
-    return {
-        isValid: errors.length === 0,
-        errors
-    };
-}
+import { validateInitiativeCompleteness } from '@/lib/governance';
 
 // POST /api/initiatives - Create new initiative
 // Per API_CONTRACTS.md lines 106-132
@@ -34,9 +9,18 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
 
-        // Validate completeness
-        const validation = validateInitiativeCompleteness(body);
-        if (!validation.isValid) {
+        // Validate completeness using governance engine
+        const validation = validateInitiativeCompleteness({
+            name: body.name,
+            sponsor: body.sponsor,
+            deliveryOwner: body.deliveryOwner,
+            strategicAlignmentScore: parseInt(body.strategicAlignmentScore),
+            estimatedValue: parseFloat(body.estimatedValue),
+            riskScore: parseInt(body.riskScore),
+            costOfDelay: parseFloat(body.costOfDelay ?? 0),
+            capacityDemands: body.capacityDemand,
+        });
+        if (!validation.isComplete) {
             return NextResponse.json(
                 {
                     success: false,
@@ -50,10 +34,12 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Calculate priority score per BACKEND.md lines 100-117
+        // Calculate priority score
         const priorityScore = calculatePriorityScore({
             estimatedValue: parseFloat(body.estimatedValue),
             strategicAlignmentScore: parseInt(body.strategicAlignmentScore),
+            strategyScore: parseFloat(body.strategyScore ?? 0),
+            costOfDelay: parseFloat(body.costOfDelay ?? 0),
             riskScore: parseInt(body.riskScore),
             capacityDemands: body.capacityDemand
         });
@@ -63,11 +49,17 @@ export async function POST(request: NextRequest) {
             data: {
                 portfolioId: body.portfolioId,
                 name: body.name,
+                description: body.description ?? null,
                 sponsor: body.sponsor,
                 deliveryOwner: body.deliveryOwner,
                 strategicAlignmentScore: parseInt(body.strategicAlignmentScore),
+                strategyScore: parseFloat(body.strategyScore ?? 0),
                 estimatedValue: parseFloat(body.estimatedValue),
+                capexCost: parseFloat(body.capexCost ?? 0),
+                opexCost: parseFloat(body.opexCost ?? 0),
+                costOfDelay: parseFloat(body.costOfDelay ?? 0),
                 riskScore: parseInt(body.riskScore),
+                lifecycleState: body.lifecycleState ?? 'IDEA',
                 isComplete: true,
                 priorityScore: priorityScore,
                 capacityDemands: {

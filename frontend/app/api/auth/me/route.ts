@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { prisma } from '@/lib/prisma';
+import { prisma, withRetry } from '@/lib/prisma';
 import env from '@/lib/env';
 
 export async function GET(request: NextRequest) {
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
         };
 
         // Get user from database
-        const user = await prisma.user.findUnique({
+        const user = await withRetry(() => prisma.user.findUnique({
             where: { id: decoded.userId },
             select: {
                 id: true,
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
                 createdAt: true,
                 lastLoginAt: true,
             },
-        });
+        }));
 
         if (!user) {
             return NextResponse.json({

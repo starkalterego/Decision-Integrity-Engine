@@ -9,11 +9,28 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { authGet, authPost } from '@/lib/api';
 import showToast from '@/lib/toast';
 
+interface StrategicObjective {
+    id: string;
+    name: string;
+    description?: string;
+    priority: number;
+    _count?: { initiatives: number };
+}
+
+interface Role {
+    id: string;
+    name: string;
+    description?: string;
+    totalAvailable: number;
+    capacityBuckets: Array<{ id: string; periodLabel: string; availableUnits: number }>;
+}
+
 export default function PortfolioSetupPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const resolvedParams = React.use(params);
     const [formData, setFormData] = useState({
         name: '',
+        description: '',
         fiscalPeriod: '',
         totalBudget: '',
         totalCapacity: '',
@@ -25,12 +42,34 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
     const [isSaving, setIsSaving] = useState(false);
     const [portfolioId, setPortfolioId] = useState<string | null>(null);
 
+    // Strategic Objectives state
+    const [objectives, setObjectives] = useState<StrategicObjective[]>([]);
+    const [showObjForm, setShowObjForm] = useState(false);
+    const [newObj, setNewObj] = useState({ name: '', description: '', priority: '1' });
+    const [isSavingObj, setIsSavingObj] = useState(false);
+
+    // Role Capacity state
+    const [roles, setRoles] = useState<Role[]>([]);
+    const [showRoleForm, setShowRoleForm] = useState(false);
+    const [newRole, setNewRole] = useState({ name: '', description: '', availableUnits: '', periodLabel: '' });
+    const [isSavingRole, setIsSavingRole] = useState(false);
+
     // Load existing portfolio if ID is not 'new'
     useEffect(() => {
         if (resolvedParams.id !== 'new') {
             loadPortfolio(resolvedParams.id);
         }
     }, [resolvedParams.id]);
+
+    // Load objectives + roles when portfolioId is known
+    useEffect(() => {
+        const pid = portfolioId || (resolvedParams.id !== 'new' ? resolvedParams.id : null);
+        if (pid) {
+            loadObjectives(pid);
+            loadRoles(pid);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [portfolioId, resolvedParams.id]);
 
     const loadPortfolio = async (id: string) => {
         setIsLoading(true);
@@ -42,6 +81,7 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
                 const portfolio = result.data;
                 setFormData({
                     name: portfolio.name,
+                    description: portfolio.description || '',
                     fiscalPeriod: portfolio.fiscalPeriod,
                     totalBudget: portfolio.totalBudget.toString(),
                     totalCapacity: portfolio.totalCapacity.toString(),
@@ -57,7 +97,78 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
         }
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const loadObjectives = async (pid: string) => {
+        try {
+            const res = await authGet(`/api/portfolios/${pid}/objectives`);
+            const data = await res.json();
+            if (data.success) setObjectives(data.data);
+        } catch (e) {
+            console.error('Error loading objectives:', e);
+        }
+    };
+
+    const loadRoles = async (pid: string) => {
+        try {
+            const res = await authGet(`/api/portfolios/${pid}/roles`);
+            const data = await res.json();
+            if (data.success) setRoles(data.data);
+        } catch (e) {
+            console.error('Error loading roles:', e);
+        }
+    };
+
+    const handleSaveObjective = async () => {
+        if (!newObj.name.trim()) { showToast.warning('Objective name is required'); return; }
+        const pid = portfolioId || (resolvedParams.id !== 'new' ? resolvedParams.id : null);
+        if (!pid) return;
+        setIsSavingObj(true);
+        try {
+            const res = await authPost(`/api/portfolios/${pid}/objectives`, {
+                name: newObj.name,
+                description: newObj.description || undefined,
+                priority: parseInt(newObj.priority) || 1,
+            });
+            const result = await res.json();
+            if (result.success) {
+                showToast.success('Objective added');
+                setNewObj({ name: '', description: '', priority: '1' });
+                setShowObjForm(false);
+                loadObjectives(pid);
+            } else {
+                showToast.error(result.errors[0]?.message || 'Failed to add objective');
+            }
+        } finally {
+            setIsSavingObj(false);
+        }
+    };
+
+    const handleSaveRole = async () => {
+        if (!newRole.name.trim()) { showToast.warning('Role name is required'); return; }
+        const pid = portfolioId || (resolvedParams.id !== 'new' ? resolvedParams.id : null);
+        if (!pid) return;
+        setIsSavingRole(true);
+        try {
+            const body: Record<string, unknown> = { name: newRole.name, description: newRole.description || undefined };
+            if (newRole.availableUnits && newRole.periodLabel) {
+                body.availableUnits = parseInt(newRole.availableUnits);
+                body.periodLabel = newRole.periodLabel;
+            }
+            const res = await authPost(`/api/portfolios/${pid}/roles`, body);
+            const result = await res.json();
+            if (result.success) {
+                showToast.success('Role added');
+                setNewRole({ name: '', description: '', availableUnits: '', periodLabel: '' });
+                setShowRoleForm(false);
+                loadRoles(pid);
+            } else {
+                showToast.error(result.errors[0]?.message || 'Failed to add role');
+            }
+        } finally {
+            setIsSavingRole(false);
+        }
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
         if (errors[name]) {
@@ -92,6 +203,7 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
         try {
             const response = await authPost('/api/portfolios', {
                 name: formData.name,
+                description: formData.description || undefined,
                 fiscalPeriod: formData.fiscalPeriod,
                 totalBudget: parseFloat(formData.totalBudget),
                 totalCapacity: parseInt(formData.totalCapacity),
@@ -164,364 +276,457 @@ export default function PortfolioSetupPage({ params }: { params: Promise<{ id: s
     }
 
     return (
-        <div 
-            className="min-h-screen"
-            style={{ backgroundColor: 'var(--bg-primary)' }}
-        >
+        <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
             <Header portfolioName={formData.name || 'New Portfolio'} portfolioId={portfolioId || resolvedParams.id} currentPage="setup" />
 
-            <main className="max-w-7xl mx-auto px-6 py-8">
-                {/* Enhanced Page Title & Intent */}
-                <div className="mb-10">
-                    <div className="flex items-start justify-between gap-6">
-                        <div>
-                            <h1 
-                                className="text-3xl font-bold mb-2"
-                                style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}
-                            >
-                                Portfolio Setup
-                            </h1>
-                            <p 
-                                className="text-base"
-                                style={{ color: 'var(--text-secondary)' }}
-                            >
-                                Define the decision boundary for this portfolio
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            {isLocked && <StatusBadge status="green" text="Locked" />}
-                            {!isLocked && <StatusBadge status="red" text="Draft" />}
-                        </div>
+            <main className="max-w-screen-xl mx-auto px-6 py-7">
+
+                {/* ── Page Header ──────────────────────────────────────── */}
+                <div className="flex items-center justify-between mb-7">
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: 'var(--accent-primary)', letterSpacing: '0.12em' }}>
+                            Portfolio Configuration
+                        </p>
+                        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+                            Portfolio Setup
+                        </h1>
+                        <p className="text-sm mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+                            Define the decision boundary for this portfolio
+                        </p>
+                    </div>
+                    <div>
+                        {isLocked ? (
+                            <span style={{
+                                display: 'inline-flex', alignItems: 'center', gap: 6,
+                                padding: '4px 12px', borderRadius: 99,
+                                background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)',
+                                fontSize: 11, fontWeight: 700, letterSpacing: '0.08em',
+                                color: '#34d399', textTransform: 'uppercase'
+                            }}>
+                                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#34d399', display: 'inline-block' }} />
+                                Locked
+                            </span>
+                        ) : (
+                            <span style={{
+                                display: 'inline-flex', alignItems: 'center', gap: 6,
+                                padding: '4px 12px', borderRadius: 99,
+                                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)',
+                                fontSize: 11, fontWeight: 700, letterSpacing: '0.08em',
+                                color: '#f87171', textTransform: 'uppercase'
+                            }}>
+                                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f87171', display: 'inline-block' }} />
+                                Draft
+                            </span>
+                        )}
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Main Form - 2 columns */}
-                    <div className="lg:col-span-2">
-                        <div 
-                            className="rounded-xl p-8"
-                            style={{ 
-                                backgroundColor: 'var(--bg-secondary)',
-                                border: '1px solid var(--border-default)',
-                                boxShadow: 'var(--shadow-lg)'
-                            }}
-                        >
-                            <h2 
-                                className="text-base font-semibold mb-6 pb-3"
-                                style={{ 
-                                    color: 'var(--text-primary)',
-                                    borderBottom: '1px solid var(--border-subtle)'
-                                }}
-                            >
-                                Portfolio Configuration
-                            </h2>
 
-                            <form onSubmit={(e) => e.preventDefault()}>
-                                {/* Block 1 - Portfolio Identity */}
-                                <div className="mb-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        <Input
-                                            id="name"
-                                            name="name"
-                                            label="Portfolio Name *"
-                                            type="text"
-                                            value={formData.name}
-                                            onChange={handleChange}
-                                            error={errors.name}
-                                            disabled={isLocked}
-                                            placeholder="e.g., FY26 Growth Portfolio"
-                                        />
+                    {/* ── Main Form ────────────────────────────────────── */}
+                    <div className="lg:col-span-2 space-y-0">
+                        <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-default)', backgroundColor: 'var(--bg-secondary)' }}>
 
-                                        <Select
-                                            id="fiscalPeriod"
-                                            name="fiscalPeriod"
-                                            label="Fiscal Period *"
-                                            value={formData.fiscalPeriod}
-                                            onChange={handleChange}
-                                            error={errors.fiscalPeriod}
-                                            disabled={isLocked}
-                                            options={[
-                                                { value: 'FY24', label: 'FY24' },
-                                                { value: 'FY25', label: 'FY25' },
-                                                { value: 'FY26', label: 'FY26' },
-                                                { value: 'FY27', label: 'FY27' },
-                                            ]}
-                                        />
-                                    </div>
-                                </div>
+                            {/* Card header strip */}
+                            <div className="px-6 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid var(--border-default)', background: 'rgba(255,255,255,0.02)' }}>
+                                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--accent-primary)', flexShrink: 0 }}>
+                                    <rect x="1" y="1" width="5.5" height="5.5" rx="1.2" stroke="currentColor" strokeWidth="1.4"/>
+                                    <rect x="9.5" y="1" width="5.5" height="5.5" rx="1.2" stroke="currentColor" strokeWidth="1.4"/>
+                                    <rect x="1" y="9.5" width="5.5" height="5.5" rx="1.2" stroke="currentColor" strokeWidth="1.4"/>
+                                    <rect x="9.5" y="9.5" width="5.5" height="5.5" rx="1.2" stroke="currentColor" strokeWidth="1.4"/>
+                                </svg>
+                                <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)', letterSpacing: '0.1em' }}>
+                                    Portfolio Configuration
+                                </span>
+                            </div>
 
-                                {/* Subtle Divider */}
-                                <div 
-                                    className="border-t mb-6"
-                                    style={{ borderColor: 'var(--border-subtle)' }}
-                                />
+                            <div className="p-6">
+                                <form onSubmit={(e) => e.preventDefault()}>
 
-                                {/* Block 2 - Decision Constraints */}
-                                <div className="mb-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        <Input
-                                            id="totalBudget"
-                                            name="totalBudget"
-                                            label="Total Budget (₹) *"
-                                            type="number"
-                                            value={formData.totalBudget}
-                                            onChange={handleChange}
-                                            error={errors.totalBudget}
-                                            disabled={isLocked}
-                                            placeholder="120000000"
-                                            helperText="Total budget available for this portfolio in INR"
-                                        />
-
-                                        <Input
-                                            id="totalCapacity"
-                                            name="totalCapacity"
-                                            label="Total Capacity (units) *"
-                                            type="number"
-                                            value={formData.totalCapacity}
-                                            onChange={handleChange}
-                                            error={errors.totalCapacity}
-                                            disabled={isLocked}
-                                            placeholder="450"
-                                            helperText="Total capacity units available across all roles"
-                                        />
+                                    {/* Identity block */}
+                                    <div className="mb-5">
+                                        <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.1em' }}>Identity</p>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <Input
+                                                id="name" name="name" label="Portfolio Name *" type="text"
+                                                value={formData.name} onChange={handleChange} error={errors.name}
+                                                disabled={isLocked} placeholder="e.g., FY26 Growth Portfolio"
+                                            />
+                                            <Select
+                                                id="fiscalPeriod" name="fiscalPeriod" label="Fiscal Period *"
+                                                value={formData.fiscalPeriod} onChange={handleChange}
+                                                error={errors.fiscalPeriod} disabled={isLocked}
+                                                options={[
+                                                    { value: 'FY24', label: 'FY24' }, { value: 'FY25', label: 'FY25' },
+                                                    { value: 'FY26', label: 'FY26' }, { value: 'FY27', label: 'FY27' },
+                                                ]}
+                                            />
+                                        </div>
+                                        <div className="mt-4">
+                                            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-primary)' }}>
+                                                Description
+                                            </label>
+                                            <textarea
+                                                name="description" value={formData.description} onChange={handleChange}
+                                                rows={2} disabled={isLocked}
+                                                placeholder="Brief description of this portfolio's scope and strategic intent"
+                                                className="w-full rounded-lg px-3 py-2 text-sm transition-colors"
+                                                style={{
+                                                    backgroundColor: isLocked ? 'var(--bg-tertiary)' : 'var(--bg-primary)',
+                                                    border: '1px solid var(--border-default)',
+                                                    color: 'var(--text-primary)', resize: 'vertical', outline: 'none',
+                                                    opacity: isLocked ? 0.6 : 1
+                                                }}
+                                            />
+                                        </div>
                                     </div>
 
-                                    {/* Constraint Note */}
-                                    <div 
-                                        className="mt-3 px-3 py-2.5 rounded-md"
-                                        style={{ 
-                                            backgroundColor: 'var(--bg-tertiary)',
-                                            border: '1px solid var(--border-subtle)',
-                                            borderLeft: '3px solid var(--accent-warning)'
-                                        }}
-                                    >
-                                        <p 
-                                            className="text-xs leading-relaxed"
-                                            style={{ color: 'var(--text-tertiary)' }}
-                                        >
-                                            These limits apply to all scenarios and cannot be exceeded.
-                                        </p>
-                                    </div>
-                                </div>
+                                    <div className="my-5" style={{ height: 1, backgroundColor: 'var(--border-subtle)' }} />
 
-                                <div 
-                                    className="border-t pt-5"
-                                    style={{ borderColor: 'var(--border-subtle)' }}
-                                ></div>
-
-                                {/* Primary Actions - Critical Moment Design */}
-                                <div className="flex flex-col sm:flex-row gap-3">
-                                    <Button
-                                        variant="secondary"
-                                        onClick={handleSaveDraft}
-                                        disabled={isLocked || isSaving}
-                                        className="text-sm"
-                                    >
-                                        {isSaving ? 'Saving...' : 'Save Draft'}
-                                    </Button>
-                                    <div className="flex-1">
-                                        <Button
-                                            variant="primary"
-                                            onClick={handleLockPortfolio}
-                                            disabled={!isFormValid || isLocked || isSaving}
-                                            className="w-full bg-amber-600 hover:bg-amber-700 border-amber-600 text-sm"
-                                        >
-                                            {isSaving ? 'Processing...' : 'Lock Portfolio'}
-                                        </Button>
-                                        {!isLocked && isFormValid && (
-                                            <p 
-                                                className="text-xs mt-1.5 text-center"
-                                                style={{ color: 'var(--text-tertiary)' }}
-                                            >
-                                                Once locked, budget and capacity cannot be edited.
+                                    {/* Constraints block */}
+                                    <div className="mb-5">
+                                        <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.1em' }}>Decision Constraints</p>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <Input
+                                                id="totalBudget" name="totalBudget" label="Total Budget (₹) *" type="number"
+                                                value={formData.totalBudget} onChange={handleChange} error={errors.totalBudget}
+                                                disabled={isLocked} placeholder="120000000"
+                                                helperText="Total budget available for this portfolio in INR"
+                                            />
+                                            <Input
+                                                id="totalCapacity" name="totalCapacity" label="Total Capacity (units) *" type="number"
+                                                value={formData.totalCapacity} onChange={handleChange} error={errors.totalCapacity}
+                                                disabled={isLocked} placeholder="450"
+                                                helperText="Total capacity units available across all roles"
+                                            />
+                                        </div>
+                                        <div className="mt-3 flex items-start gap-2.5 px-3 py-2.5 rounded-lg"
+                                            style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.18)', borderLeft: '3px solid #f59e0b' }}>
+                                            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style={{ color: '#f59e0b', flexShrink: 0, marginTop: 1 }}>
+                                                <path d="M8 1.5L14.5 13.5H1.5L8 1.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+                                                <path d="M8 6.5V9.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                                                <circle cx="8" cy="11.5" r="0.75" fill="currentColor"/>
+                                            </svg>
+                                            <p className="text-xs leading-relaxed" style={{ color: '#d97706' }}>
+                                                These limits apply to all scenarios and cannot be exceeded.
                                             </p>
-                                        )}
+                                        </div>
                                     </div>
-                                </div>
 
-                                {isLocked && (
-                                    <div 
-                                        className="mt-4 p-3 text-sm rounded-md"
-                                        style={{
-                                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                                            border: '1px solid rgba(16, 185, 129, 0.3)',
-                                            color: 'var(--accent-success)'
-                                        }}
-                                    >
-                                        <strong>✓ Portfolio Locked:</strong> This portfolio cannot be edited once scenarios exist.
-                                        All constraints are now fixed.
+                                    <div className="my-5" style={{ height: 1, backgroundColor: 'var(--border-subtle)' }} />
+
+                                    {/* Actions */}
+                                    <div className="flex flex-col sm:flex-row items-stretch gap-3">
+                                        <Button variant="secondary" onClick={handleSaveDraft} disabled={isLocked || isSaving} className="text-sm">
+                                            {isSaving ? 'Saving...' : 'Save Draft'}
+                                        </Button>
+                                        <div className="flex-1">
+                                            <Button
+                                                variant="primary"
+                                                onClick={handleLockPortfolio}
+                                                disabled={!isFormValid || isLocked || isSaving}
+                                                className="w-full text-sm"
+                                            >
+                                                {isSaving ? 'Processing...' : 'Lock Portfolio'}
+                                            </Button>
+                                            {!isLocked && isFormValid && (
+                                                <p className="text-xs mt-1.5 text-center" style={{ color: 'var(--text-tertiary)' }}>
+                                                    Once locked, budget and capacity cannot be edited.
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
-                                )}
-                            </form>
+
+                                    {isLocked && (
+                                        <div className="mt-4 flex items-center gap-2.5 px-4 py-3 rounded-lg"
+                                            style={{ background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.2)' }}>
+                                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ color: '#34d399', flexShrink: 0 }}>
+                                                <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.4"/>
+                                                <path d="M5 8.5L7 10.5L11 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                                            </svg>
+                                            <p className="text-sm" style={{ color: '#34d399' }}>
+                                                <strong>Portfolio Locked.</strong> Constraints are fixed across all scenarios.
+                                            </p>
+                                        </div>
+                                    )}
+                                </form>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Sidebar - 1 column */}
-                    <div className="space-y-5">
-                        {/* Enhanced Setup Progress Panel */}
-                        <div 
-                            className="rounded-xl p-6"
-                            style={{ 
-                                backgroundColor: 'var(--bg-secondary)',
-                                border: '1px solid var(--border-default)',
-                                boxShadow: 'var(--shadow-md)'
-                            }}
-                        >
-                            <h3 
-                                className="text-sm font-semibold mb-4 uppercase tracking-wide"
-                                style={{ color: 'var(--text-primary)' }}
-                            >
+                    {/* ── Sidebar ──────────────────────────────────────── */}
+                    <div className="space-y-4">
+
+                        {/* Setup Progress */}
+                        <div className="rounded-xl p-5" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
+                            <p className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.1em' }}>
                                 Setup Progress
-                            </h3>
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <div 
-                                        className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium`}
-                                        style={{
-                                            backgroundColor: formData.name ? 'var(--accent-success)' : 'var(--bg-tertiary)',
-                                            color: formData.name ? '#fff' : 'var(--text-tertiary)'
-                                        }}
-                                    >
-                                        1
+                            </p>
+                            <div className="space-y-0">
+                                {[
+                                    { n: 1, label: 'Portfolio Name', done: !!formData.name },
+                                    { n: 2, label: 'Fiscal Period',  done: !!formData.fiscalPeriod },
+                                    { n: 3, label: 'Budget',         done: !!formData.totalBudget },
+                                    { n: 4, label: 'Capacity',       done: !!formData.totalCapacity },
+                                ].map((step, i, arr) => (
+                                    <div key={step.n} className="flex gap-3">
+                                        {/* Spine */}
+                                        <div className="flex flex-col items-center" style={{ width: 20 }}>
+                                            <div style={{
+                                                width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                fontSize: 10, fontWeight: 700,
+                                                background: step.done ? '#10b981' : 'var(--bg-tertiary)',
+                                                color: step.done ? '#fff' : 'var(--text-tertiary)',
+                                                border: step.done ? 'none' : '1.5px solid var(--border-default)',
+                                            }}>
+                                                {step.done ? (
+                                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                                                        <path d="M2 5.5L4 7.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                    </svg>
+                                                ) : step.n}
+                                            </div>
+                                            {i < arr.length - 1 && (
+                                                <div style={{ width: 1.5, flex: 1, minHeight: 12, marginTop: 2, marginBottom: 2,
+                                                    background: step.done ? '#10b981' : 'var(--border-subtle)' }} />
+                                            )}
+                                        </div>
+                                        {/* Label */}
+                                        <div className="pb-3">
+                                            <span className="text-sm" style={{
+                                                color: step.done ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                                                fontWeight: step.done ? 500 : 400,
+                                            }}>
+                                                {step.label}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <span 
-                                        className={`text-sm ${formData.name ? 'font-medium' : ''}`}
-                                        style={{ color: formData.name ? 'var(--text-primary)' : 'var(--text-secondary)' }}
-                                    >
-                                        Portfolio Name
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <div 
-                                        className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium`}
-                                        style={{
-                                            backgroundColor: formData.fiscalPeriod ? 'var(--accent-success)' : 'var(--bg-tertiary)',
-                                            color: formData.fiscalPeriod ? '#fff' : 'var(--text-tertiary)'
-                                        }}
-                                    >
-                                        2
-                                    </div>
-                                    <span 
-                                        className={`text-sm ${formData.fiscalPeriod ? 'font-medium' : ''}`}
-                                        style={{ color: formData.fiscalPeriod ? 'var(--text-primary)' : 'var(--text-secondary)' }}
-                                    >
-                                        Fiscal Period
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2.5">
-                                    <div 
-                                        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold`}
-                                        style={{
-                                            backgroundColor: formData.totalBudget ? 'var(--accent-success)' : 'var(--bg-tertiary)',
-                                            color: formData.totalBudget ? '#fff' : 'var(--text-tertiary)'
-                                        }}
-                                    >
-                                        3
-                                    </div>
-                                    <span 
-                                        className={`text-sm ${formData.totalBudget ? 'font-medium' : ''}`}
-                                        style={{ color: formData.totalBudget ? 'var(--text-primary)' : 'var(--text-secondary)' }}
-                                    >
-                                        Budget
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2.5">
-                                    <div 
-                                        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold`}
-                                        style={{
-                                            backgroundColor: formData.totalCapacity ? 'var(--accent-success)' : 'var(--bg-tertiary)',
-                                            color: formData.totalCapacity ? '#fff' : 'var(--text-tertiary)'
-                                        }}
-                                    >
-                                        4
-                                    </div>
-                                    <span 
-                                        className={`text-sm ${formData.totalCapacity ? 'font-medium' : ''}`}
-                                        style={{ color: formData.totalCapacity ? 'var(--text-primary)' : 'var(--text-secondary)' }}
-                                    >
-                                        Capacity
-                                    </span>
-                                </div>
+                                ))}
                             </div>
                         </div>
 
-                        {/* Enhanced Governance Rules */}
-                        <div 
-                            className="rounded-xl p-6"
-                            style={{ 
-                                backgroundColor: 'var(--bg-secondary)',
-                                border: '1px solid var(--border-default)',
-                                boxShadow: 'var(--shadow-md)'
-                            }}
-                        >
-                            <h3 
-                                className="text-sm font-semibold mb-1.5 uppercase tracking-wide"
-                                style={{ color: 'var(--text-primary)' }}
-                            >
+                        {/* Governance Rules */}
+                        <div className="rounded-xl p-5" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
+                            <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.1em' }}>
                                 Governance Rules
-                            </h3>
-                            <p 
-                                className="text-xs mb-3"
-                                style={{ color: 'var(--text-tertiary)' }}
-                            >
-                                These rules are enforced by the system.
                             </p>
-                            <ul className="text-xs space-y-2 leading-relaxed">
-                                <li 
-                                    className="flex gap-2"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
-                                    <span style={{ color: 'var(--text-tertiary)' }} className="mt-0.5">•</span>
-                                    <span>All fields are mandatory before portfolio can be locked</span>
-                                </li>
-                                <li 
-                                    className="flex gap-2"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
-                                    <span style={{ color: 'var(--text-tertiary)' }} className="mt-0.5">•</span>
-                                    <span>Portfolio cannot be edited once scenarios exist</span>
-                                </li>
-                                <li 
-                                    className="flex gap-2"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
-                                    <span style={{ color: 'var(--text-tertiary)' }} className="mt-0.5">•</span>
-                                    <span>Budget and capacity are hard constraints for all scenarios</span>
-                                </li>
-                                <li 
-                                    className="flex gap-2"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
-                                    <span style={{ color: 'var(--text-tertiary)' }} className="mt-0.5">•</span>
-                                    <span>Validation errors must be resolved before proceeding</span>
-                                </li>
+                            <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>These rules are enforced by the system.</p>
+                            <ul className="space-y-3">
+                                {[
+                                    'All fields are mandatory before portfolio can be locked',
+                                    'Portfolio cannot be edited once scenarios exist',
+                                    'Budget and capacity are hard constraints for all scenarios',
+                                    'Validation errors must be resolved before proceeding',
+                                ].map((rule, i) => (
+                                    <li key={i} className="flex items-start gap-2.5">
+                                        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ color: 'var(--accent-primary)', flexShrink: 0, marginTop: 1 }}>
+                                            <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.2"/>
+                                            <path d="M4.5 7L6.2 8.7L9.5 5.3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                        <span className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{rule}</span>
+                                    </li>
+                                ))}
                             </ul>
                         </div>
 
-                        {/* Enhanced Next Steps */}
-                        <div 
-                            className="rounded-lg p-5"
-                            style={{ 
-                                backgroundColor: 'var(--bg-secondary)',
-                                border: '1px solid var(--border-default)',
-                                borderLeft: '3px solid var(--accent-success)'
-                            }}
-                        >
-                            <h3 
-                                className="text-sm font-semibold mb-2 uppercase tracking-wide"
-                                style={{ color: 'var(--text-primary)' }}
-                            >
-                                Next Steps
-                            </h3>
-                            <p 
-                                className="text-xs leading-relaxed"
-                                style={{ color: 'var(--text-secondary)' }}
-                            >
+                        {/* Next Steps */}
+                        <div className="rounded-xl p-5" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)', borderLeft: '3px solid #10b981' }}>
+                            <div className="flex items-center gap-2 mb-2">
+                                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ color: '#10b981' }}>
+                                    <path d="M7 1.5V7L10 9.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                                    <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.3"/>
+                                </svg>
+                                <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-primary)', letterSpacing: '0.1em' }}>Next Steps</p>
+                            </div>
+                            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                                 After locking the portfolio, proceed to Initiative Intake to add decision-grade initiatives.
                             </p>
                         </div>
                     </div>
                 </div>
+
+                {/* ── Strategic Objectives ─────────────────────────────── */}
+                {(portfolioId || resolvedParams.id !== 'new') && (
+                    <div className="mt-10">
+                        <div className="flex items-center justify-between mb-5">
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.1em' }}>Portfolio Strategy</p>
+                                <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>Strategic Objectives</h2>
+                                <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>Link initiatives to portfolio strategy</p>
+                            </div>
+                            <Button variant="secondary" onClick={() => setShowObjForm(!showObjForm)}>
+                                {showObjForm ? 'Cancel' : '+ Add Objective'}
+                            </Button>
+                        </div>
+
+                        {showObjForm && (
+                            <div className="mb-4 rounded-xl p-5" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
+                                <p className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.1em' }}>New Objective</p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <Input id="obj-name" label="Name *" value={newObj.name}
+                                        onChange={(e) => setNewObj(p => ({ ...p, name: e.target.value }))}
+                                        placeholder="e.g., Digital Transformation" />
+                                    <Select id="obj-priority" label="Priority" value={newObj.priority}
+                                        onChange={(e) => setNewObj(p => ({ ...p, priority: e.target.value }))}
+                                        options={[
+                                            { value: '1', label: '1 — Critical' }, { value: '2', label: '2 — High' },
+                                            { value: '3', label: '3 — Medium' }, { value: '4', label: '4 — Low' },
+                                        ]} />
+                                </div>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-primary)' }}>Description</label>
+                                    <textarea value={newObj.description} onChange={(e) => setNewObj(p => ({ ...p, description: e.target.value }))}
+                                        rows={2} placeholder="What does this objective achieve?"
+                                        className="w-full rounded-lg px-3 py-2 text-sm"
+                                        style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-default)', color: 'var(--text-primary)', resize: 'vertical', outline: 'none' }} />
+                                </div>
+                                <div className="flex justify-end">
+                                    <Button variant="primary" onClick={handleSaveObjective} disabled={isSavingObj}>
+                                        {isSavingObj ? 'Saving…' : 'Save Objective'}
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
+                            {objectives.length === 0 ? (
+                                <div className="py-12 text-center">
+                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="mx-auto mb-3" style={{ color: 'var(--text-tertiary)' }}>
+                                        <circle cx="16" cy="16" r="13" stroke="currentColor" strokeWidth="1.5"/>
+                                        <path d="M16 10v6l4 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                                    </svg>
+                                    <p className="text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>No objectives defined</p>
+                                    <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Add objectives to link initiatives to portfolio strategy.</p>
+                                </div>
+                            ) : (
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
+                                            {['Priority', 'Objective', 'Description', 'Initiatives'].map(h => (
+                                                <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                                                    style={{ color: 'var(--text-tertiary)', letterSpacing: '0.08em', background: 'rgba(255,255,255,0.02)' }}>{h}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {objectives.map((obj, i) => (
+                                            <tr key={obj.id} style={{ borderBottom: i < objectives.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
+                                                <td className="px-5 py-3.5">
+                                                    <span style={{
+                                                        display: 'inline-block', padding: '2px 8px', borderRadius: 4,
+                                                        background: 'rgba(0,217,255,0.08)', border: '1px solid rgba(0,217,255,0.15)',
+                                                        fontSize: 11, fontWeight: 700, color: 'var(--accent-primary)',
+                                                        letterSpacing: '0.04em'
+                                                    }}>P{obj.priority}</span>
+                                                </td>
+                                                <td className="px-5 py-3.5 font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{obj.name}</td>
+                                                <td className="px-5 py-3.5 text-sm" style={{ color: 'var(--text-secondary)' }}>{obj.description || '—'}</td>
+                                                <td className="px-5 py-3.5 text-sm font-mono" style={{ color: 'var(--text-secondary)' }}>{obj._count?.initiatives ?? 0}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Role Capacity ─────────────────────────────────────── */}
+                {(portfolioId || resolvedParams.id !== 'new') && (
+                    <div className="mt-10 mb-10">
+                        <div className="flex items-center justify-between mb-5">
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.1em' }}>Capacity Planning</p>
+                                <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>Role Capacity</h2>
+                                <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>Define per-role capacity to enable granular breach detection</p>
+                            </div>
+                            <Button variant="secondary" onClick={() => setShowRoleForm(!showRoleForm)}>
+                                {showRoleForm ? 'Cancel' : '+ Add Role'}
+                            </Button>
+                        </div>
+
+                        {showRoleForm && (
+                            <div className="mb-4 rounded-xl p-5" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
+                                <p className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.1em' }}>New Role</p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <Input id="role-name" label="Role Name *" value={newRole.name}
+                                        onChange={(e) => setNewRole(p => ({ ...p, name: e.target.value }))} placeholder="e.g., Backend Developer" />
+                                    <Input id="role-desc" label="Description" value={newRole.description}
+                                        onChange={(e) => setNewRole(p => ({ ...p, description: e.target.value }))} placeholder="Optional description" />
+                                </div>
+                                <div className="p-4 rounded-lg mb-4" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)' }}>
+                                    <p className="text-xs font-semibold mb-3" style={{ color: 'var(--text-secondary)' }}>
+                                        Capacity Bucket <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>(optional — can be added later)</span>
+                                    </p>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <Input id="role-units" label="Available Units" type="number" value={newRole.availableUnits}
+                                            onChange={(e) => setNewRole(p => ({ ...p, availableUnits: e.target.value }))}
+                                            placeholder="e.g., 120" helperText="FTE-weeks or story points available" />
+                                        <Input id="role-period" label="Period Label" value={newRole.periodLabel}
+                                            onChange={(e) => setNewRole(p => ({ ...p, periodLabel: e.target.value }))}
+                                            placeholder="e.g., Q1 FY26" helperText="Quarter or period this capacity covers" />
+                                    </div>
+                                </div>
+                                <div className="flex justify-end">
+                                    <Button variant="primary" onClick={handleSaveRole} disabled={isSavingRole}>
+                                        {isSavingRole ? 'Saving…' : 'Save Role'}
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
+                            {roles.length === 0 ? (
+                                <div className="py-12 text-center">
+                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="mx-auto mb-3" style={{ color: 'var(--text-tertiary)' }}>
+                                        <circle cx="13" cy="11" r="5" stroke="currentColor" strokeWidth="1.5"/>
+                                        <path d="M4 27c0-5 4-9 9-9s9 4 9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                                        <path d="M22 10l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                    <p className="text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>No roles defined</p>
+                                    <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Without role capacity, the system falls back to aggregate capacity validation.</p>
+                                </div>
+                            ) : (
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
+                                            {['Role', 'Description', 'Total Available (units)', 'Periods Defined'].map(h => (
+                                                <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                                                    style={{ color: 'var(--text-tertiary)', letterSpacing: '0.08em', background: 'rgba(255,255,255,0.02)' }}>{h}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {roles.map((role, i) => (
+                                            <tr key={role.id} style={{ borderBottom: i < roles.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
+                                                <td className="px-5 py-3.5 font-semibold" style={{ color: 'var(--text-primary)' }}>{role.name}</td>
+                                                <td className="px-5 py-3.5" style={{ color: 'var(--text-secondary)' }}>{role.description || '—'}</td>
+                                                <td className="px-5 py-3.5 font-mono font-medium" style={{ color: 'var(--text-primary)' }}>
+                                                    {role.totalAvailable.toLocaleString()}
+                                                </td>
+                                                <td className="px-5 py-3.5">
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {role.capacityBuckets.length === 0 ? (
+                                                            <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>None</span>
+                                                        ) : role.capacityBuckets.map(b => (
+                                                            <span key={b.id} style={{
+                                                                display: 'inline-block', padding: '2px 7px', borderRadius: 4,
+                                                                background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)',
+                                                                fontSize: 11, color: 'var(--text-secondary)'
+                                                            }}>
+                                                                {b.periodLabel}: {b.availableUnits}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );

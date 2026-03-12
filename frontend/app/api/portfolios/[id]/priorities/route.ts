@@ -27,6 +27,8 @@ export async function GET(
             const priorityScore = calculatePriorityScore({
                 estimatedValue: initiative.estimatedValue,
                 strategicAlignmentScore: initiative.strategicAlignmentScore,
+                strategyScore: initiative.strategyScore ?? 0,
+                costOfDelay: initiative.costOfDelay ?? 0,
                 riskScore: initiative.riskScore,
                 capacityDemands: initiative.capacityDemands
             });
